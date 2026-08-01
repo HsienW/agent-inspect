@@ -8,27 +8,24 @@
 baselineVersion: "6.7.3"
 publishedVersion: "6.7.3"
 currentTrain: "v6.7.4-real-integration-blockers"
-trainStatus: "active"
+trainStatus: "release-pending"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.7.4-2-run-status-golden"
-lastConfirmedCommit: "pending-6.7.4-1"
-lastValidationLevel: "focused langchain tests"
-nextAction: "Cross-command run-status golden for view/explain/check/eval/stats"
+currentChunk: "6.7.4-9-release-readiness"
+lastConfirmedCommit: "b8c3aed"
+lastValidationLevel: "pack:smoke + fixtures + test green"
+nextAction: "Merge Version Packages PR; verify npm 6.7.4; begin v6.7.5"
 pendingManualGate: "none until an explicit external-validation gate"
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
   - "v6.4.1 through v6.7.3 npm publication"
-  - "v6.7.0 reconciliation audit"
-  - "6.7.2 product presentation"
-  - "6.7.3 corrective patch published on npm (fixed group aligned)"
   - "stability-and-focus-roadmap committed (ddafa51)"
   - "operational SoT activation (e97b844)"
-  - "6.7.4-0-reproduce-and-reconcile"
-  - "6.7.4-1-active-lifecycle-completion"
+  - "6.7.4-0 through 6.7.4-8 implementation"
+  - "6.7.4-9 release readiness + changeset (pending publish)"
 remainingTrains:
-  - "v6.7.4 Real-integration blocker patch (active)"
+  - "v6.7.4 Real-integration blocker patch (release pending)"
   - "v6.7.5 Consumer / native / DX reliability"
   - "v6.8.0 LangGraph fidelity contract"
   - "v6.9.0 Safety precision and share policy"
@@ -44,5 +41,5 @@ updatedAt: "2026-08-01"
 ## Quick links
 
 - **Active plan:** [release-trains/V6.7.4-EXECUTION-PLAN.md](./release-trains/V6.7.4-EXECUTION-PLAN.md)
-- **Baseline audit:** [reviews/V6.7.3-STABILITY-AND-FOCUS-BASELINE-AUDIT.md](./reviews/V6.7.3-STABILITY-AND-FOCUS-BASELINE-AUDIT.md)
+- **Readiness:** [release-trains/V6.7.4-RELEASE-READINESS.md](./release-trains/V6.7.4-RELEASE-READINESS.md)
 - **Maintainer rules:** [AGENTS.md](../../AGENTS.md)
