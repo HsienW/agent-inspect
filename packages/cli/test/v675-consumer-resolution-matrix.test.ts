@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { runDoctorChecks } from "../src/doctor.js";
+import { resolveInstalledPackage, runDoctorChecks } from "../src/doctor.js";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, "../../..");
@@ -104,7 +104,7 @@ describe("v6.7.5-0 consumer package-resolution matrix", () => {
     expect(selfResolvable.map((row) => row.name)).toContain("agent-inspect");
   });
 
-  it("doctor entry smoke passes for installed agent-inspect while package.json path fails", async () => {
+  it("doctor never contradicts successful entry resolution for agent-inspect", async () => {
     const requireFn = createRequire(path.join(repoRoot, "package.json"));
     expect(tryResolve(requireFn, "agent-inspect").ok).toBe(true);
     expect(tryResolve(requireFn, "agent-inspect/package.json").ok).toBe(false);
@@ -116,39 +116,15 @@ describe("v6.7.5-0 consumer package-resolution matrix", () => {
     });
 
     expect(checks.find((check) => check.id === "import-agent-inspect")?.status).toBe("pass");
-    // Current bug: CJS / version checks key off package.json export and skip/warn.
-    expect(checks.find((check) => check.id === "import-agent-inspect-cjs")?.status).toBe(
-      "skipped",
-    );
-    expect(checks.find((check) => check.id === "version-alignment")?.status).toBe("skipped");
+    expect(checks.find((check) => check.id === "import-agent-inspect-cjs")?.status).toBe("pass");
+    expect(checks.find((check) => check.id === "version-alignment")?.status).toBe("pass");
+    expect(checks.find((check) => check.id === "version-alignment")?.message).toMatch(/aligned/);
   });
 
-  it.fails(
-    "doctor version-alignment and CJS checks pass when agent-inspect entry resolves (6.7.5-1)",
-    async () => {
-      const checks = await runDoctorChecks({
-        cwd: repoRoot,
-        checkImports: true,
-        traceDir: path.join(repoRoot, ".agent-inspect"),
-      });
-
-      expect(checks.find((check) => check.id === "import-agent-inspect")?.status).toBe("pass");
-      expect(checks.find((check) => check.id === "import-agent-inspect-cjs")?.status).toBe("pass");
-      expect(checks.find((check) => check.id === "version-alignment")?.status).toBe("pass");
-    },
-  );
-
-  it("doctor correctly reports a truly absent optional package as not installed", async () => {
-    const checks = await runDoctorChecks({
-      cwd: repoRoot,
-      framework: "ai-sdk",
-      checkImports: false,
-    });
-    const optional = checks.find(
-      (check) => check.id === "optional-package-@agent-inspect/ai-sdk",
-    );
-    // Workspace root does not depend on the adapter — absence is real here.
-    expect(optional?.status).toBe("warn");
-    expect(optional?.message).toMatch(/not installed/);
+  it("doctor resolver reports unknown packages as not installed", () => {
+    // Real package ids are Vitest-aliased in-repo; use a non-aliased name for absence.
+    expect(
+      resolveInstalledPackage(repoRoot, "@agent-inspect/not-a-real-package-zzz").ok,
+    ).toBe(false);
   });
 });

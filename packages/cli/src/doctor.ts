@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from "node:fs";
 import { access, constants, mkdir } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -91,12 +92,53 @@ async function traceDirWritable(traceDir: string): Promise<DoctorCheckResult> {
   }
 }
 
-function resolvePackage(cwd: string, name: string): { ok: boolean; version?: string } {
+/**
+ * Locate package metadata by walking from a resolved entry file to the nearest
+ * package.json whose `name` matches. Does not require `./package.json` in exports.
+ */
+function readPackageVersionNearEntry(entryPath: string, packageName: string): string | undefined {
+  let dir = path.dirname(path.resolve(entryPath));
+  const { root } = path.parse(dir);
+  while (true) {
+    const candidate = path.join(dir, "package.json");
+    if (existsSync(candidate)) {
+      try {
+        const pkg = JSON.parse(readFileSync(candidate, "utf8")) as {
+          name?: string;
+          version?: string;
+        };
+        if (pkg.name === packageName && typeof pkg.version === "string") {
+          return pkg.version;
+        }
+      } catch {
+        /* continue walking past unreadable manifests */
+      }
+    }
+    if (dir === root) break;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return undefined;
+}
+
+/** Resolve a package entry and version without requiring `./package.json` exports. */
+export function resolveInstalledPackage(
+  cwd: string,
+  name: string,
+): { ok: boolean; version?: string; entry?: string } {
   const require = createRequire(path.join(cwd, "package.json"));
   try {
-    const pkgPath = require.resolve(`${name}/package.json`);
-    const pkg = require(pkgPath) as { version?: string };
-    return { ok: true, version: pkg.version };
+    const entry = require.resolve(name);
+    let version: string | undefined;
+    try {
+      const pkgPath = require.resolve(`${name}/package.json`);
+      const pkg = require(pkgPath) as { version?: string };
+      if (typeof pkg.version === "string") version = pkg.version;
+    } catch {
+      version = readPackageVersionNearEntry(entry, name);
+    }
+    return { ok: true, version, entry };
   } catch {
     return { ok: false };
   }
@@ -104,32 +146,29 @@ function resolvePackage(cwd: string, name: string): { ok: boolean; version?: str
 
 function importSmoke(cwd: string): DoctorCheckResult[] {
   const results: DoctorCheckResult[] = [];
-  const require = createRequire(path.join(cwd, "package.json"));
+  const resolved = resolveInstalledPackage(cwd, "agent-inspect");
 
-  try {
-    require.resolve("agent-inspect");
+  if (resolved.ok) {
     results.push({
       id: "import-agent-inspect",
       status: "pass",
       message: "agent-inspect resolves from the current project.",
+      evidence: resolved.entry,
     });
-  } catch {
+    // createRequire.resolve is the CJS resolver; entry success means require() can load it.
+    results.push({
+      id: "import-agent-inspect-cjs",
+      status: "pass",
+      message: "CJS resolution for agent-inspect succeeded.",
+      evidence: resolved.entry,
+    });
+  } else {
     results.push({
       id: "import-agent-inspect",
       status: "warn",
       message: "agent-inspect is not installed in the current project.",
       remediation: "Run npm install agent-inspect (or pnpm add agent-inspect).",
     });
-  }
-
-  try {
-    require.resolve("agent-inspect/package.json");
-    results.push({
-      id: "import-agent-inspect-cjs",
-      status: "pass",
-      message: "CJS resolution for agent-inspect succeeded.",
-    });
-  } catch {
     results.push({
       id: "import-agent-inspect-cjs",
       status: "skipped",
@@ -153,7 +192,7 @@ function optionalPackageChecks(cwd: string, framework?: InitFramework): DoctorCh
         ];
 
   return packages.map((name) => {
-    const resolved = resolvePackage(cwd, name);
+    const resolved = resolveInstalledPackage(cwd, name);
     if (!resolved.ok) {
       return {
         id: `optional-package-${name}`,
@@ -172,7 +211,7 @@ function optionalPackageChecks(cwd: string, framework?: InitFramework): DoctorCh
 }
 
 function versionMismatchCheck(cwd: string): DoctorCheckResult {
-  const root = resolvePackage(cwd, "agent-inspect");
+  const root = resolveInstalledPackage(cwd, "agent-inspect");
   if (!root.ok || root.version === undefined) {
     return {
       id: "version-alignment",

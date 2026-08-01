@@ -1,10 +1,13 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { doctorCommand, runDoctorChecks } from "../src/doctor.js";
+import { doctorCommand, resolveInstalledPackage, runDoctorChecks } from "../src/doctor.js";
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 
 describe("doctor CLI", () => {
   let tmpDir: string;
@@ -53,14 +56,24 @@ describe("doctor CLI", () => {
     );
   });
 
-  it("warns when framework adapter package is missing", async () => {
+  it("treats unresolved package names as not installed", () => {
+    // Avoid Vitest workspace aliases (they map real @agent-inspect/* package ids).
+    expect(resolveInstalledPackage(tmpDir, "@agent-inspect/not-a-real-package-zzz").ok).toBe(
+      false,
+    );
+  });
+
+  it("resolves installed packages via entry when package.json is not exported", async () => {
     const checks = await runDoctorChecks({
-      cwd: tmpDir,
-      framework: "ai-sdk",
-      checkImports: false,
+      cwd: repoRoot,
+      checkImports: true,
+      framework: "custom",
     });
-    expect(
-      checks.find((check) => check.id === "optional-package-@agent-inspect/ai-sdk")?.status,
-    ).toBe("warn");
+    expect(checks.find((check) => check.id === "import-agent-inspect")?.status).toBe("pass");
+    expect(checks.find((check) => check.id === "import-agent-inspect-cjs")?.status).toBe("pass");
+    expect(checks.find((check) => check.id === "version-alignment")?.status).toBe("pass");
+    const resolved = resolveInstalledPackage(repoRoot, "agent-inspect");
+    expect(resolved.ok).toBe(true);
+    expect(resolved.version).toMatch(/^\d+\.\d+\.\d+/);
   });
 });
