@@ -129,6 +129,12 @@ export async function searchTraces(
         ...(sessionLabel ? { sessionId: sessionLabel } : {}),
       });
     }
+    results.sort((a, b) => {
+      const ta = a.timestamp ?? 0;
+      const tb = b.timestamp ?? 0;
+      if (ta !== tb) return tb - ta;
+      return a.runId.localeCompare(b.runId);
+    });
     return results.slice(0, limit);
   }
 
@@ -182,7 +188,8 @@ export async function searchTraces(
   results.sort((a, b) => {
     const ta = a.timestamp ?? 0;
     const tb = b.timestamp ?? 0;
-    if (ta !== tb) return ta - tb;
+    // Newest-first so --limit keeps the most recent matches.
+    if (ta !== tb) return tb - ta;
     const runCmp = a.runId.localeCompare(b.runId);
     if (runCmp !== 0) return runCmp;
     return (a.stepName ?? "").localeCompare(b.stepName ?? "");

@@ -52,7 +52,7 @@ describe("v6.7.4-0 core reproduction", () => {
     expect(out).not.toContain("llm:llm:");
   });
 
-  it.fails("filtered search is newest-first and --limit keeps most recent matches", async () => {
+  it("filtered search is newest-first and --limit keeps most recent matches", async () => {
     const older = path.join(tmp, "run_old.jsonl");
     const newer = path.join(tmp, "run_new.jsonl");
     await writeFile(

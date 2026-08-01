@@ -8,6 +8,7 @@ import type {
   TraceEvent,
   TraceMetadataStatus,
 } from "./types.js";
+import { formatStepLabel } from "./stats.js";
 import { formatDuration, formatTimestamp } from "./utils.js";
 
 export type TimelineFocus = "all" | "slow";
@@ -291,7 +292,7 @@ export function renderTimeline(
       e.durationMs !== undefined ? formatDuration(e.durationMs) : "-";
     const err = e.isError ? " error" : "";
     const off = formatDuration(e.offsetMs);
-    let line = `${prefix}+${off} ${typeTag}:${e.name} (${dur})${err}`;
+    let line = `${prefix}+${off} ${formatStepLabel(typeTag, e.name)} (${dur})${err}`;
     if (e.streaming?.chunkCount !== undefined) {
       line += ` chunks=${e.streaming.chunkCount}`;
     }

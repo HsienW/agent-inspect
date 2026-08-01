@@ -249,7 +249,7 @@ function collectCompletedSteps(
  * prefix only when the name does not already carry it, matching what list/view
  * show for the same step.
  */
-function formatStepLabel(stepType: string, stepName: string): string {
+export function formatStepLabel(stepType: string, stepName: string): string {
   return stepName.startsWith(`${stepType}:`) ? stepName : `${stepType}:${stepName}`;
 }
 
