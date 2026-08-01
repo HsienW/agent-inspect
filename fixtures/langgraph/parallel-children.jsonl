@@ -1,0 +1,8 @@
+{"schemaVersion":"0.1","event":"run_started","timestamp":1700000400000,"runId":"lg_parallel","name":"langgraph-parallel-children","startTime":1700000400000,"metadata":{"adapter":"langchain","fixture":"parallel-children"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1700000400010,"runId":"lg_parallel","stepId":"step_root","name":"chain:agent","type":"logic","startTime":1700000400010,"metadata":{"adapter":"langchain","confidence":"explicit"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1700000400020,"runId":"lg_parallel","stepId":"step_a","parentId":"step_root","name":"llm:model-a","type":"llm","startTime":1700000400020,"metadata":{"adapter":"langchain","confidence":"explicit"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1700000400030,"runId":"lg_parallel","stepId":"step_b","parentId":"step_root","name":"llm:model-b","type":"llm","startTime":1700000400030,"metadata":{"adapter":"langchain","confidence":"explicit"}}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1700000400120,"runId":"lg_parallel","stepId":"step_a","status":"success","endTime":1700000400120,"durationMs":100}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1700000400130,"runId":"lg_parallel","stepId":"step_b","status":"success","endTime":1700000400130,"durationMs":100}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1700000400140,"runId":"lg_parallel","stepId":"step_root","status":"success","endTime":1700000400140,"durationMs":130}
+{"schemaVersion":"0.1","event":"run_completed","timestamp":1700000400150,"runId":"lg_parallel","status":"success","endTime":1700000400150,"durationMs":150}

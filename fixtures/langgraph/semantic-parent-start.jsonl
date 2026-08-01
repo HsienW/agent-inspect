@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","event":"run_started","timestamp":1700000250000,"runId":"lg_semantic_start","name":"langgraph-semantic-start","startTime":1700000250000,"metadata":{"adapter":"langchain","fixture":"semantic-parent-start"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1700000250010,"runId":"lg_semantic_start","stepId":"step_node","name":"chain:agent","type":"logic","startTime":1700000250010,"metadata":{"adapter":"langchain","confidence":"explicit","parentMapping":"unresolved","unresolvedParentRunId":"__start__"}}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1700000250110,"runId":"lg_semantic_start","stepId":"step_node","status":"success","endTime":1700000250110,"durationMs":100}
+{"schemaVersion":"0.1","event":"run_completed","timestamp":1700000250120,"runId":"lg_semantic_start","status":"success","endTime":1700000250120,"durationMs":120}

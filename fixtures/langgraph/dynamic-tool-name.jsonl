@@ -1,0 +1,6 @@
+{"schemaVersion":"0.1","event":"run_started","timestamp":1700000300000,"runId":"lg_dynamic_tool","name":"langgraph-dynamic-tool","startTime":1700000300000,"metadata":{"adapter":"langchain","fixture":"dynamic-tool-name"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1700000300010,"runId":"lg_dynamic_tool","stepId":"step_root","name":"chain:agent","type":"logic","startTime":1700000300010,"metadata":{"adapter":"langchain","confidence":"explicit"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1700000300020,"runId":"lg_dynamic_tool","stepId":"step_tool","parentId":"step_root","name":"tool:get_navan_rewards","type":"tool","startTime":1700000300020,"metadata":{"adapter":"langchain","confidence":"explicit","tool":"get_navan_rewards","runName":"get_navan_rewards"}}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1700000300120,"runId":"lg_dynamic_tool","stepId":"step_tool","status":"success","endTime":1700000300120,"durationMs":100}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1700000300130,"runId":"lg_dynamic_tool","stepId":"step_root","status":"success","endTime":1700000300130,"durationMs":120}
+{"schemaVersion":"0.1","event":"run_completed","timestamp":1700000300140,"runId":"lg_dynamic_tool","status":"success","endTime":1700000300140,"durationMs":140}

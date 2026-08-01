@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","event":"run_started","timestamp":1700000500000,"runId":"lg_error_run","name":"langgraph-error-run","startTime":1700000500000,"metadata":{"adapter":"langchain","fixture":"error-run"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1700000500010,"runId":"lg_error_run","stepId":"step_root","name":"chain:agent","type":"logic","startTime":1700000500010,"metadata":{"adapter":"langchain","confidence":"explicit","parentMapping":"unresolved","unresolvedParentRunId":"__start__"}}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1700000500110,"runId":"lg_error_run","stepId":"step_root","status":"error","endTime":1700000500110,"durationMs":100,"error":{"message":"node failed"}}
+{"schemaVersion":"0.1","event":"run_completed","timestamp":1700000500120,"runId":"lg_error_run","status":"error","endTime":1700000500120,"durationMs":120,"error":{"message":"node failed"}}

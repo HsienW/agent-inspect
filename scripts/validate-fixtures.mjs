@@ -36,6 +36,14 @@ const REQUIRED = {
     "fixtures/traces/dual-format-parity.jsonl",
     "fixtures/traces/outcome-pass.jsonl",
   ],
+  langgraph: [
+    "fixtures/langgraph/plain-root.jsonl",
+    "fixtures/langgraph/semantic-parent-langgraph.jsonl",
+    "fixtures/langgraph/semantic-parent-start.jsonl",
+    "fixtures/langgraph/dynamic-tool-name.jsonl",
+    "fixtures/langgraph/parallel-children.jsonl",
+    "fixtures/langgraph/error-run.jsonl",
+  ],
   tracesV02: [
     "fixtures/traces-v0.2/manual-basic.jsonl",
     "fixtures/traces-v0.2/manual-tool-error.jsonl",
@@ -316,6 +324,12 @@ try {
     scanForbidden(rel);
   }
 
+  for (const rel of REQUIRED.langgraph) {
+    assertFile(rel);
+    validateTraceJsonl(rel);
+    scanForbidden(rel);
+  }
+
   for (const rel of REQUIRED.tracesV02) {
     validatePersistedTraceJsonl(rel);
     scanForbidden(rel);
@@ -359,6 +373,7 @@ try {
 
   console.log("[fixtures:check] OK");
   console.log(`  traces: ${REQUIRED.traces.length} v0.1 JSONL files validated`);
+  console.log(`  langgraph: ${REQUIRED.langgraph.length} synthetic LangGraph JSONL files validated`);
   console.log(`  traces-v0.2: ${REQUIRED.tracesV02.length} v0.2 JSONL files validated`);
   console.log(`  traces-v1.0: ${REQUIRED.tracesV10.length} v1.0 JSONL files validated`);
   console.log(`  logs: ${REQUIRED.logs.length} files`);

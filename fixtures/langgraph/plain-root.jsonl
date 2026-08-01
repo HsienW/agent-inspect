@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","event":"run_started","timestamp":1700000100000,"runId":"lg_plain_root","name":"langgraph-plain-root","startTime":1700000100000,"metadata":{"adapter":"langchain","fixture":"plain-root"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1700000100010,"runId":"lg_plain_root","stepId":"step_root","name":"chain:agent","type":"logic","startTime":1700000100010,"metadata":{"adapter":"langchain","confidence":"explicit"}}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1700000100110,"runId":"lg_plain_root","stepId":"step_root","status":"success","endTime":1700000100110,"durationMs":100}
+{"schemaVersion":"0.1","event":"run_completed","timestamp":1700000100120,"runId":"lg_plain_root","status":"success","endTime":1700000100120,"durationMs":120}
