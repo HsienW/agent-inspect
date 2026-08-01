@@ -321,9 +321,23 @@ function buildRules(
     ...(options.rule ?? []),
   ];
 
+  // Shorthand flags construct rules; auto-select those rule ids so they are
+  // not silently dropped when the user did not pass --rule / config select.
+  if (select.length === 0) {
+    const auto = new Set<string>(DEFAULT_SELECT);
+    for (const rule of rules) {
+      if (rule.id !== "run.status") auto.add(rule.id);
+    }
+    return {
+      rules,
+      select: [...auto],
+      diagnostics,
+    };
+  }
+
   return {
     rules,
-    select: select.length > 0 ? select : DEFAULT_SELECT,
+    select,
     diagnostics,
   };
 }

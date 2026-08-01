@@ -38,7 +38,7 @@ describe("v6.7.4-0 cli check reproduction", () => {
     await rm(tmp, { recursive: true, force: true });
   });
 
-  it.fails(
+  it(
     "shorthand --required-tool produces a tool.usage finding without explicit --rule select",
     async () => {
       const file = path.join(tmp, "no-tool.jsonl");
