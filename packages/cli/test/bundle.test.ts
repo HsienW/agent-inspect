@@ -91,7 +91,9 @@ describe("bundle command", () => {
     const outputDir = path.join(tmp, "bundle-unsafe");
 
     await bundleCommand("run-bundle-unsafe", { dir: tmp, out: outputDir });
+    // v6.7.4-6: unsafe refusal must be nonzero (regression lock).
     expect(process.exitCode).toBe(1);
+    expect(process.exitCode).not.toBe(0);
     expect(errSpy.mock.calls.some((call) => String(call[0]).includes("refused"))).toBe(true);
 
     process.exitCode = 0;
