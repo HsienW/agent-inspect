@@ -1,5 +1,13 @@
 # @agent-inspect/studio
 
+## 6.7.4
+
+### Patch Changes
+
+- ab2ad83: Real-integration blocker patch: standalone LangGraph-shaped callback runs complete via active lifecycle; CLI shorthand check flags auto-select their rules; human tool display names; shared step labels and newest-first search; cross-command run-status golden; synthetic LangGraph fixtures; publish prior RUN-lifecycle and stats label fixes.
+- Updated dependencies [ab2ad83]
+  - agent-inspect@6.7.4
+
 ## 6.7.3
 
 ### Patch Changes
