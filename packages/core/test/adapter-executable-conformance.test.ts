@@ -433,7 +433,7 @@ describe("executable adapter conformance", () => {
     await expectTraceEventRoundTrip("langchain", persisted, [
       "chain:support_graph",
       "llm:gpt-fixture",
-      "tool:lookupTool",
+      "tool:orphan_tool",
     ]);
     const graphStep = persisted.find(
       (event) => event.event === "step_started" && event.name === "chain:support_graph",
@@ -442,7 +442,7 @@ describe("executable adapter conformance", () => {
       (event) => event.event === "step_started" && event.name === "llm:gpt-fixture",
     );
     const orphanTool = persisted.find(
-      (event) => event.event === "step_started" && event.name === "tool:lookupTool",
+      (event) => event.event === "step_started" && event.name === "tool:orphan_tool",
     );
     expect(llmStep?.event === "step_started" && llmStep.parentId).toBe(
       graphStep?.event === "step_started" ? graphStep.stepId : undefined,
