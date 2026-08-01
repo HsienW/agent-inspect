@@ -1,39 +1,45 @@
 # Roadmap
 
-AgentInspect is the **local-first trace workbench** for TypeScript AI agents — understand, debug, compare, annotate, and export agent runs locally before you need a hosted observability platform.
+AgentInspect is the **local evidence debugger** for TypeScript agents: capture a framework-faithful execution tree, inspect it yourself or through your coding assistant, prevent the same trajectory regression, and produce a redacted portable evidence artifact—without a collector, account, or default upload.
 
-**Product loop:** capture → understand → enforce → verify/bundle → review locally or in customer-owned Studio.
+**Product loop:** faithful local capture → causal debugging → deterministic trajectory checks → share-checked portable evidence → local read-only coding-agent access.
 
 This public roadmap describes direction — not a delivery guarantee. See [docs/LIMITATIONS.md](docs/LIMITATIONS.md), [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md), and [docs/SUPPORT-LEVELS.md](docs/SUPPORT-LEVELS.md).
 
-**Principles:** CLI-first · TypeScript-first · dependency-light · safe-by-default · framework-aware but not framework-locked · no vendor upload by default · no maintainer-hosted SaaS dashboard.
+**Principles:** CLI-first · TypeScript-first · dependency-light · safe-by-default · framework-aware but not framework-locked · no vendor upload by default · no maintainer-hosted SaaS dashboard · depth before breadth.
 
 ---
 
-## Current — 6.7.x adoption freeze
+## Current — Stability and Focus (from 6.7.3)
 
 **Current release on npm:** **6.7.3** (eighteen fixed-group public packages). Persisted schema **1.0**. See [CHANGELOG.md](CHANGELOG.md#673).
 
-| Area | Status |
-| ---- | ------ |
-| Technical launch candidate | Shipped as **6.7.0** (planned v6.8 scope combined into that release) |
-| Presentation / docs patch | Shipped as **6.7.2** |
-| External pilot evidence | Pending — [docs/implementation/PRE-V7-ADOPTION-EVIDENCE.md](docs/implementation/PRE-V7-ADOPTION-EVIDENCE.md) |
-| Distinct `6.8.0` | Not published; not scheduled without pilot evidence |
-| **v7** | Conditional — **not scheduled** |
+Development continues with a focused sequence. No new public package before the conditional v7 decision.
 
-Train state: [docs/implementation/RELEASE-TRAIN-STATE.md](docs/implementation/RELEASE-TRAIN-STATE.md).  
-Canonical maintainer roadmap: [docs/implementation/ROADMAP-V6.4-TO-PRE-V7.md](docs/implementation/ROADMAP-V6.4-TO-PRE-V7.md).
+| Release | Theme | Bump |
+| ------- | ----- | ---- |
+| **6.7.4** | Real-integration blocker patch | Patch |
+| **6.7.5** | Consumer, native dependency, and DX reliability | Patch |
+| **6.8.0** | LangGraph fidelity contract | Minor |
+| **6.9.0** | Safety precision and share policy | Minor |
+| **6.10.0** | Portable Evidence v2 | Minor |
+| **6.11.0** | Local coding-agent debug loop | Minor |
+| **6.12.0** | Consolidation and stable launch candidate | Minor |
+| then | Eight-week adoption checkpoint | — |
+| **v7** | Conditional decision only | — |
 
-Freeze allows security, correctness, compatibility, packaging, and documentation fixes only — not product expansion.
+Train state: [docs/implementation/RELEASE-TRAIN-STATE.md](docs/implementation/RELEASE-TRAIN-STATE.md).
+Canonical maintainer roadmap: [docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md](docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md).
+
+External validation gates (real LangGraph/NestJS trials, no-egress evidence, retained CI contracts) are mandatory where the maintainer roadmap requires them — results are never fabricated.
 
 ---
 
 ## Later — conditional v7
 
-v7 remains gated on adoption evidence and an explicit maintainer readiness assessment. See [docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md](docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md).
+v7 remains gated on retained adoption evidence and an explicit maintainer readiness assessment after the v6.12 adoption checkpoint. See [docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md](docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md).
 
-Do not treat exploratory ideas as committed delivery.
+Do not treat exploratory ideas as committed delivery. Do not implement v7 until a named train is authorized.
 
 ---
 
@@ -46,16 +52,6 @@ Do not treat exploratory ideas as committed delivery.
 - Default replay / cassette execution
 - Cost analytics engine
 - Raw chain-of-thought capture
+- New public packages before the v7 decision (`@agent-inspect/judge`, `@agent-inspect/context`, `@agent-inspect/browser`, etc.)
 
 AgentInspect **complements** LangSmith, Langfuse, Braintrust, Phoenix/OpenInference, OpenTelemetry, and similar platforms. It does not replace their production or eval workflows.
-
----
-
-## History and contribution
-
-- Release notes: [CHANGELOG.md](CHANGELOG.md)
-- Historical v3.5→v7 planning: [docs/implementation/ROADMAP_V3_5_TO_V7.md](docs/implementation/ROADMAP_V3_5_TO_V7.md)
-- Archived train evidence: [docs/archive/implementation/](docs/archive/implementation/)
-- Contributor entry: [GOOD-FIRST-ISSUES.md](GOOD-FIRST-ISSUES.md) · [CONTRIBUTING.md](CONTRIBUTING.md)
-
-Maintainers triage against [docs/community/PROJECT-VISION.md](docs/community/PROJECT-VISION.md).

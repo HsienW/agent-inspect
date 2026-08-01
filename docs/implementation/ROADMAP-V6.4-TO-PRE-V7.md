@@ -1,12 +1,14 @@
 # AgentInspect Canonical Pre-v7 Roadmap
 
-**Status:** Canonical implementation roadmap — **horizon trains published through 6.7.x; adoption freeze active**  
-**Audience:** Maintainers, Cursor sessions, contributors, adapter authors, Studio operators, and design partners  
-**Current baseline:** `agent-inspect@6.7.1` on npm (technical LC scope shipped in **6.7.0**; **6.7.1** = release-tooling + public-truth patch)  
-**Persisted trace schema:** `1.0`  
-**Roadmap horizon:** `v6.4.1 → v6.5 → v6.6 → v6.7 → v6.8 → conditional v7`  
-**Primary goal:** Finish the trust, semantic correctness, team-workflow, interoperability, and launch-readiness work required before broad public adoption.  
-**Exit condition:** After the technical launch candidate, enter an 8–12 week feature freeze. Only bugs, security, compatibility, performance regressions, and documentation fixes may ship until the v7 adoption gates are reviewed.
+> **Historical (2026-08-01).** This document is **no longer** the active canonical roadmap. Use [AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md](./AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md). Operational freeze assumptions below are superseded; **v7 remains conditional and not scheduled**.
+
+**Status:** Completed pre-v7 stabilization record — **superseded for active precedence**
+**Audience:** Maintainers, Cursor sessions, contributors, adapter authors, Studio operators, and design partners
+**Current baseline (historical note):** `agent-inspect@6.7.1` era; published line later reached **6.7.3**
+**Persisted trace schema:** `1.0`
+**Roadmap horizon (historical):** `v6.4.1 → v6.5 → v6.6 → v6.7 → v6.8 → conditional v7`
+**Primary goal:** Finish the trust, semantic correctness, team-workflow, interoperability, and launch-readiness work required before broad public adoption.
+**Exit condition (historical):** After the technical launch candidate, enter an 8–12 week feature freeze. Superseded by Stability and Focus continuing through v6.12 with an adoption checkpoint.
 
 ### Horizon status (2026-07-10)
 

@@ -8,6 +8,15 @@
 
 ## Unreleased
 
+### Documentation
+
+- Activate the Stability and Focus roadmap (v6.7.3 → v6.12 → conditional v7): operational source-of-truth reconciliation, baseline audit, and release-train plans. No runtime or schema change in this docs activation.
+
+### Patch candidates (unpublished on main; intended for 6.7.4)
+
+- Completed-run status derived from terminal RUN lifecycle; explain uses shared user-facing status vocabulary (`8e525f1`).
+- Stats no longer double-prefixes already-typed step names (`tool:tool:` / `llm:llm:`) (`ee49d4c`).
+
 ## 6.7.2
 
 ### Patch Changes

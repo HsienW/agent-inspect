@@ -18,13 +18,22 @@ Use this order:
 2. `AGENTS.md`
 3. `docs/implementation/RELEASE-TRAIN-STATE.md`
 4. `docs/implementation/CURRENT-TASK.md`
-5. canonical pre-v7 roadmap `docs/implementation/ROADMAP-V6.4-TO-PRE-V7.md`
-6. active release-train plan under `docs/implementation/release-trains/` (v6.4.1–v6.8.x pre-v7 stabilization)
-7. relevant RFC/proposal docs
+5. canonical Stability and Focus roadmap `docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md`
+6. active release-train plan under `docs/implementation/release-trains/` (v6.7.4→v6.12)
+7. relevant RFC/proposal/security docs
 8. public `ROADMAP.md`
-9. historical docs under `docs/archive/` and `docs/implementation/ROADMAP_V3_5_TO_V7.md` (completed v3.5→v6.4 trains)
+9. historical roadmaps and archive, including:
+   - `docs/implementation/ROADMAP-V6.4-TO-PRE-V7.md` (completed pre-v7 stabilization / prior freeze)
+   - `docs/implementation/ROADMAP_V3_5_TO_V7.md` (completed v3.5→v6.4 trains)
+   - `docs/archive/`
 
 Report material conflicts; never resolve them silently.
+
+Named autonomous train authorized when `CURRENT-TASK.md` sets `executionMode: "autonomous-release-train"`:
+
+```text
+agentinspect-stability-and-focus-v6.7.3-to-v7-decision
+```
 
 ## Start every task
 
