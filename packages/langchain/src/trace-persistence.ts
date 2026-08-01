@@ -65,6 +65,11 @@ export class LangChainTracePersistence {
   #runCompleted = false;
   #runStartTime?: number;
   #rootLcRunId?: string;
+  /** Live LangChain callback runIds for standalone envelope finalization. */
+  readonly #activeLcRunIds = new Set<string>();
+  #sawError = false;
+  #lastErrorMessage?: string;
+  #finalizationToken = 0;
   readonly #lcToStepId = new Map<string, string>();
 
   constructor(options: LangChainTracePersistenceOptions = {}) {
@@ -94,10 +99,14 @@ export class LangChainTracePersistence {
   }
 
   reset(): void {
+    this.#finalizationToken += 1;
     this.#runStarted = false;
     this.#runCompleted = false;
     this.#runStartTime = undefined;
     this.#rootLcRunId = undefined;
+    this.#activeLcRunIds.clear();
+    this.#sawError = false;
+    this.#lastErrorMessage = undefined;
     this.#lcToStepId.clear();
   }
 
@@ -121,7 +130,10 @@ export class LangChainTracePersistence {
     attributes: Record<string, unknown>;
   }): Promise<void> {
     try {
+      // Invalidate any deferred run_completed — another lifecycle event started.
+      this.#finalizationToken += 1;
       this.noteRoot(params.lcRunId, params.lcParentRunId);
+      this.#activeLcRunIds.add(params.lcRunId);
 
       if (this.#standalone && !this.#runStarted) {
         await this.#ensureRunStarted(params.startTime, params.attributes);
@@ -215,18 +227,12 @@ export class LangChainTracePersistence {
 
       await this.#write(event);
 
-      if (
-        this.#standalone &&
-        !this.#runCompleted &&
-        this.#rootLcRunId === params.lcRunId &&
-        !params.lcParentRunId
-      ) {
-        await this.#ensureRunCompleted(
-          params.endTime,
-          params.status,
-          params.errorMessage,
-        );
+      if (params.status === "error") {
+        this.#sawError = true;
+        if (params.errorMessage) this.#lastErrorMessage = params.errorMessage;
       }
+      this.#activeLcRunIds.delete(params.lcRunId);
+      await this.#scheduleStandaloneFinalization(params.endTime);
     } catch (err) {
       this.#warn(err);
     }
@@ -244,7 +250,9 @@ export class LangChainTracePersistence {
     errorMessage?: string;
   }): Promise<void> {
     try {
+      this.#finalizationToken += 1;
       this.noteRoot(params.lcRunId, params.lcParentRunId);
+      this.#activeLcRunIds.add(params.lcRunId);
 
       if (this.#standalone && !this.#runStarted) {
         await this.#ensureRunStarted(params.timestamp, params.attributes);
@@ -287,9 +295,40 @@ export class LangChainTracePersistence {
           : {}),
       };
       await this.#write(completed);
+
+      if (params.status === "error") {
+        this.#sawError = true;
+        if (params.errorMessage) this.#lastErrorMessage = params.errorMessage;
+      }
+      this.#activeLcRunIds.delete(params.lcRunId);
+      await this.#scheduleStandaloneFinalization(params.timestamp);
     } catch (err) {
       this.#warn(err);
     }
+  }
+
+  /**
+   * When the last active LangChain callback ends, yield one microtask so a
+   * same-turn sibling start can cancel finalization, then write run_completed
+   * before the callback promise settles. Unresolved external parents do not
+   * block the envelope.
+   */
+  async #scheduleStandaloneFinalization(endTime: number): Promise<void> {
+    if (!this.#standalone || this.#runCompleted || !this.#runStarted) return;
+    if (this.#activeLcRunIds.size > 0) return;
+
+    const token = ++this.#finalizationToken;
+    await Promise.resolve();
+    if (token !== this.#finalizationToken) return;
+    if (!this.#standalone || this.#runCompleted || !this.#runStarted) return;
+    if (this.#activeLcRunIds.size > 0) return;
+
+    const status = this.#sawError ? "error" : "success";
+    await this.#ensureRunCompleted(
+      endTime,
+      status,
+      status === "error" ? this.#lastErrorMessage : undefined,
+    );
   }
 
   async #ensureRunStarted(

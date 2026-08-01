@@ -39,7 +39,7 @@ describe("v6.7.4-0 langchain reproduction", () => {
     }
   });
 
-  it.fails(
+  it(
     "standalone persist emits run_completed when every callback has a parentRunId (LangGraph-shaped)",
     async () => {
       const cb = new AgentInspectCallback({
@@ -63,6 +63,8 @@ describe("v6.7.4-0 langchain reproduction", () => {
       expect(files).toContain("run_langgraph_shaped.jsonl");
       const events = await readTraceEvents("run_langgraph_shaped", traceDir);
       expect(events.some((e) => e.event === "run_completed")).toBe(true);
+      expect(events.filter((e) => e.event === "run_started")).toHaveLength(1);
+      expect(events.filter((e) => e.event === "run_completed")).toHaveLength(1);
     },
   );
 
@@ -96,4 +98,30 @@ describe("v6.7.4-0 langchain reproduction", () => {
       );
     },
   );
+
+  it("standalone persist completes after nested parented children drain", async () => {
+    const cb = new AgentInspectCallback({
+      traceDir,
+      persist: true,
+      runId: "run_nested_parented",
+    });
+    await cb.handleChainStart(
+      mockSerialized("graph"),
+      {},
+      "outer",
+      "LangGraph",
+      [],
+      {},
+      "agent",
+    );
+    await cb.handleLLMStart(mockSerialized("m"), ["p"], "llm-1", "outer");
+    await cb.handleLLMEnd({ generations: [] } as never, "llm-1", "outer");
+    await cb.handleChainEnd({ ok: true }, "outer", "LangGraph");
+
+    const events = await readTraceEvents("run_nested_parented", traceDir);
+    expect(events.filter((e) => e.event === "run_started")).toHaveLength(1);
+    expect(events.filter((e) => e.event === "run_completed")).toHaveLength(1);
+    const done = events.find((e) => e.event === "run_completed");
+    expect(done && "status" in done ? done.status : undefined).toBe("success");
+  });
 });
