@@ -5,28 +5,25 @@
 > **Canonical roadmap:** [AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md](./AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md)
 
 ```yaml
-baselineVersion: "6.7.3"
-publishedVersion: "6.7.3"
-currentTrain: "v6.7.4-real-integration-blockers"
-trainStatus: "release-pending"
+baselineVersion: "6.7.4"
+publishedVersion: "6.7.4"
+currentTrain: "v6.7.5-consumer-native-dx"
+trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.7.4-9-release-readiness"
-lastConfirmedCommit: "b8c3aed"
-lastValidationLevel: "pack:smoke + fixtures + test green"
-nextAction: "Merge Version Packages PR; verify npm 6.7.4; begin v6.7.5"
+currentChunk: "6.7.5-0-consumer-resolution-matrix"
+lastConfirmedCommit: "f6d5864"
+lastValidationLevel: "npm 6.7.4 published; publish.yml success"
+nextAction: "Land 6.7.5-0 matrix; implement 6.7.5-1 doctor resolver"
 pendingManualGate: "none until an explicit external-validation gate"
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
-  - "v6.4.1 through v6.7.3 npm publication"
-  - "stability-and-focus-roadmap committed (ddafa51)"
-  - "operational SoT activation (e97b844)"
-  - "6.7.4-0 through 6.7.4-8 implementation"
-  - "6.7.4-9 release readiness + changeset (pending publish)"
+  - "v6.4.1 through v6.7.4 npm publication"
+  - "stability-and-focus-roadmap + operational SoT activation"
+  - "6.7.4-0 through 6.7.4-9 + Version Packages + Trusted Publishing"
 remainingTrains:
-  - "v6.7.4 Real-integration blocker patch (release pending)"
-  - "v6.7.5 Consumer / native / DX reliability"
+  - "v6.7.5 Consumer / native / DX reliability (in progress)"
   - "v6.8.0 LangGraph fidelity contract"
   - "v6.9.0 Safety precision and share policy"
   - "v6.10.0 Portable Evidence v2"
@@ -40,6 +37,6 @@ updatedAt: "2026-08-01"
 
 ## Quick links
 
-- **Active plan:** [release-trains/V6.7.4-EXECUTION-PLAN.md](./release-trains/V6.7.4-EXECUTION-PLAN.md)
-- **Readiness:** [release-trains/V6.7.4-RELEASE-READINESS.md](./release-trains/V6.7.4-RELEASE-READINESS.md)
+- **Active plan:** [release-trains/V6.7.5-EXECUTION-PLAN.md](./release-trains/V6.7.5-EXECUTION-PLAN.md)
+- **Prior readiness:** [release-trains/V6.7.4-RELEASE-READINESS.md](./release-trains/V6.7.4-RELEASE-READINESS.md)
 - **Maintainer rules:** [AGENTS.md](../../AGENTS.md)
