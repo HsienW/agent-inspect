@@ -46,6 +46,21 @@ function serializedLabel(s: Serialized): string | undefined {
   return s.type;
 }
 
+/** Prefer human tool names over wrapper class labels for display/step identity. */
+function resolveToolDisplayName(
+  tool: Serialized,
+  runName?: string,
+  metadata?: Record<string, unknown>,
+): string {
+  const fromRun = typeof runName === "string" ? runName.trim() : "";
+  if (fromRun) return fromRun;
+  const metaName = metadata?.toolName;
+  if (typeof metaName === "string" && metaName.trim()) return metaName.trim();
+  const metaTool = metadata?.tool;
+  if (typeof metaTool === "string" && metaTool.trim()) return metaTool.trim();
+  return serializedLabel(tool) ?? "tool";
+}
+
 function errorShape(err: unknown): { errorName?: string; errorMessage: string } {
   if (err instanceof Error) {
     return { errorName: err.name, errorMessage: err.message };
@@ -654,7 +669,7 @@ export class AgentInspectCallback extends BaseCallbackHandler {
   ): Promise<void> {
     this.#ensureRoot(runId, parentRunId);
     this.#rememberStart(runId, "TOOL");
-    const toolName = serializedLabel(tool) ?? "tool";
+    const toolName = resolveToolDisplayName(tool, runName, metadata);
     const previews: Record<string, unknown> = {};
     if (this.#opts.capture === "preview") previews.inputPreview = input;
     const attrs: Record<string, unknown> = {

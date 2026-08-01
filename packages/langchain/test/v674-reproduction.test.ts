@@ -68,7 +68,7 @@ describe("v6.7.4-0 langchain reproduction", () => {
     },
   );
 
-  it.fails(
+  it(
     "tool step display name prefers runName over serialized DynamicStructuredTool class",
     async () => {
       const cb = new AgentInspectCallback({
