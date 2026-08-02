@@ -14,6 +14,7 @@ Canonical **deterministic** samples for tests, CI validation, and documentation.
 | `performance/` | Small/medium/large deterministic traces for perf checks |
 | `safety/` | Synthetic share-check FP/TP corpus (`corpus.json` + JSONL); see [safety/README.md](./safety/README.md) |
 | `evidence/` | Evidence v2 manifest examples + XSS corpus; see [evidence/README.md](./evidence/README.md) |
+| `mcp/` | Coding-agent loop catalog fixture; see [mcp/README.md](./mcp/README.md) |
 
 ## Safety
 

@@ -2,10 +2,13 @@
 
 `@agent-inspect/mcp-server` exposes **read-only** MCP tools over a local trace directory. Distinct from `@agent-inspect/mcp` (client telemetry).
 
+For the **6.11+ coding-agent debug loop** (flagship tools, causal failure, configure CLI, Evidence v2), see [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md).
+
 ## Quick start
 
 ```bash
 npx @agent-inspect/mcp-server
+# preferred after 6.11-1: npx @agent-inspect/mcp-server --dir .agent-inspect
 # or see examples/recipes/read-only-mcp-server/
 ```
 

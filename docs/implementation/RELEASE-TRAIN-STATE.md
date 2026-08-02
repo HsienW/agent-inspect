@@ -8,21 +8,21 @@
 baselineVersion: "6.10.0"
 publishedVersion: "6.10.0"
 currentTrain: "v6.11.0-coding-agent-loop"
-trainStatus: "ready-to-start"
+trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
 currentChunk: "6.11-0"
-lastConfirmedCommit: "485ff66"
-lastValidationLevel: "npm view agent-inspect@6.10.0 (18 fixed packages)"
-nextAction: "Begin v6.11.0 Local coding-agent debug loop"
+lastConfirmedCommit: "6e00b10"
+lastValidationLevel: "coding-agent-loop RFC pending push"
+nextAction: "Land 6.11-0; continue 6.11-1 MCP package executable"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
   - "v6.4.1 through v6.10.0 npm publication"
   - "6.10 Portable Evidence v2 (published)"
 remainingTrains:
-  - "v6.11.0 Local coding-agent debug loop (next)"
+  - "v6.11.0 Local coding-agent debug loop (active; 6.11-0 in flight)"
   - "v6.12.0 Consolidation and stable launch candidate"
   - "v6.12 adoption checkpoint (eight weeks)"
 blockedTrains:
@@ -32,8 +32,9 @@ updatedAt: "2026-08-02"
 
 ## Quick links
 
-- **Next plan:** [release-trains/V6.11.0-EXECUTION-PLAN.md](./release-trains/V6.11.0-EXECUTION-PLAN.md)
-- **Completed readiness:** [release-trains/V6.10.0-RELEASE-READINESS.md](./release-trains/V6.10.0-RELEASE-READINESS.md)
+- **Active plan:** [release-trains/V6.11.0-EXECUTION-PLAN.md](./release-trains/V6.11.0-EXECUTION-PLAN.md)
+- **Loop contract:** [../CODING-AGENT-LOOP.md](../CODING-AGENT-LOOP.md)
+- **6.11-0 review:** [reviews/V6.11.0-0-CODING-AGENT-LOOP-RFC.md](./reviews/V6.11.0-0-CODING-AGENT-LOOP-RFC.md)
 - **Evidence contract:** [../EVIDENCE-FORMAT.md](../EVIDENCE-FORMAT.md)
 - **Safety contract:** [../SAFETY-POLICY.md](../SAFETY-POLICY.md)
 - **Maintainer rules:** [AGENTS.md](../../AGENTS.md)

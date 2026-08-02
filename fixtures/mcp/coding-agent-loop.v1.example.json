@@ -1,0 +1,41 @@
+{
+  "codingAgentLoopVersion": "1.0",
+  "package": "@agent-inspect/mcp-server",
+  "transport": "stdio",
+  "defaultTraceDir": ".agent-inspect",
+  "defaultRedactionProfile": "share",
+  "flagshipTools": [
+    "list_recent_runs",
+    "list_recent_failures",
+    "get_run_summary",
+    "get_execution_tree",
+    "get_first_causal_failure",
+    "get_slowest_path",
+    "get_contract_failures",
+    "get_failed_observations",
+    "compare_runs",
+    "create_share_checked_evidence",
+    "get_adapter_diagnostics"
+  ],
+  "legacyToolAliases": {
+    "list_traces": "list_recent_runs",
+    "find_first_error": "get_first_causal_failure",
+    "find_slowest_path": "get_slowest_path",
+    "find_failed_observation": "get_failed_observations",
+    "create_share_safe_bundle": "create_share_checked_evidence"
+  },
+  "causalFailureOrder": [
+    "explicit_failed_or_error_event",
+    "failed_observed_outcome",
+    "contract_failure_linked_to_event",
+    "nearest_failed_ancestor_or_child",
+    "no_timing_only_inference"
+  ],
+  "outOfScope": [
+    "hosted_mcp_relay",
+    "code_modification",
+    "target_tool_execution",
+    "unredacted_defaults",
+    "default_network_upload"
+  ]
+}
