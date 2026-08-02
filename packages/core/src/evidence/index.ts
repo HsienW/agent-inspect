@@ -36,3 +36,9 @@ export {
   type EvidenceHtmlShellInput,
   type EvidenceViewId,
 } from "./html-shell.js";
+export {
+  EVIDENCE_VIEW_CSS,
+  buildEvidenceCausalFailureViewHtml,
+  buildEvidenceTimelineViewHtml,
+  buildEvidenceTreeViewHtml,
+} from "./views.js";

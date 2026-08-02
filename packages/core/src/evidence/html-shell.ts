@@ -1,5 +1,6 @@
 import { escapeHtml } from "../exporters/helpers.js";
 
+import { EVIDENCE_VIEW_CSS } from "./views.js";
 import type { EvidenceManifest, EvidenceSafeStatus } from "./types.js";
 
 export const EVIDENCE_HTML_FILENAME = "evidence.html";
@@ -51,6 +52,11 @@ export interface EvidenceHtmlShellInput {
   };
   /** Max chars for embedded JSON payload (default 64 KiB). */
   maxEmbeddedJsonChars?: number;
+  /**
+   * Pre-escaped HTML bodies for views. Missing ids keep the stub panel.
+   * Callers must pass only trusted, escaped fragments (use evidence view builders).
+   */
+  viewBodies?: Partial<Record<EvidenceViewId, string>>;
 }
 
 function statusClass(status: string): string {
@@ -164,12 +170,19 @@ export function buildEvidenceHtmlShell(input: EvidenceHtmlShellInput): string {
   ).join("\n");
 
   const stubPanels = EVIDENCE_VIEW_IDS.filter((id) => id !== "summary")
-    .map(
-      (id) => `  <section id="view-${id}" class="panel" hidden>
+    .map((id) => {
+      const body = input.viewBodies?.[id];
+      if (body !== undefined && body.trim() !== "") {
+        return `  <section id="view-${id}" class="panel" hidden>
+    <h2>${escapeHtml(viewLabel(id))}</h2>
+    ${body}
+  </section>`;
+      }
+      return `  <section id="view-${id}" class="panel" hidden>
     <h2>${escapeHtml(viewLabel(id))}</h2>
     <p class="muted">This view will be filled in a later AgentInspect 6.10 release. The shell is offline-ready.</p>
-  </section>`,
-    )
+  </section>`;
+    })
     .join("\n");
 
   return `<!doctype html>
@@ -212,6 +225,7 @@ ul.runs{margin:.4rem 0 1rem;padding-left:1.2rem}
   .layout{grid-template-columns:1fr}
   nav{border-right:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:.25rem}
 }
+${EVIDENCE_VIEW_CSS}
 </style>
 </head>
 <body>
@@ -298,7 +312,9 @@ ${stubPanels}
  */
 export function buildEvidenceHtmlShellFromManifest(
   manifest: EvidenceManifest,
-  extras?: Partial<Pick<EvidenceHtmlShellInput, "summaryText" | "checkSummary" | "title">>,
+  extras?: Partial<
+    Pick<EvidenceHtmlShellInput, "summaryText" | "checkSummary" | "title" | "viewBodies">
+  >,
 ): string {
   return buildEvidenceHtmlShell({
     title: extras?.title,
@@ -313,5 +329,6 @@ export function buildEvidenceHtmlShellFromManifest(
     evidenceFormatVersion: manifest.evidenceFormatVersion,
     summaryText: extras?.summaryText,
     checkSummary: extras?.checkSummary,
+    viewBodies: extras?.viewBodies,
   });
 }

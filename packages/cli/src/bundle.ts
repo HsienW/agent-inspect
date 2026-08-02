@@ -4,8 +4,11 @@ import path from "node:path";
 import {
   buildBundleMetadata,
   buildBundleSummaryMarkdown,
+  buildEvidenceCausalFailureViewHtml,
   buildEvidenceHtmlShell,
   buildEvidenceManifest,
+  buildEvidenceTimelineViewHtml,
+  buildEvidenceTreeViewHtml,
   buildPlaceholderArtifact,
   buildSessionIndex,
   bundleFailsOnSafety,
@@ -30,6 +33,7 @@ import {
   type BundleSafeStatus,
   type EvidencePackagedFile,
   type EvidenceSourceHash,
+  type InspectRunTree,
 } from "@agent-inspect/core/advanced";
 import { exportRunTree } from "@agent-inspect/core/exporters";
 import { openTrace } from "@agent-inspect/core/readers";
@@ -252,6 +256,7 @@ export async function bundleCommand(
   const redactionRuns: BundleRedactionReport["runs"] = [];
   const htmlByRun = new Map<string, string>();
   const redactedJsonlByRun = new Map<string, string>();
+  const artifactTrees: InspectRunTree[] = [];
   const sourceHashes: EvidenceSourceHash[] = [];
   const schemaVersions = new Set<string>();
   let combinedJsonl = "";
@@ -317,12 +322,15 @@ export async function bundleCommand(
     });
 
     let artifactSafety = sourceSafety;
+    let artifactTree: InspectRunTree | undefined;
     try {
       const artifactRead = await openTrace(
         { type: "string", content: redacted.content },
         { format: "agent-inspect-jsonl" },
       );
       artifactSafety = assessOpenedTrace(artifactRead, { run: runId });
+      artifactTree =
+        artifactRead.runs.find((run) => run.runId === runId) ?? artifactRead.runs[0];
     } catch {
       // If the redacted artifact cannot be re-read, fail closed on UNKNOWN.
       artifactSafety = {
@@ -335,6 +343,13 @@ export async function bundleCommand(
           errors: Math.max(1, sourceSafety.summary.errors),
         },
       };
+    }
+
+    if (artifactTree) {
+      artifactTrees.push(artifactTree);
+    } else {
+      const selected = read.runs.find((run) => run.runId === runId);
+      if (selected) artifactTrees.push(selected);
     }
 
     const status = safetyStatusFromAssess(artifactSafety.status);
@@ -500,6 +515,11 @@ export async function bundleCommand(
     checkSummary: {
       aggregateStatus: checks.aggregateStatus,
       runs: checkRuns,
+    },
+    viewBodies: {
+      tree: buildEvidenceTreeViewHtml(artifactTrees),
+      timeline: buildEvidenceTimelineViewHtml(artifactTrees),
+      causal: buildEvidenceCausalFailureViewHtml(artifactTrees),
     },
   });
 

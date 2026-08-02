@@ -88,6 +88,9 @@ describe("bundle command", () => {
     const evidenceHtml = await readFile(path.join(outputDir, "evidence.html"), "utf-8");
     expect(evidenceHtml).toContain("Content-Security-Policy");
     expect(evidenceHtml).toContain("run-bundle-safe");
+    expect(evidenceHtml).toContain('id="view-tree"');
+    expect(evidenceHtml).toContain('id="view-timeline"');
+    expect(evidenceHtml).toContain('id="view-causal"');
     const evidence = JSON.parse(
       await readFile(path.join(outputDir, "evidence.json"), "utf-8"),
     ) as {
