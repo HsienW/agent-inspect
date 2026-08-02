@@ -457,9 +457,11 @@ agent-inspect verify-safe <trace-path-or-run-id> [options]
 Statuses:
 
 - `SAFE`: no safety findings and no reader warnings.
-- `SAFE WITH WARNINGS`: no safety findings, but the reader reported warnings or unsupported fields.
-- `UNSAFE`: safety findings were detected.
+- `SAFE WITH WARNINGS`: no blocking safety findings, but warnings (reader or findings) remain.
+- `UNSAFE`: blocking safety findings were detected.
 - `UNKNOWN`: the input could not be read, normalized, or selected conservatively.
+
+`verify-safe` assesses the **source** trace and a **share-redacted artifact**. The printed/exit `status` follows the **artifact** assessment when a single-file (or stdin) artifact can be derived. `scan` remains source-oriented.
 
 Options:
 
@@ -467,6 +469,7 @@ Options:
 - `--format <agent-inspect-jsonl|openinference-json|otlp-json>`: explicit reader format override
 - `--run <run-id>`: select a run when input contains multiple runs
 - `--json`: print deterministic JSON safety result
+- `--explain`: explain each finding (detector/path/category/confidence/redaction/override/bundle gate) without printing matched secret values
 - `--max-string-length <number>`: unsafe threshold for string values
 - `--max-array-length <number>`: unsafe threshold for array values
 - `--max-object-keys <number>`: unsafe threshold for object key counts
@@ -474,11 +477,15 @@ Options:
 
 The scan looks for raw prompt/output-like capture paths, unredacted sensitive-looking keys, secret-like string patterns, and oversized values. It reports evidence paths rather than raw prompt, output, request/response, header, API key, secret, or full tool payload values. Secret detection is best-effort and should not be treated as exhaustive.
 
+Policy and overrides: [SAFETY-POLICY.md](SAFETY-POLICY.md).
+
 Examples:
 
 ```bash
 npx agent-inspect scan fixtures/traces-v0.2/manual-basic.jsonl --json
+npx agent-inspect scan trace.jsonl --explain
 npx agent-inspect verify-safe minimal-success --dir fixtures/traces
+npx agent-inspect verify-safe trace.jsonl --explain --json
 npx agent-inspect verify-safe trace.jsonl --max-string-length 8192 --json
 ```
 
@@ -866,7 +873,7 @@ If `@agent-inspect/index-sqlite` is not installed, these subcommands print a sho
 
 ### 6.24 `bundle`
 
-Create a **share-safe offline trace bundle** as a local folder (v4.3+). Bundles are derived copies: original traces are read-only and never mutated. Automatic `verify-safe` runs before write; the command fails on `UNSAFE` unless `--allow-unsafe`. See [BUNDLES.md](BUNDLES.md).
+Create a **share-safe offline trace bundle** as a local folder (v4.3+). Bundles are derived copies: original traces are read-only and never mutated. Automatic safety assessment runs on the **redacted artifact** before write; the command fails when the artifact is `UNSAFE`/`UNKNOWN` unless `--allow-unsafe`. Source-only findings that redaction removes do not refuse the bundle. See [BUNDLES.md](BUNDLES.md) and [SAFETY-POLICY.md](SAFETY-POLICY.md).
 
 ```bash
 agent-inspect bundle <run-id> [options]

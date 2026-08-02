@@ -82,10 +82,40 @@ Canonical synthetic cases live under [`fixtures/safety/`](../fixtures/safety/). 
 
 - No network I/O in scan / verify-safe / redact / bundle safety paths.
 - Defaults must not weaken existing redaction.
-- Overrides require explicit local configuration (documented in 6.9-8).
+- Overrides require explicit local configuration (below).
+
+## Custom overrides (local only)
+
+Overrides are **opt-in**, **local**, and must not be framed as “making the product less safe by default.” Prefer fixing capture (metadata-only) or raising the redaction profile before adding exceptions.
+
+### Allowed override patterns
+
+1. **Extra sensitive keys** via `@agent-inspect/redact` `extraKeys` / `createRedactor({ extraKeys: [...] })` when your framework uses custom attribute names.
+2. **Custom detectors** via `detectors: [myDetector]` on `redact` / `createRedactor` for org-specific token shapes (keep detectors from emitting matched values into logs).
+3. **CLI size thresholds** on `scan` / `verify-safe` (`--max-string-length`, etc.) when oversized findings are false positives for your workload.
+4. **Bundle write override** with explicit `--allow-unsafe` after reviewing `verify-safe --explain` (records that the artifact was not share-gated).
+
+### Disallowed
+
+- Shipping weakened default profiles in shared configs without review
+- Disabling detectors globally “to make CI green”
+- Printing matched secret/PII values in CI logs or MCP tool output
+- Claiming overrides produce certified / compliant / guaranteed-safe artifacts
+
+### Explain + review loop
+
+```bash
+npx agent-inspect scan ./trace.jsonl --explain
+npx agent-inspect verify-safe ./trace.jsonl --explain --json
+npx agent-inspect redact ./trace.jsonl --profile share -o ./trace.share.jsonl
+npx agent-inspect verify-safe ./trace.share.jsonl --explain
+```
+
+`verify-safe` reports **source** and **artifact** assessments; bundle gating uses the **artifact** assessment after the selected redaction profile.
 
 ## Related
 
 - Repair policy: [V6.9.X-SAFETY-REPAIR-POLICY.md](./implementation/release-trains/V6.9.X-SAFETY-REPAIR-POLICY.md)
 - CLI: `agent-inspect scan` · `verify-safe` · `redact` · `bundle`
 - Package: `@agent-inspect/redact`
+- Safe sharing guide: [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md)
