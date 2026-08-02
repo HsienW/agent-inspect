@@ -277,15 +277,8 @@ export async function bundleCommand(
       return;
     }
 
-    const safety = assessOpenedTrace(read, { run: runId });
-    const status = safetyStatusFromAssess(safety.status);
-    checkRuns.push({
-      runId,
-      status,
-      errors: safety.summary.errors,
-      warnings: safety.summary.warnings,
-      findings: safety.summary.findings,
-    });
+    const sourceSafety = assessOpenedTrace(read, { run: runId });
+    const sourceStatus = safetyStatusFromAssess(sourceSafety.status);
 
     const redacted = redactTraceContent(rawContent, toReportProfile(profile));
     redactedJsonlByRun.set(runId, redacted.content);
@@ -298,6 +291,37 @@ export async function bundleCommand(
       runId,
       findings: redacted.findings.length,
       detectors,
+    });
+
+    let artifactSafety = sourceSafety;
+    try {
+      const artifactRead = await openTrace(
+        { type: "string", content: redacted.content },
+        { format: "agent-inspect-jsonl" },
+      );
+      artifactSafety = assessOpenedTrace(artifactRead, { run: runId });
+    } catch {
+      // If the redacted artifact cannot be re-read, fail closed on UNKNOWN.
+      artifactSafety = {
+        ...sourceSafety,
+        status: "UNKNOWN",
+        ok: false,
+        summary: {
+          findings: sourceSafety.summary.findings,
+          warnings: sourceSafety.summary.warnings,
+          errors: Math.max(1, sourceSafety.summary.errors),
+        },
+      };
+    }
+
+    const status = safetyStatusFromAssess(artifactSafety.status);
+    checkRuns.push({
+      runId,
+      status,
+      sourceStatus,
+      errors: artifactSafety.summary.errors,
+      warnings: artifactSafety.summary.warnings,
+      findings: artifactSafety.summary.findings,
     });
 
     const selected = read.runs.find((run) => run.runId === runId);
@@ -332,13 +356,13 @@ export async function bundleCommand(
       console.log(
         writeJson({
           ok: false,
-          error: `Bundle safety status is ${checks.aggregateStatus}. Pass --allow-unsafe to override.`,
+          error: `Bundle artifact safety status is ${checks.aggregateStatus}. Pass --allow-unsafe to override.`,
           checks,
         }).trimEnd(),
       );
     } else {
       console.error(
-        `[AgentInspect] bundle refused: safety status is ${checks.aggregateStatus}. Pass --allow-unsafe to override.`,
+        `[AgentInspect] bundle refused: artifact safety status is ${checks.aggregateStatus}. Pass --allow-unsafe to override.`,
       );
     }
     process.exitCode = 1;

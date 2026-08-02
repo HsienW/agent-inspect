@@ -37,7 +37,10 @@ export interface BundleRedactionReport {
 
 export interface BundleCheckRunResult {
   runId: string;
+  /** Artifact (redacted) assessment — controls share-safe gating. */
   status: BundleSafeStatus;
+  /** Source-trace assessment (informational; may be UNSAFE when artifact is SAFE). */
+  sourceStatus?: BundleSafeStatus;
   errors: number;
   warnings: number;
   findings: number;

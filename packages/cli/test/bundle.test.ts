@@ -80,18 +80,41 @@ describe("bundle command", () => {
     );
   });
 
-  it("refuses unsafe traces unless --allow-unsafe", async () => {
-    const secret = "sk-bundleUnsafeSecret1234567890";
+  it("allows redactable secrets when the artifact assessment is safe", async () => {
+    const secret = "sk-bundleRedactedSecret1234567890";
+    await writeTrace(tmp, "run-bundle-redactable.jsonl", [
+      event("event-a", {
+        runId: "run-bundle-redactable",
+        attributes: { apiKey: secret },
+      }),
+    ]);
+    const outputDir = path.join(tmp, "bundle-redactable");
+
+    await bundleCommand("run-bundle-redactable", { dir: tmp, out: outputDir, json: true });
+    expect(process.exitCode ?? 0).toBe(0);
+    const payload = JSON.parse(String(logSpy.mock.calls[0]?.[0])) as {
+      ok: boolean;
+      checks?: { runs?: { status?: string; sourceStatus?: string }[] };
+    };
+    expect(payload.ok).toBe(true);
+    expect(payload.checks?.runs?.[0]?.sourceStatus).toBe("UNSAFE");
+    expect(["SAFE", "SAFE WITH WARNINGS"]).toContain(payload.checks?.runs?.[0]?.status);
+    const bundled = await readFile(path.join(outputDir, "trace.jsonl"), "utf-8");
+    expect(bundled).not.toContain(secret);
+  });
+
+  it("refuses traces whose redacted artifact remains unsafe unless --allow-unsafe", async () => {
+    const prompt = "raw prompt must remain blocked after share redaction";
     await writeTrace(tmp, "run-bundle-unsafe.jsonl", [
       event("event-a", {
         runId: "run-bundle-unsafe",
-        attributes: { apiKey: secret },
+        attributes: { prompt },
       }),
     ]);
     const outputDir = path.join(tmp, "bundle-unsafe");
 
     await bundleCommand("run-bundle-unsafe", { dir: tmp, out: outputDir });
-    // v6.7.4-6: unsafe refusal must be nonzero (regression lock).
+    // v6.7.4-6 / v6.9-6: artifact-unsafe refusal must be nonzero.
     expect(process.exitCode).toBe(1);
     expect(process.exitCode).not.toBe(0);
     expect(errSpy.mock.calls.some((call) => String(call[0]).includes("refused"))).toBe(true);

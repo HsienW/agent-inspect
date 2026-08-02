@@ -42,8 +42,12 @@ export function buildBundleSummaryMarkdown(parts: {
   ];
 
   for (const run of checks.runs) {
+    const source =
+      run.sourceStatus !== undefined && run.sourceStatus !== run.status
+        ? `; source ${run.sourceStatus}`
+        : "";
     lines.push(
-      `- \`${run.runId}\`: ${run.status} (${run.findings} finding(s), ${run.errors} error(s), ${run.warnings} warning(s))`,
+      `- \`${run.runId}\`: artifact ${run.status}${source} (${run.findings} finding(s), ${run.errors} error(s), ${run.warnings} warning(s))`,
     );
   }
 
