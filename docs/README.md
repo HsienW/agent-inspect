@@ -23,7 +23,7 @@ Local-first TypeScript AI agent toolkit: **debug, regression-test, and safely sh
 | [FIRST-TRACE-IN-5-MINUTES.md](./FIRST-TRACE-IN-5-MINUTES.md) | Fastest path from install to share-safe bundle |
 | [GOLDEN-PATH.md](./GOLDEN-PATH.md) | What is automated vs pilot-pending |
 | [GETTING-STARTED.md](./GETTING-STARTED.md) | Observe, manual steps, adapters |
-| [ADOPTION.md](./ADOPTION.md) | Team onboarding |
+| [ADOPTION.md] · [INSTALL-KITS.md](./INSTALL-KITS.md)(./ADOPTION.md) | Team onboarding |
 | [USE-CASES.md](./USE-CASES.md) | Problem → command → starter |
 | [PRE-V7-PILOT-KIT.md](./PRE-V7-PILOT-KIT.md) | External pilot checklist |
 | [SUPPORT-LEVELS.md](./SUPPORT-LEVELS.md) | Stable / Supported / Beta / Preview |

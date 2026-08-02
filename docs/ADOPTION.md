@@ -25,6 +25,10 @@ npx agent-inspect verify-safe <run-id> --dir .agent-inspect
 
 No API keys required for the init demo. See [examples/starters/](../examples/starters/README.md).
 
+## Install kits
+
+Copyable task kits (LangGraph, portable evidence, AI SDK, OpenAI Agents, CI): [INSTALL-KITS.md](./INSTALL-KITS.md).
+
 ## Choose a starter
 
 | Goal | Starter |
