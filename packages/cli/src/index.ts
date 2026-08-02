@@ -646,8 +646,13 @@ export function createCliProgram(): Command {
         "alias for --profile (canonical spelling)",
       ).choices(["local", "share", "strict"]),
     )
-    .option("--out <path>", "output directory (folder; .zip suffix is stripped)")
+    .option("--out <path>", "output directory, .html path, or .zip path")
     .option("--output <path>", "alias for --out (canonical spelling)")
+    .addOption(
+      new Option("--format <format>", "bundle output format")
+        .choices(["directory", "html", "zip"])
+        .default("directory"),
+    )
     .option("--allow-unsafe", "write bundle even when verify-safe reports UNSAFE")
     .option("--json", "print deterministic JSON manifest")
     .action((runId: string | undefined, opts: BundleCommandOptions) => {

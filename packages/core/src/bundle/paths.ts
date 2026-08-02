@@ -40,15 +40,23 @@ export function assertBundlePathContained(
 }
 
 /**
- * Normalizes bundle output path. Strips a `.zip` suffix (folder-first MVP).
+ * Normalizes bundle output path.
+ * For directory/html modes, strips a trailing `.zip` suffix (folder-first).
+ * Pass `preserveZipExtension: true` for `--format zip`.
  */
-export function normalizeBundleOutputPath(out: string): string {
+export function normalizeBundleOutputPath(
+  out: string,
+  options?: { preserveZipExtension?: boolean },
+): string {
   const trimmed = out.trim();
   if (trimmed === "") {
     throw new Error("--out requires a non-empty path.");
   }
   const resolved = path.resolve(trimmed);
-  if (resolved.toLowerCase().endsWith(".zip")) {
+  if (
+    options?.preserveZipExtension !== true &&
+    resolved.toLowerCase().endsWith(".zip")
+  ) {
     return resolved.slice(0, -4);
   }
   return resolved;

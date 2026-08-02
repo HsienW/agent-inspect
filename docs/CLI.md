@@ -873,7 +873,7 @@ If `@agent-inspect/index-sqlite` is not installed, these subcommands print a sho
 
 ### 6.24 `bundle`
 
-Create a **share-safe offline trace bundle** as a local folder (v4.3+). Bundles are derived copies: original traces are read-only and never mutated. Automatic safety assessment runs on the **redacted artifact** before write; the command fails when the artifact is `UNSAFE`/`UNKNOWN` unless `--allow-unsafe`. Source-only findings that redaction removes do not refuse the bundle. See [BUNDLES.md](BUNDLES.md) and [SAFETY-POLICY.md](SAFETY-POLICY.md).
+Create a **share-safe offline trace bundle** (v4.3+ / Evidence v2). Bundles are derived copies: original traces are read-only and never mutated. Automatic safety assessment runs on the **redacted artifact** before write; the command fails when the artifact is `UNSAFE`/`UNKNOWN` unless `--allow-unsafe`. Source-only findings that redaction removes do not refuse the bundle. See [BUNDLES.md](BUNDLES.md), [EVIDENCE-FORMAT.md](EVIDENCE-FORMAT.md), and [SAFETY-POLICY.md](SAFETY-POLICY.md).
 
 ```bash
 agent-inspect bundle <run-id> [options]
@@ -887,7 +887,8 @@ Options:
 - `--session <session-id>` — bundle all runs in a session
 - `--since <duration>` — bundle runs with activity since a window (e.g. `24h`, `7d`)
 - `--profile <profile>` — `local`, `share` (default), or `strict` redaction for exported copies (`--redaction-profile` is the canonical alias)
-- `--out <path>` — output directory; `.zip` suffix is stripped (folder-first; `--output` is the canonical alias)
+- `--format <format>` — `directory` (default), `html` (evidence.html + evidence.json sidecar), or `zip` (local archive)
+- `--out <path>` — output directory, `.html` path, or `.zip` path; directory mode still strips a bare `.zip` suffix to a folder (`--output` is the canonical alias)
 - `--allow-unsafe` — write bundle even when verify-safe reports UNSAFE
 - `--json` — print deterministic JSON manifest
 

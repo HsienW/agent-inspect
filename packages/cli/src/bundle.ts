@@ -18,6 +18,7 @@ import {
   buildEvidenceTreeViewHtml,
   buildPlaceholderArtifact,
   buildSessionIndex,
+  buildZipArchive,
   bundleFailsOnSafety,
   collectTraceSchemaVersions,
   defaultBundleOutputPath,
@@ -33,6 +34,7 @@ import {
   sha256Hex,
   bundleRunAssetRelativePath,
   assertBundlePathContained,
+  assertEvidenceRelativePath,
   EVIDENCE_FORMAT_VERSION,
   EVIDENCE_HTML_FILENAME,
   EVIDENCE_MANIFEST_FILENAME,
@@ -60,6 +62,8 @@ import { redactTraceContent } from "./redact.js";
 import { assessOpenedTrace } from "./safety.js";
 import { loadSessionRuns } from "./sessions-load.js";
 
+export type BundleOutputFormat = "directory" | "html" | "zip";
+
 export interface BundleCommandOptions {
   dir?: string;
   session?: string;
@@ -70,6 +74,8 @@ export interface BundleCommandOptions {
   /** Canonical alias of `--out`. */
   output?: string;
   out?: string;
+  /** Output mode: directory (default), html (+ sidecar), or zip. */
+  format?: BundleOutputFormat;
   allowUnsafe?: boolean;
   json?: boolean;
   correlateGroup?: boolean;
@@ -125,14 +131,24 @@ function safetyStatusFromAssess(status: string): BundleSafeStatus {
   return "UNKNOWN";
 }
 
+function parseBundleFormat(value: string | undefined): BundleOutputFormat {
+  if (value === undefined || value === "directory" || value === "html" || value === "zip") {
+    return value ?? "directory";
+  }
+  throw new Error(`Unsupported --format "${value}". Use directory, html, or zip.`);
+}
+
 async function resolveOutputDir(
   options: BundleCommandOptions,
   runIds: readonly string[],
   cwd: string,
+  format: BundleOutputFormat,
 ): Promise<string> {
   const out = resolveOutputOption(options);
   if (out !== undefined) {
-    const normalized = normalizeBundleOutputPath(out);
+    const normalized = normalizeBundleOutputPath(out, {
+      preserveZipExtension: format === "zip",
+    });
     try {
       const location = resolveWorkspaceLocation(cwd);
       const manifest = await readWorkspaceManifestFile(location);
@@ -155,30 +171,29 @@ async function resolveOutputDir(
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
       const label =
         runIds.length === 1 ? sanitizeBundleRunId(runIds[0]!) : `multi-${runIds.length}`;
-      return resolveInsideWorkspace(
+      const base = resolveInsideWorkspace(
         location.workspaceDir,
         path.join(manifest.manifest.bundlesDir, `bundle-${label}-${stamp}`),
       );
+      return format === "zip" ? `${base}.zip` : base;
     }
   } catch {
     // fall through
   }
 
-  return defaultBundleOutputPath(runIds);
+  const base = defaultBundleOutputPath(runIds);
+  return format === "zip" ? `${base}.zip` : base;
 }
 
-async function writeBundleFile(
-  outputDir: string,
+function stageBundleFile(
   relativePath: string,
   content: string,
   files: string[],
-  packaged?: Map<string, string>,
-): Promise<void> {
-  const outPath = assertBundlePathContained(outputDir, relativePath);
-  await mkdir(path.dirname(outPath), { recursive: true });
-  await writeFile(outPath, content, "utf-8");
-  files.push(relativePath);
-  packaged?.set(relativePath, content);
+  packaged: Map<string, string>,
+): void {
+  const safe = assertEvidenceRelativePath(relativePath);
+  if (!files.includes(safe)) files.push(safe);
+  packaged.set(safe, content);
 }
 
 function renderBundleIndexHtml(parts: {
@@ -230,6 +245,7 @@ export async function bundleCommand(
   options: BundleCommandOptions = {},
 ): Promise<void> {
   const profile = parseBundleProfile(resolveRedactionProfileOption(options));
+  const format = parseBundleFormat(options.format);
   const traceDir = resolveTraceDir({ dir: options.dir });
   const cwd = process.cwd();
 
@@ -260,7 +276,7 @@ export async function bundleCommand(
     return;
   }
 
-  const outputDir = await resolveOutputDir(options, resolveResult.runIds, cwd);
+  const outputDir = await resolveOutputDir(options, resolveResult.runIds, cwd, format);
   const files: string[] = [];
   const packaged = new Map<string, string>();
   const checkRuns: BundleCheckResults["runs"] = [];
@@ -443,20 +459,16 @@ export async function bundleCommand(
     runs: redactionRuns,
   };
 
-  await mkdir(outputDir, { recursive: true });
-
   for (const runId of resolveResult.runIds) {
     const jsonl = redactedJsonlByRun.get(runId) ?? "";
-    await writeBundleFile(
-      outputDir,
+    stageBundleFile(
       bundleRunAssetRelativePath(runId, ".jsonl"),
       jsonl,
       files,
       packaged,
     );
     const html = htmlByRun.get(runId) ?? "";
-    await writeBundleFile(
-      outputDir,
+    stageBundleFile(
       bundleRunAssetRelativePath(runId, ".html"),
       runReportWrap(html, runId),
       files,
@@ -470,31 +482,22 @@ export async function bundleCommand(
       ? runReportWrap(htmlByRun.get(primaryRunId) ?? "", primaryRunId)
       : renderBundleIndexHtml({ runIds: resolveResult.runIds, reports: htmlByRun });
 
-  await writeBundleFile(outputDir, "trace.jsonl", combinedJsonl, files, packaged);
-  await writeBundleFile(outputDir, "trace.html", traceHtml, files, packaged);
-  await writeBundleFile(
-    outputDir,
-    "check-results.json",
-    writeJson(checks),
-    files,
-    packaged,
-  );
-  await writeBundleFile(
-    outputDir,
+  stageBundleFile("trace.jsonl", combinedJsonl, files, packaged);
+  stageBundleFile("trace.html", traceHtml, files, packaged);
+  stageBundleFile("check-results.json", writeJson(checks), files, packaged);
+  stageBundleFile(
     "eval-results.json",
     writeJson(buildPlaceholderArtifact()),
     files,
     packaged,
   );
-  await writeBundleFile(
-    outputDir,
+  stageBundleFile(
     "redaction-report.json",
     writeJson(redactionReport),
     files,
     packaged,
   );
-  await writeBundleFile(
-    outputDir,
+  stageBundleFile(
     "performance-summary.json",
     writeJson(buildPlaceholderArtifact()),
     files,
@@ -595,8 +598,8 @@ export async function bundleCommand(
     },
   });
 
-  await writeBundleFile(outputDir, EVIDENCE_HTML_FILENAME, evidenceHtml, files, packaged);
-  await writeBundleFile(outputDir, summaryPath, summaryMd, files, packaged);
+  stageBundleFile(EVIDENCE_HTML_FILENAME, evidenceHtml, files, packaged);
+  stageBundleFile(summaryPath, summaryMd, files, packaged);
 
   const metadataJson = writeJson(metadata);
   packaged.set(metadataPath, metadataJson);
@@ -620,21 +623,77 @@ export async function bundleCommand(
     files: evidenceFiles,
     createdAt: metadata.createdAt,
   });
-  const evidenceJson = serializeEvidenceManifest(evidence);
+  let evidenceJson = serializeEvidenceManifest(evidence);
+  let outputPath = outputDir;
 
-  await writeFile(path.join(outputDir, metadataPath), metadataJson, "utf-8");
-  await writeFile(path.join(outputDir, EVIDENCE_MANIFEST_FILENAME), evidenceJson, "utf-8");
-  if (!files.includes(EVIDENCE_MANIFEST_FILENAME)) {
-    files.push(EVIDENCE_MANIFEST_FILENAME);
+  if (format === "html") {
+    const htmlContent = packaged.get(EVIDENCE_HTML_FILENAME) ?? evidenceHtml;
+    const htmlEvidence = buildEvidenceManifest({
+      generatorVersion: packageVersion,
+      runIds: resolveResult.runIds,
+      traceSchemaVersions: [...schemaVersions].sort((a, b) => a.localeCompare(b)),
+      sourceHashes,
+      redactionProfile: profile,
+      verificationPolicy: profile,
+      assessmentStatus: checks.aggregateStatus,
+      sourceStatus: aggregateSourceStatus,
+      files: [{ path: EVIDENCE_HTML_FILENAME, content: htmlContent }],
+      createdAt: metadata.createdAt,
+    });
+    evidenceJson = serializeEvidenceManifest(htmlEvidence);
+
+    let htmlPath = outputDir;
+    let sidecarDir = outputDir;
+    if (outputDir.toLowerCase().endsWith(".html")) {
+      htmlPath = outputDir;
+      sidecarDir = path.dirname(outputDir);
+    } else {
+      await mkdir(outputDir, { recursive: true });
+      htmlPath = path.join(outputDir, EVIDENCE_HTML_FILENAME);
+      sidecarDir = outputDir;
+    }
+    await mkdir(sidecarDir, { recursive: true });
+    await writeFile(htmlPath, htmlContent, "utf-8");
+    await writeFile(path.join(sidecarDir, EVIDENCE_MANIFEST_FILENAME), evidenceJson, "utf-8");
+    outputPath = htmlPath;
+  } else if (format === "zip") {
+    const zipPath = outputDir.toLowerCase().endsWith(".zip")
+      ? outputDir
+      : `${outputDir}.zip`;
+    const zipParent = path.dirname(zipPath);
+    await mkdir(zipParent, { recursive: true });
+    const entries = [
+      ...[...packaged.entries()].map(([relativePath, content]) => ({
+        path: relativePath,
+        content,
+      })),
+      { path: EVIDENCE_MANIFEST_FILENAME, content: evidenceJson },
+    ];
+    const archive = buildZipArchive(entries);
+    await writeFile(zipPath, archive);
+    outputPath = zipPath;
+  } else {
+    await mkdir(outputDir, { recursive: true });
+    for (const [relativePath, content] of packaged.entries()) {
+      const outPath = assertBundlePathContained(outputDir, relativePath);
+      await mkdir(path.dirname(outPath), { recursive: true });
+      await writeFile(outPath, content, "utf-8");
+    }
+    await writeFile(path.join(outputDir, EVIDENCE_MANIFEST_FILENAME), evidenceJson, "utf-8");
+    if (!files.includes(EVIDENCE_MANIFEST_FILENAME)) {
+      files.push(EVIDENCE_MANIFEST_FILENAME);
+    }
+    outputPath = outputDir;
   }
 
   if (options.json) {
     console.log(
       writeJson({
         ok: true,
-        outputDir,
+        format,
+        outputDir: outputPath,
         metadata,
-        evidence,
+        evidence: format === "html" ? JSON.parse(evidenceJson) : evidence,
         checks,
         redaction: redactionReport,
       }).trimEnd(),
@@ -642,7 +701,8 @@ export async function bundleCommand(
     return;
   }
 
-  console.log(`Bundle written to ${outputDir}`);
+  console.log(`Bundle written to ${outputPath}`);
+  console.log(`Format: ${format}`);
   console.log(`Safe status: ${metadata.safeStatus}`);
   console.log(`Runs: ${resolveResult.runIds.join(", ")}`);
   console.log(`Files: ${metadata.files.length}`);

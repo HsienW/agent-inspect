@@ -57,3 +57,4 @@ export {
   type EvidenceProvenanceViewInput,
   type EvidenceSafetyViewInput,
 } from "./views-safety.js";
+export { buildZipArchive, type ZipEntry } from "./zip.js";

@@ -184,6 +184,40 @@ describe("bundle command", () => {
     expect(existsSync(path.join(tmp, "bundle", "metadata.json"))).toBe(true);
     expect(existsSync(outputDir)).toBe(false);
   });
+
+  it("writes html format with evidence sidecar only", async () => {
+    await writeTrace(tmp, "run-bundle-html.jsonl", [
+      event("event-a", { runId: "run-bundle-html" }),
+    ]);
+    const outputDir = path.join(tmp, "html-out");
+    await bundleCommand("run-bundle-html", {
+      dir: tmp,
+      out: outputDir,
+      format: "html",
+      json: true,
+    });
+    expect(process.exitCode ?? 0).toBe(0);
+    expect(existsSync(path.join(outputDir, "evidence.html"))).toBe(true);
+    expect(existsSync(path.join(outputDir, "evidence.json"))).toBe(true);
+    expect(existsSync(path.join(outputDir, "metadata.json"))).toBe(false);
+  });
+
+  it("writes zip format archive", async () => {
+    await writeTrace(tmp, "run-bundle-zipfmt.jsonl", [
+      event("event-a", { runId: "run-bundle-zipfmt" }),
+    ]);
+    const zipPath = path.join(tmp, "out-bundle.zip");
+    await bundleCommand("run-bundle-zipfmt", {
+      dir: tmp,
+      out: zipPath,
+      format: "zip",
+      json: true,
+    });
+    expect(process.exitCode ?? 0).toBe(0);
+    expect(existsSync(zipPath)).toBe(true);
+    const bytes = readFileSync(zipPath);
+    expect(bytes.subarray(0, 2).toString("utf8")).toBe("PK");
+  });
 });
 
 describe.skipIf(!builtCliHasBundleCommand)("built bundle CLI", () => {

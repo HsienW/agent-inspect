@@ -302,6 +302,7 @@ export {
   buildEvidenceTimelineViewHtml,
   buildEvidenceToolsLlmViewHtml,
   buildEvidenceTreeViewHtml,
+  buildZipArchive,
   collectTraceSchemaVersions,
   encodeEmbeddedEvidenceJson,
   inferEvidenceFileRole,
@@ -319,6 +320,7 @@ export type {
   EvidenceProvenanceViewInput,
   EvidenceSafetyViewInput,
   EvidenceViewId,
+  ZipEntry,
 } from "../evidence/index.js";
 
 export type {
