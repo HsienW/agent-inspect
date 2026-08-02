@@ -5,12 +5,16 @@ import {
   buildBundleMetadata,
   buildBundleSummaryMarkdown,
   buildEvidenceCausalFailureViewHtml,
+  buildEvidenceCircuitViewHtml,
   buildEvidenceContractsViewHtml,
   buildEvidenceDiffViewHtml,
   buildEvidenceHtmlShell,
   buildEvidenceManifest,
   buildEvidenceOutcomesViewHtml,
+  buildEvidenceProvenanceViewHtml,
+  buildEvidenceSafetyViewHtml,
   buildEvidenceTimelineViewHtml,
+  buildEvidenceToolsLlmViewHtml,
   buildEvidenceTreeViewHtml,
   buildPlaceholderArtifact,
   buildSessionIndex,
@@ -18,6 +22,7 @@ import {
   collectTraceSchemaVersions,
   defaultBundleOutputPath,
   getTraceFilePath,
+  inferEvidenceFileRole,
   normalizeBundleOutputPath,
   parseDuration,
   resolveBundleRunIds,
@@ -28,6 +33,7 @@ import {
   sha256Hex,
   bundleRunAssetRelativePath,
   assertBundlePathContained,
+  EVIDENCE_FORMAT_VERSION,
   EVIDENCE_HTML_FILENAME,
   EVIDENCE_MANIFEST_FILENAME,
   type BundleCheckResults,
@@ -544,6 +550,7 @@ export async function bundleCommand(
       tree: buildEvidenceTreeViewHtml(artifactTrees),
       timeline: buildEvidenceTimelineViewHtml(artifactTrees),
       causal: buildEvidenceCausalFailureViewHtml(artifactTrees),
+      "tools-llm": buildEvidenceToolsLlmViewHtml(artifactTrees),
       contracts: buildEvidenceContractsViewHtml({
         aggregateStatus: checks.aggregateStatus,
         runs: checkRuns,
@@ -555,6 +562,7 @@ export async function bundleCommand(
           events: artifactEventsByRun.get(id) ?? [],
         })),
       ),
+      circuit: buildEvidenceCircuitViewHtml(),
       diff:
         resolveResult.runIds.length >= 2
           ? buildEvidenceDiffViewHtml({
@@ -564,6 +572,26 @@ export async function bundleCommand(
               rightEvents: artifactEventsByRun.get(resolveResult.runIds[1]!) ?? [],
             })
           : buildEvidenceDiffViewHtml(),
+      safety: buildEvidenceSafetyViewHtml({
+        artifactStatus: checks.aggregateStatus,
+        sourceStatus: aggregateSourceStatus,
+        redactionProfile: profile,
+        verificationPolicy: profile,
+        redaction: redactionReport,
+        findingSummaries,
+      }),
+      provenance: buildEvidenceProvenanceViewHtml({
+        generatorName: "agent-inspect",
+        generatorVersion: packageVersion,
+        evidenceFormatVersion: EVIDENCE_FORMAT_VERSION,
+        createdAt: metadata.createdAt,
+        runIds: resolveResult.runIds,
+        traceSchemaVersions: [...schemaVersions].sort((a, b) => a.localeCompare(b)),
+        sourceHashes,
+        packagedFiles: metadataFileList
+          .filter((name) => name !== EVIDENCE_MANIFEST_FILENAME)
+          .map((name) => ({ path: name, role: inferEvidenceFileRole(name) })),
+      }),
     },
   });
 

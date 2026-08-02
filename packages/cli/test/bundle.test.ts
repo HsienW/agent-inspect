@@ -94,6 +94,9 @@ describe("bundle command", () => {
     expect(evidenceHtml).toContain('id="view-contracts"');
     expect(evidenceHtml).toContain('id="view-outcomes"');
     expect(evidenceHtml).toContain('id="view-diff"');
+    expect(evidenceHtml).toContain('id="view-safety"');
+    expect(evidenceHtml).toContain('id="view-provenance"');
+    expect(evidenceHtml).toContain('id="view-tools-llm"');
     const evidence = JSON.parse(
       await readFile(path.join(outputDir, "evidence.json"), "utf-8"),
     ) as {

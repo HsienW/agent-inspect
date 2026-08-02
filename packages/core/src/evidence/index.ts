@@ -49,3 +49,11 @@ export {
   type EvidenceCheckFindingSummary,
   type EvidenceContractsViewInput,
 } from "./views-contract.js";
+export {
+  buildEvidenceCircuitViewHtml,
+  buildEvidenceProvenanceViewHtml,
+  buildEvidenceSafetyViewHtml,
+  buildEvidenceToolsLlmViewHtml,
+  type EvidenceProvenanceViewInput,
+  type EvidenceSafetyViewInput,
+} from "./views-safety.js";

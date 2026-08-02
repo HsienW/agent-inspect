@@ -289,6 +289,7 @@ export {
   EVIDENCE_VIEW_IDS,
   assertEvidenceRelativePath,
   buildEvidenceCausalFailureViewHtml,
+  buildEvidenceCircuitViewHtml,
   buildEvidenceContractsViewHtml,
   buildEvidenceDiffViewHtml,
   buildEvidenceFileEntries,
@@ -296,7 +297,10 @@ export {
   buildEvidenceHtmlShellFromManifest,
   buildEvidenceManifest,
   buildEvidenceOutcomesViewHtml,
+  buildEvidenceProvenanceViewHtml,
+  buildEvidenceSafetyViewHtml,
   buildEvidenceTimelineViewHtml,
+  buildEvidenceToolsLlmViewHtml,
   buildEvidenceTreeViewHtml,
   collectTraceSchemaVersions,
   encodeEmbeddedEvidenceJson,
@@ -312,6 +316,8 @@ export type {
   EvidenceCheckFindingSummary,
   EvidenceContractsViewInput,
   EvidenceHtmlShellInput,
+  EvidenceProvenanceViewInput,
+  EvidenceSafetyViewInput,
   EvidenceViewId,
 } from "../evidence/index.js";
 
