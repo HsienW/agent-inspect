@@ -97,7 +97,7 @@ function pickCorrelation(
 }
 
 export function buildRunTimeline(
-  events: TraceEvent[],
+  events: readonly TraceEvent[],
   options: TimelineOptions = {},
 ): RunTimeline {
   const started = events.find(
