@@ -1,5 +1,17 @@
 # @agent-inspect/mcp-server
 
+## 6.8.0
+
+### Minor Changes
+
+- 69b6515: LangGraph fidelity contract for `@agent-inspect/langchain`: per-invocation lifecycle, callback reuse isolation, conservative parent reconciliation, synthetic semantic groups, tool identity fields, persist-by-intent, flush/finalize/close, and bounded diagnostics. Includes no-provider LangGraph coverage and NestJS/swarm recipes. No schema break; no new root/core dependencies; no default network upload.
+
+### Patch Changes
+
+- Updated dependencies [69b6515]
+  - agent-inspect@6.8.0
+  - @agent-inspect/redact@6.8.0
+
 ## 6.7.5
 
 ### Patch Changes
