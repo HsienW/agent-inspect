@@ -189,6 +189,7 @@ describe("@agent-inspect/cli", () => {
       expect(help).toContain("--format");
       expect(help).toContain("--run");
       expect(help).toContain("--json");
+      expect(help).toContain("--explain");
       expect(help).toContain("--max-string-length");
     }
   });

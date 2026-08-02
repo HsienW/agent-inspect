@@ -12,10 +12,10 @@ trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.9-8"
-lastConfirmedCommit: "5be27c6"
+currentChunk: "6.9-9"
+lastConfirmedCommit: "f65a522"
 lastValidationLevel: "vitest source-vs-artifact verify-safe"
-nextAction: "Land 6.9-8 override docs; continue 6.9-9+"
+nextAction: "Land 6.9-9 MCP artifact gate parity; continue 6.9-10"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:

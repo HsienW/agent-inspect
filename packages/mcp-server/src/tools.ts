@@ -18,7 +18,7 @@ import { exportMarkdown, exportRunTree } from "agent-inspect/exporters";
 import { persistedInspectEventsToTraceEvents } from "agent-inspect/persisted";
 import { openTrace } from "agent-inspect/readers";
 
-import { assessTraceForMcp } from "./assess-trace.js";
+import { assessTraceArtifactForMcp } from "./assess-trace.js";
 import { prepareMcpToolResult } from "./prepare-result.js";
 
 export interface McpServerContext {
@@ -391,16 +391,21 @@ export async function callReadOnlyTool(
     }
     case "create_share_safe_bundle": {
       const runId = String(args.runId ?? "");
-      const { read } = await openRunTrace(context, runId);
+      const { meta, read } = await openRunTrace(context, runId);
       const run = read.runs.find((item) => item.runId === runId) ?? read.runs[0];
       if (!run) return errorResult(`Run tree not found: ${runId}`);
-      const safety = assessTraceForMcp(read, runId);
+      const profile = redactionProfileForExport(context);
+      const safety = await assessTraceArtifactForMcp({
+        read,
+        runId,
+        filePath: meta.filePath,
+        profile,
+      });
       if (bundleFailsOnSafety(safety.status, false)) {
         return errorResult(
-          `Share-safe bundle refused: safety status is ${safety.status}. Resolve findings before export.`,
+          `Share-safe bundle refused: artifact safety status is ${safety.status}. Resolve findings before export.`,
         );
       }
-      const profile = redactionProfileForExport(context);
       const markdown = exportMarkdown(run, {
         format: "markdown",
         redacted: true,
@@ -421,6 +426,9 @@ export async function callReadOnlyTool(
             {
               runId,
               status: safety.status,
+              ...(safety.sourceStatus !== undefined
+                ? { sourceStatus: safety.sourceStatus }
+                : {}),
               errors: safety.errors,
               warnings: safety.warnings,
               findings: safety.findings,

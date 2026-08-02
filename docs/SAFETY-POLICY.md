@@ -111,7 +111,7 @@ npx agent-inspect redact ./trace.jsonl --profile share -o ./trace.share.jsonl
 npx agent-inspect verify-safe ./trace.share.jsonl --explain
 ```
 
-`verify-safe` reports **source** and **artifact** assessments; bundle gating uses the **artifact** assessment after the selected redaction profile.
+`verify-safe` reports **source** and **artifact** assessments; bundle gating (CLI and MCP `create_share_safe_bundle`) uses the **artifact** assessment after the selected redaction profile.
 
 ## Related
 
