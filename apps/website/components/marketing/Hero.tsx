@@ -14,7 +14,7 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.18),transparent_45%)]" />
       <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
         <div>
-          <Badge tone="primary">Local trajectory evidence for TypeScript agents</Badge>
+          <Badge tone="primary">Local evidence debugger · no collector</Badge>
           <h1 className="mt-5 text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
             {product.headline}
           </h1>
@@ -44,7 +44,7 @@ export function Hero() {
           <div className="mt-8 flex flex-wrap gap-2">
             {[
               `v${product.version}`,
-              `${product.publicPackageCount} packages`,
+              "Tiered package portfolio",
               "Open source",
               "MIT",
             ].map((item) => (

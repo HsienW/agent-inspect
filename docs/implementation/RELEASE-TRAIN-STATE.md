@@ -12,10 +12,10 @@ trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.12-0"
-lastConfirmedCommit: "0074ebd"
+currentChunk: "6.12-1"
+lastConfirmedCommit: "6f968c4"
 lastValidationLevel: "npm view agent-inspect@6.11.0 (18 fixed packages)"
-nextAction: "Land 6.12-0; continue 6.12-1 README/website hierarchy"
+nextAction: "Land 6.12-1; continue 6.12-2 Install kits"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:

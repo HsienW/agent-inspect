@@ -9,9 +9,9 @@ export const product = {
   v7Scheduled: false,
   trustLine:
     "No account · no default upload · metadata-only by default · optional customer-owned Studio",
-  headline: "Debug, regression-test, and safely share AI-agent behavior locally",
+  headline: "The local evidence debugger for TypeScript agents",
   subheadline:
-    "From one broken run to a deterministic contract, CI gate, and verified-safe bundle—without sending traces to AgentInspect.",
+    "Faithful execution trees, deterministic regression checks, share-checked evidence, and coding-agent access—without a collector or account.",
   fiveMinuteCommands: `npm install agent-inspect
 npx agent-inspect init --yes
 node examples/agent-inspect-demo.mjs

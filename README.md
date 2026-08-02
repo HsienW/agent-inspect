@@ -8,16 +8,11 @@
 <h1 align="center">agent-inspect</h1>
 
 <p align="center">
-  <strong>Debug, regression-test, and safely share TypeScript AI-agent behavior—locally.</strong>
+  <strong>The local evidence debugger for TypeScript agents—faithful execution trees, deterministic regression checks, share-checked evidence, and coding-agent access without a collector or account.</strong>
 </p>
 
 <p align="center">
   <sub>No account · no default upload · metadata-only by default · optional customer-owned Studio</sub>
-</p>
-
-<p align="center">
-  AgentInspect turns agent runs into <strong>customer-owned evidence</strong>: execution trees,
-  deterministic contracts, CI gates, verified-safe bundles, and optional self-hosted review.
 </p>
 
 <p align="center">
@@ -38,6 +33,16 @@
 npm install agent-inspect
 ```
 
+## Hero flow
+
+```text
+1. Capture one real run
+2. Find the causal failure
+3. Ask your coding agent to inspect it
+4. Lock the fix with a contract
+5. Attach the share-checked evidence
+```
+
 ## Three workflows
 
 | Workflow | What you do |
@@ -46,7 +51,9 @@ npm install agent-inspect
 | **Prevent one regression** | TraceContract / `check` → suite / cohort → CI gate |
 | **Share one safe artifact** | Redact → `verify-safe` → offline bundle → optional Studio review |
 
-**Review as a team (optional):** workspace + optional SQLite index → customer-owned [Studio Beta](https://github.com/rajudandigam/agent-inspect/tree/main/packages/studio) (no AgentInspect-hosted cloud).
+**Coding-agent loop (optional):** local read-only [`@agent-inspect/mcp-server`](https://www.npmjs.com/package/@agent-inspect/mcp-server) — see [CODING-AGENT-LOOP.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CODING-AGENT-LOOP.md).
+
+**Review as a team (optional):** workspace + optional SQLite index → customer-owned [Studio Beta](https://github.com/rajudandigam/agent-inspect/tree/main/packages/studio) (no AgentInspect-hosted cloud). Portfolio tiers: [POSITIONING-AND-PORTFOLIO.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/POSITIONING-AND-PORTFOLIO.md).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/rajudandigam/agent-inspect/main/docs/assets/readme-product-loop.svg?sanitize=true" alt="Capture or import → understand → enforce → verify and bundle → review locally or in customer-owned Studio" width="900">
@@ -146,18 +153,29 @@ Details: [Safe sharing](https://github.com/rajudandigam/agent-inspect/blob/main/
 See [Compare](https://github.com/rajudandigam/agent-inspect/blob/main/docs/COMPARE.md).
 
 <details>
-<summary><strong>Package family (18 public packages)</strong></summary>
+<summary><strong>Package family (18 linked packages · tiered presentation)</strong></summary>
+
+Canonical tiers: [POSITIONING-AND-PORTFOLIO.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/POSITIONING-AND-PORTFOLIO.md) · [SUPPORT-LEVELS.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SUPPORT-LEVELS.md).
+
+### Tier A — Flagship
+
+| Package | Purpose |
+| ------- | ------- |
+| [`agent-inspect`](https://www.npmjs.com/package/agent-inspect) | Core APIs + CLI + evidence |
+| [`@agent-inspect/redact`](https://www.npmjs.com/package/@agent-inspect/redact) | Deterministic redaction |
+| [`@agent-inspect/mcp-server`](https://www.npmjs.com/package/@agent-inspect/mcp-server) | Read-only MCP coding-agent loop (Preview) |
+
+### Tier B — Official integrations
 
 ### Framework adapters
 
 | Package | Purpose |
 | ------- | ------- |
-| [`agent-inspect`](https://www.npmjs.com/package/agent-inspect) | Core APIs + CLI |
 | [`@agent-inspect/ai-sdk`](https://www.npmjs.com/package/@agent-inspect/ai-sdk) | AI SDK telemetry |
 | [`@agent-inspect/openai-agents`](https://www.npmjs.com/package/@agent-inspect/openai-agents) | OpenAI Agents processor |
 | [`@agent-inspect/langchain`](https://www.npmjs.com/package/@agent-inspect/langchain) | LangChain callbacks |
 
-### Testing / evaluation
+### Tier B — Testing / evaluation
 
 | Package | Purpose |
 | ------- | ------- |
@@ -166,7 +184,7 @@ See [Compare](https://github.com/rajudandigam/agent-inspect/blob/main/docs/COMPA
 | [`@agent-inspect/vitest`](https://www.npmjs.com/package/@agent-inspect/vitest) | Vitest reporter |
 | [`@agent-inspect/jest`](https://www.npmjs.com/package/@agent-inspect/jest) | Jest reporter |
 
-### Safety
+### Tier C — Optional supporting (Safety)
 
 | Package | Purpose |
 | ------- | ------- |
@@ -174,7 +192,7 @@ See [Compare](https://github.com/rajudandigam/agent-inspect/blob/main/docs/COMPA
 | [`@agent-inspect/guardrails`](https://www.npmjs.com/package/@agent-inspect/guardrails) | Deterministic guardrail rules |
 | [`@agent-inspect/circuit`](https://www.npmjs.com/package/@agent-inspect/circuit) | Loop / retry / timeout analyzers |
 
-### Developer surfaces
+### Tier C — Optional supporting (Developer surfaces)
 
 | Package | Purpose |
 | ------- | ------- |
@@ -183,14 +201,14 @@ See [Compare](https://github.com/rajudandigam/agent-inspect/blob/main/docs/COMPA
 | [`@agent-inspect/mcp`](https://www.npmjs.com/package/@agent-inspect/mcp) | MCP client tracing |
 | [`@agent-inspect/mcp-server`](https://www.npmjs.com/package/@agent-inspect/mcp-server) | Read-only MCP server (Preview) |
 
-### Team / self-hosted
+### Tier C — Optional supporting (Team / self-hosted)
 
 | Package | Purpose |
 | ------- | ------- |
 | [`@agent-inspect/index-sqlite`](https://www.npmjs.com/package/@agent-inspect/index-sqlite) | Optional SQLite index (Beta) |
 | [`@agent-inspect/studio`](https://www.npmjs.com/package/@agent-inspect/studio) | Customer-owned Studio (Beta) |
 
-### Extension / interop
+### Tier C — Optional supporting (Extension / interop)
 
 | Package | Purpose |
 | ------- | ------- |
