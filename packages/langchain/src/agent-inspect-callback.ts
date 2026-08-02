@@ -135,6 +135,21 @@ export class AgentInspectCallback extends BaseCallbackHandler {
     this.#persistence?.reset();
   }
 
+  /**
+   * When persist mode has already finalized an envelope, rotate to a new
+   * invocation before the next start so reused handlers do not mix runs.
+   */
+  #prepareCallbackInvocation(): void {
+    const persistence = this.#persistence;
+    if (!persistence?.lifecycle.finalized) return;
+    this.#events = [];
+    this.#starts.clear();
+    this.#streamState.clear();
+    this.#deferredPersistStart.clear();
+    this.#rootRunId = undefined;
+    persistence.beginNewInvocation();
+  }
+
   #streamPreviewLimit(): number {
     if (this.#opts.capture !== "preview") return 0;
     return this.#opts.maxStreamPreviewChars ?? this.#opts.maxPreviewChars ?? 200;
@@ -376,6 +391,7 @@ export class AgentInspectCallback extends BaseCallbackHandler {
     _extra?: Record<string, unknown>,
   ): Promise<void> {
     void runType;
+    this.#prepareCallbackInvocation();
     this.#ensureRoot(runId, parentRunId);
     this.#rememberStart(runId, "CHAIN");
     const label = serializedLabel(chain) ?? "chain";
@@ -481,6 +497,7 @@ export class AgentInspectCallback extends BaseCallbackHandler {
     metadata?: Record<string, unknown>,
     runName?: string,
   ): Promise<void> {
+    this.#prepareCallbackInvocation();
     this.#ensureRoot(runId, parentRunId);
     this.#rememberStart(runId, "LLM");
     const model = extractModelName(llm);
@@ -523,6 +540,7 @@ export class AgentInspectCallback extends BaseCallbackHandler {
     metadata?: Record<string, unknown>,
     runName?: string,
   ): Promise<void> {
+    this.#prepareCallbackInvocation();
     this.#ensureRoot(runId, parentRunId);
     this.#rememberStart(runId, "LLM");
     const model = extractModelName(llm);
@@ -678,6 +696,7 @@ export class AgentInspectCallback extends BaseCallbackHandler {
     runName?: string,
     _toolCallId?: string,
   ): Promise<void> {
+    this.#prepareCallbackInvocation();
     this.#ensureRoot(runId, parentRunId);
     this.#rememberStart(runId, "TOOL");
     const toolName = resolveToolDisplayName(tool, runName, metadata);
@@ -783,6 +802,7 @@ export class AgentInspectCallback extends BaseCallbackHandler {
     name?: string,
   ): Promise<void> {
     void _query;
+    this.#prepareCallbackInvocation();
     this.#ensureRoot(runId, parentRunId);
     this.#rememberStart(runId, "RETRIEVER");
     const rname = name ?? serializedLabel(retriever) ?? "retriever";
@@ -884,6 +904,7 @@ export class AgentInspectCallback extends BaseCallbackHandler {
     parentRunId?: string,
     tags?: string[],
   ): Promise<void> {
+    this.#prepareCallbackInvocation();
     this.#ensureRoot(runId, parentRunId);
     const attrs: Record<string, unknown> = {
       ...this.#baseAttrs(runId, parentRunId, tags, undefined),

@@ -69,14 +69,14 @@ function toStepMetadata(attrs: Record<string, unknown>): StepMetadata {
  */
 export class LangChainTracePersistence {
   readonly #traceDir: string;
-  readonly #runId: string;
+  #runId: string;
   readonly #runName: string;
   readonly #standalone: boolean;
   readonly #silent: boolean;
   readonly #safety: ReturnType<typeof resolveTraceSafetyOptions>;
-
   readonly #lifecycle: AdapterInvocationState;
   readonly #lcToStepId = new Map<string, string>();
+  #lateEventCount = 0;
 
   constructor(options: LangChainTracePersistenceOptions = {}) {
     const inContext = hasActiveContext();
@@ -85,10 +85,8 @@ export class LangChainTracePersistence {
     this.#traceDir = inContext
       ? (getTraceDirFromContext() ?? resolveTraceDir({ dir: options.traceDir }))
       : resolveTraceDir({ dir: options.traceDir });
-    this.#runId =
-      (inContext ? getCurrentRunId() : undefined) ??
-      options.runId ??
-      createRunId();
+    const contextRunId = inContext ? getCurrentRunId() : undefined;
+    this.#runId = contextRunId ?? options.runId ?? createRunId();
     this.#runName = options.runName ?? "langchain-agent";
     this.#safety = resolveTraceSafetyOptions({
       redact: options.redact ? { rules: options.redact } : true,
@@ -110,9 +108,43 @@ export class LangChainTracePersistence {
     return this.#lifecycle;
   }
 
+  /** Count of end/start events ignored after finalize (diagnostics). */
+  get lateEventCount(): number {
+    return this.#lateEventCount;
+  }
+
+  /**
+   * Start a fresh envelope after a prior invocation finalized (callback reuse).
+   * Allocates a new run id unless still nested in an inspectRun context.
+   */
+  beginNewInvocation(): void {
+    if (hasActiveContext()) {
+      const ctxId = getCurrentRunId();
+      if (ctxId) {
+        this.#runId = ctxId;
+        resetInvocationState(this.#lifecycle, this.#runId);
+        this.#lcToStepId.clear();
+        this.#lateEventCount = 0;
+        return;
+      }
+    }
+    this.#runId = createRunId();
+    resetInvocationState(this.#lifecycle, this.#runId);
+    this.#lcToStepId.clear();
+    this.#lateEventCount = 0;
+  }
+
   reset(): void {
     resetInvocationState(this.#lifecycle);
     this.#lcToStepId.clear();
+    this.#lateEventCount = 0;
+  }
+
+  /** Rotate when a prior standalone invocation already finalized. */
+  #prepareForStart(): void {
+    if (this.#standalone && this.#lifecycle.finalized) {
+      this.beginNewInvocation();
+    }
   }
 
   /**
@@ -137,6 +169,7 @@ export class LangChainTracePersistence {
     attributes: Record<string, unknown>;
   }): Promise<void> {
     try {
+      this.#prepareForStart();
       const stepId = createStepId();
       this.#lcToStepId.set(params.lcRunId, stepId);
       beginCallbackRun(this.#lifecycle, {
@@ -193,8 +226,21 @@ export class LangChainTracePersistence {
     completionAttributes?: Record<string, unknown>;
   }): Promise<void> {
     try {
+      if (
+        this.#lifecycle.finalized &&
+        !this.#lifecycle.activeRuns.has(params.lcRunId) &&
+        !this.#lcToStepId.has(params.lcRunId)
+      ) {
+        this.#lateEventCount += 1;
+        return;
+      }
+
       let stepId = this.#lcToStepId.get(params.lcRunId);
       if (!stepId && params.completionAttributes) {
+        if (this.#lifecycle.finalized) {
+          this.#lateEventCount += 1;
+          return;
+        }
         stepId = createStepId();
         this.#lcToStepId.set(params.lcRunId, stepId);
         beginCallbackRun(this.#lifecycle, {
@@ -282,6 +328,7 @@ export class LangChainTracePersistence {
     errorMessage?: string;
   }): Promise<void> {
     try {
+      this.#prepareForStart();
       const stepId = createStepId();
       this.#lcToStepId.set(params.lcRunId, stepId);
       beginCallbackRun(this.#lifecycle, {
