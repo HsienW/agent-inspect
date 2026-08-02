@@ -1,0 +1,1 @@
+{"schemaVersion":"0.2","eventId":"evt_broken_1","runId":"broken","kind":"RUN","name":"evidence-demo-broken","status":"ok","timestamp":"2026-08-02T00:00:00.000Z","confidence":"explicit","source":{"type":"manual"},"attributes":{"prompt":"raw prompt must block share-safe evidence demo"}}

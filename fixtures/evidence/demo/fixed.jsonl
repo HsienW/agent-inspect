@@ -1,0 +1,1 @@
+{"schemaVersion":"0.2","eventId":"evt_fixed_1","runId":"fixed","kind":"RUN","name":"evidence-demo-fixed","status":"ok","timestamp":"2026-08-02T00:00:00.000Z","confidence":"explicit","source":{"type":"manual"},"attributes":{"note":"share-safe evidence demo without raw prompt"}}

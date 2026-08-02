@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-stability-and-focus-v6.7.3-to-v7-decision
 currentTrain: v6.10.0-evidence-v2
 trainStatus: in-progress
-currentChunk: 6.10-10
-nextAction: Land 6.10-10; then 6.10-11 documentation and demo
+currentChunk: 6.10-11
+nextAction: Land 6.10-11; then 6.10-12 release readiness
 canonicalRoadmap: docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md
 activePlan: docs/implementation/release-trains/V6.10.0-EXECUTION-PLAN.md
 ```

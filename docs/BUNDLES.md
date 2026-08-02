@@ -2,6 +2,8 @@
 
 AgentInspect **bundles** are local, offline folders you can attach to PRs, incident threads, or internal reviews. They combine redacted trace copies, HTML reports, safety check results, and a human summary — without mutating source traces or calling the network.
 
+Evidence v2 (6.10+) adds `evidence.html` + `evidence.json` (hashed integrity) on top of the existing layout. See [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md).
+
 ## Quick start
 
 ```bash
@@ -12,8 +14,16 @@ npx agent-inspect bundle <runId> --dir ./.agent-inspect
 npx agent-inspect bundle --session <sessionId> --dir ./.agent-inspect
 npx agent-inspect bundle --since 24h --profile strict --dir ./.agent-inspect
 
-# Explicit output folder (.zip suffix is stripped — folder-first MVP)
+# Explicit output folder (directory mode strips a bare .zip suffix)
 npx agent-inspect bundle <runId> --out ./my-bundle --json
+
+# Formats
+npx agent-inspect bundle <runId> --format directory --out ./my-bundle
+npx agent-inspect bundle <runId> --format html --out ./evidence-html
+npx agent-inspect bundle <runId> --format zip --out ./my-bundle.zip
+
+# Integrity check (Evidence v2 directory)
+npx agent-inspect bundle verify ./my-bundle
 ```
 
 When a workspace exists, default output goes under `.agent-inspect/bundles/`.
@@ -21,15 +31,17 @@ When a workspace exists, default output goes under `.agent-inspect/bundles/`.
 ## Bundle layout
 
 ```text
+evidence.html              # offline Evidence v2 report (primary review surface)
+evidence.json              # Evidence v2 manifest + SHA-256 file hashes
 trace.html                 # offline HTML (index for multi-run)
 trace.jsonl                # redacted JSONL copy
 summary.md                 # human overview
-metadata.json              # manifest (version, profile, safe status)
+metadata.json              # legacy manifest (version, profile, safe status)
 check-results.json         # verify-safe results per run
 redaction-report.json      # detector summary (no secret values)
 eval-results.json          # placeholder unless eval artifacts are added later
 performance-summary.json   # placeholder unless perf artifacts are added later
-assets/runs/<runId>.*      # per-run HTML + JSONL mirrors
+assets/runs/<safeRunId>.*  # per-run HTML + JSONL mirrors (safe filenames)
 ```
 
 ## Safety defaults
@@ -37,8 +49,8 @@ assets/runs/<runId>.*      # per-run HTML + JSONL mirrors
 | Setting | Default |
 | ------- | ------- |
 | Redaction profile | `share` |
-| verify-safe | Runs automatically before write |
-| UNSAFE traces | Command fails unless `--allow-unsafe` |
+| verify-safe | Runs automatically on the **redacted artifact** before write |
+| UNSAFE / UNKNOWN artifact | Command fails unless `--allow-unsafe` |
 | Source traces | Read-only; never modified |
 
 Profiles:
@@ -52,15 +64,24 @@ Profiles:
 | Need | Command |
 | ---- | ------- |
 | One redacted file | `redact` |
-| Safety scan only | `verify-safe` |
-| CI artifact set | `artifacts` |
+| Safety scan only | `verify-safe` / `scan` |
+| CI artifact set (+ evidence on failure) | `artifacts` |
 | PR-ready evidence folder | **`bundle`** |
+| Integrity check | **`bundle verify`** |
 
 ## Review before sharing
 
-Bundles are **derived copies**, not compliance certification. Always review `summary.md`, `check-results.json`, and `trace.html` before attaching to tickets or PRs.
+Bundles are **derived copies**, not compliance certification. Always review `evidence.html` / `summary.md`, `check-results.json`, and run `bundle verify` before attaching to tickets or PRs.
 
 See also [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md) and [CLI.md §6.24](./CLI.md#624-bundle).
+
+## Review workflow
+
+```text
+capture → check → redact → verify-safe → bundle → bundle verify → attach to PR/incident
+```
+
+Broken vs fixed demo fixtures: [`fixtures/evidence/demo/`](../fixtures/evidence/demo/).
 
 ## RFC
 
