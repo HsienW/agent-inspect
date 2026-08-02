@@ -17,6 +17,7 @@ import {
 import type { RedactionRule } from "agent-inspect/logs";
 import {
   beginCallbackRun,
+  bumpCompletionGeneration,
   canScheduleFinalize,
   createInvocationState,
   endCallbackRun,
@@ -39,6 +40,13 @@ export interface LangChainTracePersistenceOptions {
   redact?: RedactionRule[];
   silent?: boolean;
   maxPreviewChars?: number;
+}
+
+/** Options for explicit envelope finalization (serverless / unusual callback shapes). */
+export interface FinalizeOptions {
+  status?: "success" | "error";
+  errorMessage?: string;
+  endTime?: number;
 }
 
 function kindToStepType(kind: InspectKind): StepType {
@@ -545,6 +553,73 @@ export class LangChainTracePersistence {
       }
       endCallbackRun(this.#lifecycle, params.lcRunId);
       await this.#scheduleStandaloneFinalization(params.timestamp);
+    } catch (err) {
+      this.#warn(err);
+    }
+  }
+
+  /**
+   * Drain deferred microtask finalization. Idempotent; never throws to callers.
+   * @experimental
+   */
+  async flush(): Promise<void> {
+    try {
+      await Promise.resolve();
+      await Promise.resolve();
+    } catch (err) {
+      this.#warn(err);
+    }
+  }
+
+  /**
+   * Force-complete the standalone envelope when safe/started.
+   * Works even if active callback runs remain (unusual framework shapes / serverless).
+   * Idempotent; never throws to callers.
+   * @experimental
+   */
+  async finalize(options: FinalizeOptions = {}): Promise<boolean> {
+    try {
+      if (!this.#standalone) return false;
+      if (this.#lifecycle.finalized) return false;
+      if (!this.#lifecycle.envelopeStarted) return false;
+
+      // Cancel any in-flight deferred finalize so we do not double-write.
+      bumpCompletionGeneration(this.#lifecycle);
+
+      const status =
+        options.status ??
+        (this.#lifecycle.terminalError ? "error" : "success");
+      if (status === "error") {
+        noteTerminalError(
+          this.#lifecycle,
+          options.errorMessage ??
+            this.#lifecycle.terminalError?.message ??
+            "adapter finalize error",
+        );
+      }
+
+      await this.#ensureRunCompleted(
+        options.endTime ?? Date.now(),
+        status,
+        status === "error"
+          ? (options.errorMessage ?? this.#lifecycle.terminalError?.message)
+          : undefined,
+      );
+      return this.#lifecycle.finalized;
+    } catch (err) {
+      this.#warn(err);
+      return false;
+    }
+  }
+
+  /**
+   * Flush + finalize. Idempotent; never throws to callers.
+   * @experimental
+   */
+  async close(): Promise<void> {
+    try {
+      await this.flush();
+      await this.finalize();
     } catch (err) {
       this.#warn(err);
     }

@@ -129,6 +129,58 @@ export class AgentInspectCallback extends BaseCallbackHandler {
   }
 
   /**
+   * Drain deferred completion work (microtask finalization).
+   * Idempotent. Failures are isolated and never thrown to user code.
+   *
+   * @experimental Additive finalization API for serverless / unusual callback shapes.
+   */
+  async flush(): Promise<void> {
+    try {
+      await this.#persistence?.flush();
+    } catch (err) {
+      if (!this.#opts.silent) {
+        console.error("[agent-inspect:langchain]", err);
+      }
+    }
+  }
+
+  /**
+   * Complete the standalone envelope when started. Fallback when automatic
+   * completion cannot run (e.g. process shutdown). Idempotent.
+   * Failures are isolated and never thrown to user code.
+   *
+   * @experimental Additive finalization API for serverless / unusual callback shapes.
+   */
+  async finalize(options?: {
+    status?: "success" | "error";
+    errorMessage?: string;
+  }): Promise<void> {
+    try {
+      await this.#persistence?.finalize(options);
+    } catch (err) {
+      if (!this.#opts.silent) {
+        console.error("[agent-inspect:langchain]", err);
+      }
+    }
+  }
+
+  /**
+   * `flush()` then `finalize()`. Idempotent. Failures are isolated.
+   *
+   * @experimental Additive finalization API for serverless / unusual callback shapes.
+   */
+  async close(): Promise<void> {
+    try {
+      await this.flush();
+      await this.finalize();
+    } catch (err) {
+      if (!this.#opts.silent) {
+        console.error("[agent-inspect:langchain]", err);
+      }
+    }
+  }
+
+  /**
    * When persist mode has already finalized an envelope, rotate to a new
    * invocation before the next start so reused handlers do not mix runs.
    */

@@ -22,6 +22,9 @@ describe("@agent-inspect/langchain API stability (v1.0 Pass 1)", () => {
     });
     expect(cb.name).toBe("agent-inspect");
     expect(cb.getEvents()).toEqual([]);
+    expect(typeof cb.flush).toBe("function");
+    expect(typeof cb.finalize).toBe("function");
+    expect(typeof cb.close).toBe("function");
     cb.clear();
     expect(cb.getEvents()).toEqual([]);
   });
