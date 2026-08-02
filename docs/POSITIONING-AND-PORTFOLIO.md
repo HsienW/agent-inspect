@@ -53,7 +53,7 @@ Document AI SDK and OpenAI Agents on their own adoption pages ([AI-SDK-ADOPTION.
 
 **Decision for 6.12:** keep the eighteen-package fixed group through v6.
 
-Rationale (maintenance audit lands in chunk 6.12-9):
+Rationale (see [PACKAGE-MAINTENANCE-AUDIT.md](./PACKAGE-MAINTENANCE-AUDIT.md)):
 
 - Compatibility and provenance stay clear for consumers
 - Optional packages must not leak into root/core runtime deps
