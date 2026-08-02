@@ -59,6 +59,11 @@ function errorShape(err: unknown): { errorName?: string; errorMessage: string } 
 
 export class AgentInspectCallback extends BaseCallbackHandler {
   name = "agent-inspect";
+  /**
+   * Ensure LangGraph/LangChain awaits async handler work (persistence) before
+   * invoke/stream settles. Required for deterministic standalone envelopes.
+   */
+  awaitHandlers = true;
 
   readonly #opts: Required<
     Pick<AgentInspectCallbackOptions, "capture" | "silent" | "maxPreviewChars">

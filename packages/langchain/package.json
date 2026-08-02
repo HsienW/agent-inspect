@@ -45,7 +45,8 @@
     "agent-inspect": "workspace:*"
   },
   "devDependencies": {
-    "@langchain/core": "^1.0.0"
+    "@langchain/core": "^1.2.4",
+    "@langchain/langgraph": "^1.0.0"
   },
   "publishConfig": {
     "access": "public"
