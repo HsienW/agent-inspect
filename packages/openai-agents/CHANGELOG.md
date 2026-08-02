@@ -1,5 +1,13 @@
 # @agent-inspect/openai-agents
 
+## 6.7.5
+
+### Patch Changes
+
+- 5c4197f: Consumer and DX reliability: doctor resolves packages via entry (not package.json exports); Studio/index bump better-sqlite3 to 12.11.1 with lazy native load; LangChain omits absolute traceDir from attrs; Jest diagnoses missing trace associations; CLI output/profile aliases; NestJS/LangGraph env-gated recipe.
+- Updated dependencies [5c4197f]
+  - agent-inspect@6.7.5
+
 ## 6.7.4
 
 ### Patch Changes
