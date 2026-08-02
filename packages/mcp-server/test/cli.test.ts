@@ -1,7 +1,14 @@
+import { spawnSync } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createMcpServerContext } from "../src/tools.js";
 import { parseMcpServerCliArgs } from "../src/cli.js";
+
+const pkgRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const binPath = path.join(pkgRoot, "bin/agent-inspect-mcp-server.cjs");
 
 describe("mcp-server CLI args", () => {
   afterEach(() => {
@@ -36,5 +43,14 @@ describe("mcp-server CLI args", () => {
     process.env.AGENT_INSPECT_MCP_REDACTION_PROFILE = "strict";
     const context = createMcpServerContext({ traceDir: "." });
     expect(context.redactionProfile).toBe("strict");
+  });
+
+  it("bin wrapper prints help via exported main", () => {
+    const result = spawnSync(process.execPath, [binPath, "--help"], {
+      encoding: "utf8",
+    });
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("agent-inspect-mcp-server");
+    expect(result.stdout).toContain("--dir");
   });
 });
