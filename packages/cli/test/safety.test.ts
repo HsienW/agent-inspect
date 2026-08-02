@@ -59,6 +59,9 @@ async function runSafety(
     diagnostics?: { code?: string; message?: string }[];
     findings?: { ruleId?: string; message?: string }[];
     warnings?: { code?: string }[];
+    sourceAssessment?: { status?: string };
+    artifactAssessment?: { status?: string };
+    redactionSummary?: { profile?: string; findings?: number };
   };
 }
 
@@ -120,13 +123,37 @@ describe("scan and verify-safe commands", () => {
 
     expect(process.exitCode).toBe(1);
     expect(result.status).toBe("UNSAFE");
+    expect(result.sourceAssessment?.status).toBe("UNSAFE");
+    expect(result.artifactAssessment?.status).toBeDefined();
+    expect(result.redactionSummary?.profile).toBe("share");
     expect(result.findings?.map((finding) => finding.ruleId)).toContain("safety.rawPrompt");
-    expect(result.findings?.map((finding) => finding.ruleId)).toContain("safety.redaction");
-    expect(result.findings?.map((finding) => finding.ruleId)).toContain(
-      "safety.redactDetector",
-    );
     expect(serialized).not.toContain("sk-fixtureSecretValue123456");
     expect(serialized).not.toContain("raw prompt should not leak");
+  });
+
+  it("gates verify-safe status on the redacted artifact when source-only issues redact away", async () => {
+    const file = await writeTrace(
+      tmp,
+      "source-unsafe-artifact-safe.jsonl",
+      jsonl(
+        event("event-a", {
+          attributes: {
+            contact: "pilot.user@example.test",
+            token: "sk-abcdefghijklmnopqrstuvwxyz12",
+          },
+        }),
+      ),
+    );
+
+    const scan = await runSafety(scanCommand, file);
+    expect(scan.status).toBe("UNSAFE");
+
+    const verified = await runSafety(verifySafeCommand, file);
+    expect(verified.sourceAssessment?.status).toBe("UNSAFE");
+    expect(["SAFE", "SAFE WITH WARNINGS"]).toContain(verified.artifactAssessment?.status);
+    expect(["SAFE", "SAFE WITH WARNINGS"]).toContain(verified.status);
+    expect(process.exitCode).toBe(0);
+    expect(verified.redactionSummary?.findings).toBeGreaterThan(0);
   });
 
   it("reports UNKNOWN for unsupported inputs", async () => {

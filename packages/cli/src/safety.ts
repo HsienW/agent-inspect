@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import {
   TraceReadError,
   openTrace,
@@ -13,8 +15,9 @@ import {
   type TraceCheckFinding,
   type TraceCheckRule,
 } from "@agent-inspect/core/checks";
-import { redact, type RedactionFinding } from "@agent-inspect/redact";
+import { redact, type RedactionFinding, type RedactionProfile } from "@agent-inspect/redact";
 
+import { redactTraceContent } from "./redact.js";
 import { inputFromTarget } from "./trace-input.js";
 
 export interface SafetyCommandOptions {
@@ -26,6 +29,8 @@ export interface SafetyCommandOptions {
   maxArrayLength?: string;
   maxObjectKeys?: string;
   maxSerializedBytes?: string;
+  /** Redaction profile used when deriving the artifact assessment (verify-safe). */
+  redactionProfile?: RedactionProfile;
 }
 
 type SafetyStatus = "SAFE" | "SAFE WITH WARNINGS" | "UNSAFE" | "UNKNOWN";
@@ -43,6 +48,19 @@ interface SafetySummary {
   errors: number;
 }
 
+/** Compact layer status for source-vs-artifact reporting (6.9+). */
+export interface SafetyLayerAssessment {
+  status: SafetyStatus;
+  summary: SafetySummary;
+  findings: TraceCheckFinding[];
+}
+
+export interface SafetyRedactionSummary {
+  profile: RedactionProfile;
+  findings: number;
+  detectors: string[];
+}
+
 interface SafetyResult {
   ok: boolean;
   command: SafetyCommandName;
@@ -55,6 +73,10 @@ interface SafetyResult {
   warnings: TraceReadWarning[];
   unsupportedFields: string[];
   note: string;
+  /** Present on verify-safe when source and redacted-artifact assessments are both available. */
+  sourceAssessment?: SafetyLayerAssessment;
+  artifactAssessment?: SafetyLayerAssessment;
+  redactionSummary?: SafetyRedactionSummary;
 }
 
 const BEST_EFFORT_NOTE =
@@ -138,12 +160,17 @@ function resultFromParts(parts: {
   diagnostics?: readonly SafetyDiagnostic[];
   warnings?: readonly TraceReadWarning[];
   unsupportedFields?: readonly string[];
+  sourceAssessment?: SafetyLayerAssessment;
+  artifactAssessment?: SafetyLayerAssessment;
+  redactionSummary?: SafetyRedactionSummary;
+  /** When set, overrides status derived from findings (used for artifact-gated verify-safe). */
+  status?: SafetyStatus;
 }): SafetyResult {
   const findings = [...(parts.findings ?? [])];
   const diagnostics = [...(parts.diagnostics ?? [])];
   const warnings = [...(parts.warnings ?? [])];
   const unsupportedFields = [...(parts.unsupportedFields ?? [])];
-  const status = statusFrom(findings, diagnostics);
+  const status = parts.status ?? statusFrom(findings, diagnostics);
   return {
     ok: status === "SAFE" || status === "SAFE WITH WARNINGS",
     command: parts.command,
@@ -164,6 +191,23 @@ function resultFromParts(parts: {
     warnings,
     unsupportedFields,
     note: BEST_EFFORT_NOTE,
+    ...(parts.sourceAssessment !== undefined
+      ? { sourceAssessment: parts.sourceAssessment }
+      : {}),
+    ...(parts.artifactAssessment !== undefined
+      ? { artifactAssessment: parts.artifactAssessment }
+      : {}),
+    ...(parts.redactionSummary !== undefined
+      ? { redactionSummary: parts.redactionSummary }
+      : {}),
+  };
+}
+
+function layerFromResult(result: SafetyResult): SafetyLayerAssessment {
+  return {
+    status: result.status,
+    summary: result.summary,
+    findings: result.findings,
   };
 }
 
@@ -391,6 +435,15 @@ function printHuman(result: SafetyResult): void {
   console.log(`Safety status: ${result.status}`);
   console.log(`Format: ${result.format}`);
   if (result.runId !== undefined) console.log(`Run: ${result.runId}`);
+  if (result.sourceAssessment !== undefined && result.artifactAssessment !== undefined) {
+    console.log(`Source assessment: ${result.sourceAssessment.status}`);
+    console.log(`Artifact assessment: ${result.artifactAssessment.status}`);
+    if (result.redactionSummary !== undefined) {
+      console.log(
+        `Redaction: profile=${result.redactionSummary.profile}, findings=${result.redactionSummary.findings}`,
+      );
+    }
+  }
   console.log(
     `Summary: ${result.summary.findings} finding(s), ${result.summary.warnings} warning(s), ${result.summary.errors} error(s)`,
   );
@@ -399,7 +452,11 @@ function printHuman(result: SafetyResult): void {
   }
   for (const finding of result.findings) {
     const path = finding.evidence[0]?.path;
-    console.log(`- ${finding.ruleId}: ${finding.message}${path ? ` (${path})` : ""}`);
+    const taxonomy =
+      finding.category !== undefined || finding.confidence !== undefined
+        ? ` [${[finding.category, finding.confidence].filter(Boolean).join("/")}]`
+        : "";
+    console.log(`- ${finding.ruleId}: ${finding.message}${path ? ` (${path})` : ""}${taxonomy}`);
   }
   console.log(`Note: ${result.note}`);
 }
@@ -413,34 +470,66 @@ async function safetyCommand(
   let result: SafetyResult;
 
   try {
-    const rules = buildSafetyRules(options);
     const input = await inputFromTarget(target, options, stdin);
     const read = await openTrace(input, {
       ...(options.format !== undefined ? { format: options.format } : {}),
     });
-    const checkResult = runTraceChecks(
-      { read },
-      {
-        rules,
-        ...(options.run !== undefined ? { runId: options.run } : {}),
-      },
-    );
-    const detectorFindings =
-      checkResult.diagnostics.length === 0
-        ? redactionDetectorFindings(read, checkResult.runId)
-        : [];
-    result = resultFromParts({
-      command,
-      format: checkResult.format,
-      runId: checkResult.runId,
-      findings: [...checkResult.findings, ...detectorFindings],
-      diagnostics: [
-        ...checkResult.diagnostics.map(diagnosticFromCheck),
-        ...warningDiagnostics(read.warnings, read.unsupportedFields),
-      ],
-      warnings: read.warnings,
-      unsupportedFields: read.unsupportedFields,
+    const source = assessOpenedTrace(read, {
+      ...options,
+      ...(options.run !== undefined ? { runId: options.run } : {}),
     });
+    if (command === "scan") {
+      result = { ...source, command: "scan" };
+    } else {
+      const profile = options.redactionProfile ?? "share";
+      const rawContent =
+        input.type === "string"
+          ? input.content
+          : input.type === "file"
+            ? await readFile(input.path, "utf-8")
+            : undefined;
+
+      if (rawContent === undefined) {
+        // Directory / multi-run inputs: report source only until a single artifact exists.
+        result = {
+          ...source,
+          command: "verify-safe",
+          sourceAssessment: layerFromResult(source),
+        };
+      } else {
+        const redacted = redactTraceContent(rawContent, profile);
+        // Reader labels (e.g. agent-inspect-v0.2-jsonl) are not registered format ids;
+        // re-open redacted content with the canonical JSONL reader id.
+        const artifactRead = await openTrace(
+          { type: "string", content: redacted.content },
+          { format: options.format ?? "agent-inspect-jsonl" },
+        );
+        const artifact = assessOpenedTrace(artifactRead, {
+          ...options,
+          ...(options.run !== undefined ? { runId: options.run } : {}),
+        });
+        const detectors = [
+          ...new Set(redacted.findings.map((finding) => finding.detector)),
+        ].sort((a, b) => a.localeCompare(b));
+        result = resultFromParts({
+          command: "verify-safe",
+          format: artifact.format,
+          runId: artifact.runId ?? source.runId,
+          findings: artifact.findings,
+          diagnostics: artifact.diagnostics,
+          warnings: artifact.warnings,
+          unsupportedFields: artifact.unsupportedFields,
+          status: artifact.status,
+          sourceAssessment: layerFromResult(source),
+          artifactAssessment: layerFromResult(artifact),
+          redactionSummary: {
+            profile,
+            findings: redacted.findings.length,
+            detectors,
+          },
+        });
+      }
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     result = message.startsWith("--")

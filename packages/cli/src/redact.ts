@@ -126,6 +126,23 @@ function redactJsonlText(content: string, profile: RedactionProfile): RedactedDo
 }
 
 function redactDocument(content: string, profile: RedactionProfile): RedactedDocument {
+  const trimmed = content.trim();
+  // Single-line AgentInspect events parse as JSON but must stay JSONL for re-read.
+  if (trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(trimmed) as unknown;
+      if (
+        parsed !== null &&
+        typeof parsed === "object" &&
+        !Array.isArray(parsed) &&
+        ("schemaVersion" in parsed || "eventId" in parsed || "runId" in parsed)
+      ) {
+        return redactJsonlText(content, profile);
+      }
+    } catch {
+      // fall through
+    }
+  }
   try {
     return redactJsonText(content, profile);
   } catch {
