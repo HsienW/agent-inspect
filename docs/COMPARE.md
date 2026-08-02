@@ -4,6 +4,28 @@ AgentInspect is a local-first trace workbench for TypeScript AI agents: capture 
 
 **Docs site:** [https://agentinspect.vercel.app/docs/compare/](https://agentinspect.vercel.app/docs/compare/)
 
+
+
+## Complementary handoff (v6.12)
+
+Position AgentInspect as the **inner-loop local evidence** layer:
+
+```text
+local evidence and inner-loop debugging → AgentInspect
+production observability → LangSmith / Langfuse / MLflow / Phoenix / APM
+prompt/output and red-team eval → Promptfoo / Evalite / other eval tools
+generic OTel trace access via MCP → OTel MCP servers
+```
+
+Handoff story:
+
+```text
+debug locally with AgentInspect
+export OpenInference/OTLP when production tooling is needed
+```
+
+Portfolio presentation: [POSITIONING-AND-PORTFOLIO.md](./POSITIONING-AND-PORTFOLIO.md).
+
 ## Category comparison
 
 | Dimension | AgentInspect | Hosted dashboards (LangSmith, Langfuse) | Eval platforms (Braintrust) | Production APM / OTel pipelines |
