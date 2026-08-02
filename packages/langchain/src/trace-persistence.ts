@@ -26,6 +26,11 @@ import {
   resetInvocationState,
   type AdapterInvocationState,
 } from "./invocation-state.js";
+import {
+  applyParentResolutionMetadata,
+  resolveParentRelationship,
+  type ParentResolution,
+} from "./parent-reconciliation.js";
 
 export interface LangChainTracePersistenceOptions {
   runName?: string;
@@ -76,6 +81,10 @@ export class LangChainTracePersistence {
   readonly #safety: ReturnType<typeof resolveTraceSafetyOptions>;
   readonly #lifecycle: AdapterInvocationState;
   readonly #lcToStepId = new Map<string, string>();
+  /** `${field}\0${value}` → stepId, or null when ambiguous. */
+  readonly #langGraphIndex = new Map<string, string | null>();
+  /** Semantic / display label → stepId, or null when ambiguous. */
+  readonly #semanticLabelIndex = new Map<string, string | null>();
   #lateEventCount = 0;
 
   constructor(options: LangChainTracePersistenceOptions = {}) {
@@ -123,21 +132,98 @@ export class LangChainTracePersistence {
       if (ctxId) {
         this.#runId = ctxId;
         resetInvocationState(this.#lifecycle, this.#runId);
-        this.#lcToStepId.clear();
+        this.#clearStepIndexes();
         this.#lateEventCount = 0;
         return;
       }
     }
     this.#runId = createRunId();
     resetInvocationState(this.#lifecycle, this.#runId);
-    this.#lcToStepId.clear();
+    this.#clearStepIndexes();
     this.#lateEventCount = 0;
   }
 
   reset(): void {
     resetInvocationState(this.#lifecycle);
-    this.#lcToStepId.clear();
+    this.#clearStepIndexes();
     this.#lateEventCount = 0;
+  }
+
+  #clearStepIndexes(): void {
+    this.#lcToStepId.clear();
+    this.#langGraphIndex.clear();
+    this.#semanticLabelIndex.clear();
+  }
+
+  #registerUnique(
+    index: Map<string, string | null>,
+    key: string,
+    stepId: string,
+  ): void {
+    if (!index.has(key)) {
+      index.set(key, stepId);
+      return;
+    }
+    if (index.get(key) !== stepId) {
+      index.set(key, null);
+    }
+  }
+
+  #langGraphIndexKey(field: string, value: string): string {
+    return `${field}\0${value}`;
+  }
+
+  #registerStepIndexes(
+    stepId: string,
+    name: string,
+    attributes: Record<string, unknown>,
+  ): void {
+    const labels = new Set<string>([name]);
+    const stripped = name.replace(/^(chain|tool|llm|retriever|agent):/, "");
+    if (stripped) labels.add(stripped);
+    for (const label of labels) {
+      this.#registerUnique(this.#semanticLabelIndex, label, stepId);
+    }
+
+    const lg = attributes.langGraph;
+    if (typeof lg === "object" && lg !== null && !Array.isArray(lg)) {
+      const record = lg as Record<string, unknown>;
+      for (const field of [
+        "taskId",
+        "nodeId",
+        "nodeName",
+        "checkpointNamespace",
+      ] as const) {
+        const raw = record[field];
+        if (typeof raw === "string" && raw.trim()) {
+          this.#registerUnique(
+            this.#langGraphIndex,
+            this.#langGraphIndexKey(field, raw),
+            stepId,
+          );
+        }
+      }
+    }
+  }
+
+  #resolveParent(
+    parentLcRunId: string | undefined,
+    attributes: Record<string, unknown>,
+  ): ParentResolution {
+    return resolveParentRelationship(
+      { parentLcRunId, attributes },
+      {
+        exactStepByLcRunId: (lcRunId) => this.#lcToStepId.get(lcRunId),
+        uniqueStepByLangGraphKey: (key, value) => {
+          const hit = this.#langGraphIndex.get(this.#langGraphIndexKey(key, value));
+          return hit === null || hit === undefined ? undefined : hit;
+        },
+        uniqueStepBySemanticLabel: (label) => {
+          const hit = this.#semanticLabelIndex.get(label);
+          return hit === null || hit === undefined ? undefined : hit;
+        },
+      },
+    );
   }
 
   /** Rotate when a prior standalone invocation already finalized. */
@@ -172,6 +258,7 @@ export class LangChainTracePersistence {
       this.#prepareForStart();
       const stepId = createStepId();
       this.#lcToStepId.set(params.lcRunId, stepId);
+      this.#registerStepIndexes(stepId, params.name, params.attributes);
       beginCallbackRun(this.#lifecycle, {
         lcRunId: params.lcRunId,
         parentLcRunId: params.lcParentRunId,
@@ -184,18 +271,9 @@ export class LangChainTracePersistence {
         await this.#ensureRunStarted(params.startTime, params.attributes);
       }
 
-      const parentId = this.resolveParentId(params.lcParentRunId);
+      const resolution = this.#resolveParent(params.lcParentRunId, params.attributes);
       const metadata = toStepMetadata(params.attributes);
-      if (params.lcParentRunId && !parentId) {
-        metadata.parentMapping = "unresolved";
-        metadata.unresolvedParentRunId = params.lcParentRunId;
-      }
-      if (
-        params.lcParentRunId &&
-        this.#lifecycle.knownRelationships.get(params.lcRunId) === params.lcParentRunId
-      ) {
-        metadata.parentConfidence = "explicit";
-      }
+      applyParentResolutionMetadata(metadata, resolution);
 
       const event: TraceEvent = {
         schemaVersion: "0.1",
@@ -203,7 +281,7 @@ export class LangChainTracePersistence {
         timestamp: params.startTime,
         runId: this.#runId,
         stepId,
-        ...(parentId ? { parentId } : {}),
+        ...(resolution.parentStepId ? { parentId: resolution.parentStepId } : {}),
         name: params.name,
         type: kindToStepType(params.kind),
         startTime: params.startTime,
@@ -243,6 +321,8 @@ export class LangChainTracePersistence {
         }
         stepId = createStepId();
         this.#lcToStepId.set(params.lcRunId, stepId);
+        const synthName = String(params.completionAttributes.name ?? "llm:llm");
+        this.#registerStepIndexes(stepId, synthName, params.completionAttributes);
         beginCallbackRun(this.#lifecycle, {
           lcRunId: params.lcRunId,
           parentLcRunId: params.lcParentRunId,
@@ -251,12 +331,12 @@ export class LangChainTracePersistence {
             (params.completionAttributes.kind as InspectKind | undefined) ?? "LLM",
           stepId,
         });
-        const parentId = this.resolveParentId(params.lcParentRunId);
+        const resolution = this.#resolveParent(
+          params.lcParentRunId,
+          params.completionAttributes,
+        );
         const metadata = toStepMetadata(params.completionAttributes);
-        if (params.lcParentRunId && !parentId) {
-          metadata.parentMapping = "unresolved";
-          metadata.unresolvedParentRunId = params.lcParentRunId;
-        }
+        applyParentResolutionMetadata(metadata, resolution);
         const startTime = params.endTime - (params.durationMs ?? 0);
         const started: TraceEvent = {
           schemaVersion: "0.1",
@@ -264,8 +344,8 @@ export class LangChainTracePersistence {
           timestamp: startTime,
           runId: this.#runId,
           stepId,
-          ...(parentId ? { parentId } : {}),
-          name: String(params.completionAttributes.name ?? "llm:llm"),
+          ...(resolution.parentStepId ? { parentId: resolution.parentStepId } : {}),
+          name: synthName,
           type: kindToStepType(
             (params.completionAttributes.kind as InspectKind | undefined) ?? "LLM",
           ),
@@ -331,6 +411,7 @@ export class LangChainTracePersistence {
       this.#prepareForStart();
       const stepId = createStepId();
       this.#lcToStepId.set(params.lcRunId, stepId);
+      this.#registerStepIndexes(stepId, params.name, params.attributes);
       beginCallbackRun(this.#lifecycle, {
         lcRunId: params.lcRunId,
         parentLcRunId: params.lcParentRunId,
@@ -343,12 +424,9 @@ export class LangChainTracePersistence {
         await this.#ensureRunStarted(params.timestamp, params.attributes);
       }
 
-      const parentId = this.resolveParentId(params.lcParentRunId);
+      const resolution = this.#resolveParent(params.lcParentRunId, params.attributes);
       const metadata = toStepMetadata(params.attributes);
-      if (params.lcParentRunId && !parentId) {
-        metadata.parentMapping = "unresolved";
-        metadata.unresolvedParentRunId = params.lcParentRunId;
-      }
+      applyParentResolutionMetadata(metadata, resolution);
 
       const started: TraceEvent = {
         schemaVersion: "0.1",
@@ -356,7 +434,7 @@ export class LangChainTracePersistence {
         timestamp: params.timestamp,
         runId: this.#runId,
         stepId,
-        ...(parentId ? { parentId } : {}),
+        ...(resolution.parentStepId ? { parentId: resolution.parentStepId } : {}),
         name: params.name,
         type: kindToStepType(params.kind),
         startTime: params.timestamp,
