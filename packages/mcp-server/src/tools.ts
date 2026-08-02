@@ -33,47 +33,54 @@ export interface McpToolDefinition {
   inputSchema: Record<string, unknown>;
 }
 
-export const READ_ONLY_TOOLS: McpToolDefinition[] = [
+const RUN_ID_SCHEMA = {
+  type: "object",
+  properties: { runId: { type: "string" } },
+  required: ["runId"],
+} as const;
+
+/** Flagship coding-agent tool names (6.11+) — see docs/CODING-AGENT-LOOP.md */
+export const FLAGSHIP_TOOLS: McpToolDefinition[] = [
   {
-    name: "list_traces",
-    description: "List local trace runs in the configured trace directory.",
+    name: "list_recent_runs",
+    description: "List recent local trace runs in the configured trace directory.",
     inputSchema: { type: "object", properties: {} },
   },
   {
-    name: "read_trace",
-    description: "Read a bounded trace projection for one run id.",
-    inputSchema: {
-      type: "object",
-      properties: { runId: { type: "string" } },
-      required: ["runId"],
-    },
+    name: "list_recent_failures",
+    description: "List recent failed runs in the configured trace directory.",
+    inputSchema: { type: "object", properties: {} },
   },
   {
-    name: "search_traces",
-    description: "Search traces deterministically by query string.",
-    inputSchema: {
-      type: "object",
-      properties: { query: { type: "string" } },
-      required: ["query"],
-    },
+    name: "get_run_summary",
+    description: "Bounded summary for one run (status, failures, correlation).",
+    inputSchema: RUN_ID_SCHEMA,
   },
   {
-    name: "find_first_error",
-    description: "Find the first error step in one run timeline.",
-    inputSchema: {
-      type: "object",
-      properties: { runId: { type: "string" } },
-      required: ["runId"],
-    },
+    name: "get_execution_tree",
+    description: "Bounded execution/event projection for one run.",
+    inputSchema: RUN_ID_SCHEMA,
   },
   {
-    name: "find_slowest_path",
+    name: "get_first_causal_failure",
+    description:
+      "First causal failure evidence for one run (conservative; full engine in 6.11-4).",
+    inputSchema: RUN_ID_SCHEMA,
+  },
+  {
+    name: "get_slowest_path",
     description: "Summarize the slowest steps in one run.",
-    inputSchema: {
-      type: "object",
-      properties: { runId: { type: "string" } },
-      required: ["runId"],
-    },
+    inputSchema: RUN_ID_SCHEMA,
+  },
+  {
+    name: "get_contract_failures",
+    description: "Deterministic contract/check failures for one run.",
+    inputSchema: RUN_ID_SCHEMA,
+  },
+  {
+    name: "get_failed_observations",
+    description: "Failed observed outcomes in one run.",
+    inputSchema: RUN_ID_SCHEMA,
   },
   {
     name: "compare_runs",
@@ -88,61 +95,93 @@ export const READ_ONLY_TOOLS: McpToolDefinition[] = [
     },
   },
   {
-    name: "run_checks",
-    description: "Run deterministic run.status check for one run.",
+    name: "create_share_checked_evidence",
+    description: "Create in-memory share-checked evidence (artifact-gated).",
+    inputSchema: RUN_ID_SCHEMA,
+  },
+  {
+    name: "get_adapter_diagnostics",
+    description: "Bounded adapter/source diagnostics for one run.",
+    inputSchema: RUN_ID_SCHEMA,
+  },
+];
+
+/** Legacy tool names retained for compatibility. */
+export const LEGACY_TOOLS: McpToolDefinition[] = [
+  {
+    name: "list_traces",
+    description: "List local trace runs in the configured trace directory.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "read_trace",
+    description: "Read a bounded trace projection for one run id.",
+    inputSchema: RUN_ID_SCHEMA,
+  },
+  {
+    name: "search_traces",
+    description: "Search traces deterministically by query string.",
     inputSchema: {
       type: "object",
-      properties: { runId: { type: "string" } },
-      required: ["runId"],
+      properties: { query: { type: "string" } },
+      required: ["query"],
     },
+  },
+  {
+    name: "find_first_error",
+    description: "Find the first error step in one run timeline.",
+    inputSchema: RUN_ID_SCHEMA,
+  },
+  {
+    name: "find_slowest_path",
+    description: "Summarize the slowest steps in one run.",
+    inputSchema: RUN_ID_SCHEMA,
+  },
+  {
+    name: "run_checks",
+    description: "Run deterministic run.status check for one run.",
+    inputSchema: RUN_ID_SCHEMA,
   },
   {
     name: "create_share_safe_report",
     description: "Create a share-profile markdown report for one run.",
-    inputSchema: {
-      type: "object",
-      properties: { runId: { type: "string" } },
-      required: ["runId"],
-    },
+    inputSchema: RUN_ID_SCHEMA,
   },
   {
     name: "summarize_failed_run",
     description: "Summarize a failed run with step errors and correlation metadata.",
-    inputSchema: {
-      type: "object",
-      properties: { runId: { type: "string" } },
-      required: ["runId"],
-    },
+    inputSchema: RUN_ID_SCHEMA,
   },
   {
     name: "retrieve_decision_notes",
     description: "List decision steps and decision metadata for one run.",
-    inputSchema: {
-      type: "object",
-      properties: { runId: { type: "string" } },
-      required: ["runId"],
-    },
+    inputSchema: RUN_ID_SCHEMA,
   },
   {
     name: "find_failed_observation",
     description: "Find failed observed outcomes in one run.",
-    inputSchema: {
-      type: "object",
-      properties: { runId: { type: "string" } },
-      required: ["runId"],
-    },
+    inputSchema: RUN_ID_SCHEMA,
   },
   {
     name: "create_share_safe_bundle",
     description: "Create an in-memory share-safe bundle manifest and redacted exports.",
-    inputSchema: {
-      type: "object",
-      properties: { runId: { type: "string" } },
-      required: ["runId"],
-    },
+    inputSchema: RUN_ID_SCHEMA,
   },
 ];
 
+export const READ_ONLY_TOOLS: McpToolDefinition[] = [...FLAGSHIP_TOOLS, ...LEGACY_TOOLS];
+
+/** Map flagship names to legacy handler cases (additive aliases). */
+const FLAGSHIP_HANDLER_ALIAS: Record<string, string> = {
+  list_recent_runs: "list_traces",
+  get_run_summary: "summarize_failed_run",
+  get_execution_tree: "read_trace",
+  get_first_causal_failure: "find_first_error",
+  get_slowest_path: "find_slowest_path",
+  get_contract_failures: "run_checks",
+  get_failed_observations: "find_failed_observation",
+  create_share_checked_evidence: "create_share_safe_bundle",
+};
 function textResult(payload: unknown) {
   return {
     content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
@@ -226,12 +265,60 @@ function decisionNotes(events: Parameters<typeof persistedInspectEventsToTraceEv
     }));
 }
 
+function isFailedStatus(status: string | undefined): boolean {
+  if (!status) return false;
+  const normalized = status.toLowerCase();
+  return (
+    normalized === "error" ||
+    normalized === "failed" ||
+    normalized === "fail" ||
+    normalized.includes("error")
+  );
+}
+
 export async function callReadOnlyTool(
   context: McpServerContext,
   name: string,
   args: Record<string, unknown> = {},
 ) {
-  switch (name) {
+  if (name === "list_recent_failures") {
+    const td = new TraceDirectory({ dir: context.traceDir });
+    const files = await td.list();
+    const metas = await loadTraceMetadataList(context.traceDir, files, (fileName) =>
+      td.getPath(fileName),
+    );
+    const failed = metas
+      .filter((meta) => isFailedStatus(meta.status))
+      .map((meta) => ({
+        runId: meta.runId,
+        name: meta.name,
+        status: meta.status,
+        file: path.basename(meta.filePath),
+      }));
+    return deliverMcpPayload(failed, context);
+  }
+
+  if (name === "get_adapter_diagnostics") {
+    const runId = String(args.runId ?? "");
+    const { meta, read } = await openRunTrace(context, runId);
+    return deliverMcpPayload(
+      {
+        runId,
+        format: read.format,
+        eventCount: read.events.length,
+        runCount: read.runs.length,
+        sourceFile: path.basename(meta.filePath),
+        warnings: read.warnings.slice(0, 20),
+        unsupportedFields: read.unsupportedFields.slice(0, 20),
+        note: "Bounded local diagnostics only; not a network health check.",
+      },
+      context,
+    );
+  }
+
+  const handlerName = FLAGSHIP_HANDLER_ALIAS[name] ?? name;
+
+  switch (handlerName) {
     case "list_traces": {
       const td = new TraceDirectory({ dir: context.traceDir });
       const files = await td.list();
@@ -289,6 +376,15 @@ export async function callReadOnlyTool(
         {
           runId,
           firstError: firstError ?? null,
+          ...(name === "get_first_causal_failure"
+            ? {
+                engine: "timeline-first-error",
+                enginePending: "full causal-failure engine lands in 6.11-4",
+                rationale: firstError
+                  ? "First timeline entry marked isError (conservative; no timing-only inference)."
+                  : "No explicit error entry found.",
+              }
+            : {}),
         },
         context,
       );

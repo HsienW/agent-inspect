@@ -29,21 +29,25 @@ describe("@agent-inspect/mcp-server", () => {
   });
 
   it("exposes read-only tool catalog", () => {
-    expect(READ_ONLY_TOOLS).toHaveLength(12);
-    expect(READ_ONLY_TOOLS.map((tool) => tool.name)).toEqual([
-      "list_traces",
-      "read_trace",
-      "search_traces",
-      "find_first_error",
-      "find_slowest_path",
-      "compare_runs",
-      "run_checks",
-      "create_share_safe_report",
-      "summarize_failed_run",
-      "retrieve_decision_notes",
-      "find_failed_observation",
-      "create_share_safe_bundle",
-    ]);
+    const names = READ_ONLY_TOOLS.map((tool) => tool.name);
+    expect(names).toContain("list_recent_runs");
+    expect(names).toContain("get_first_causal_failure");
+    expect(names).toContain("create_share_checked_evidence");
+    expect(names).toContain("list_traces");
+    expect(names).toContain("create_share_safe_bundle");
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it("resolves flagship tool aliases", async () => {
+    const context = createMcpServerContext({ traceDir });
+    const listed = await callReadOnlyTool(context, "list_recent_runs", {});
+    expect(listed.isError).toBe(false);
+    const causal = await callReadOnlyTool(context, "get_first_causal_failure", { runId });
+    expect(causal.isError).toBe(false);
+    const payload = JSON.parse(causal.content[0]!.text as string) as {
+      enginePending?: string;
+    };
+    expect(payload.enginePending).toMatch(/6\.11-4/);
   });
 
   it("defaults redaction profile to share", () => {

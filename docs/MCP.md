@@ -17,22 +17,11 @@ Configure via environment:
 - `AGENT_INSPECT_TRACE_DIR` — trace directory (default `.agent-inspect`)
 - `AGENT_INSPECT_MCP_REDACTION_PROFILE` — `share` (default), `strict`, or `local`
 
-## Tools (v6.3+)
+## Tools (v6.11 flagship + v6.3 legacy)
 
-| Tool | Purpose |
-| ---- | ------- |
-| `list_traces` | List runs in trace dir |
-| `read_trace` | Bounded events for one run |
-| `search_traces` | Deterministic name/search |
-| `find_first_error` | First error in timeline |
-| `find_slowest_path` | Top slow steps |
-| `compare_runs` | Structural diff summary |
-| `run_checks` | Deterministic `run.status` check |
-| `create_share_safe_report` | Share-profile markdown |
-| `summarize_failed_run` | Failure summary + correlation |
-| `retrieve_decision_notes` | Decision steps / decisionId |
-| `find_failed_observation` | Failed observed outcomes |
-| `create_share_safe_bundle` | In-memory redacted bundle |
+Flagship names (preferred): `list_recent_runs`, `list_recent_failures`, `get_run_summary`, `get_execution_tree`, `get_first_causal_failure`, `get_slowest_path`, `get_contract_failures`, `get_failed_observations`, `compare_runs`, `create_share_checked_evidence`, `get_adapter_diagnostics`.
+
+Legacy names remain available: `list_traces`, `read_trace`, `search_traces`, `find_first_error`, `find_slowest_path`, `run_checks`, `create_share_safe_report`, `summarize_failed_run`, `retrieve_decision_notes`, `find_failed_observation`, `create_share_safe_bundle`.
 
 ## Safety defaults
 
