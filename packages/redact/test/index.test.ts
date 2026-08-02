@@ -107,6 +107,57 @@ describe("@agent-inspect/redact", () => {
     expect(result.findings).toEqual([]);
   });
 
+  it("does not treat UUIDs, timestamps, or id paths as credit cards", () => {
+    const result = redact(
+      {
+        requestId: "550e8400-e29b-41d4-a716-446655440000",
+        startedAt: "1700000000000",
+        tokenUsage: { input: "128", output: "64" },
+        spanId: "a1b2c3d4e5f60718",
+        note: "uuid 550e8400-e29b-41d4-a716-446655440000",
+      },
+      { profile: "share" },
+    );
+    expect(result.findings.filter((finding) => finding.detector === "value.creditCard")).toEqual(
+      [],
+    );
+    expect(result.value).toMatchObject({
+      startedAt: "1700000000000",
+      note: "uuid 550e8400-e29b-41d4-a716-446655440000",
+      tokenUsage: { input: "128", output: "64" },
+    });
+  });
+
+  it("does not treat paths, scoped packages, or source maps as emails", () => {
+    const result = redact(
+      {
+        filePath: "/Users/demo/Library/Caches/@agent-inspect/cache/tmp.json",
+        packageName: "@agent-inspect/langchain",
+        sourceMap: "webpack:///@agent-inspect/core/dist/index.js",
+        homeMail: "/home/pilot.user@example.test/project",
+      },
+      { profile: "share" },
+    );
+    expect(result.findings.filter((finding) => finding.detector === "value.email")).toEqual([]);
+    expect(result.value).toMatchObject({
+      filePath: "/Users/demo/Library/Caches/@agent-inspect/cache/tmp.json",
+      packageName: "@agent-inspect/langchain",
+      sourceMap: "webpack:///@agent-inspect/core/dist/index.js",
+      homeMail: "/home/pilot.user@example.test/project",
+    });
+  });
+
+  it("still detects plain emails and valid test PANs", () => {
+    const email = redact(
+      { note: "contact pilot.user@example.test for help" },
+      { profile: "share" },
+    );
+    expect(email.findings.some((finding) => finding.detector === "value.email")).toBe(true);
+
+    const card = redact({ paymentMethod: "4242424242424242" }, { profile: "local" });
+    expect(card.findings.some((finding) => finding.detector === "value.creditCard")).toBe(true);
+  });
+
   it("supports prefix and hash rules compatibly", () => {
     const redactor = createRedactor({
       rules: [

@@ -199,6 +199,84 @@ function passesLuhn(value: string): boolean {
   return sum % 10 === 0;
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** 13-digit Unix epoch milliseconds in a plausible modern range. */
+const EPOCH_MS_RE = /^1[0-9]{12}$/;
+
+const EMAIL_RE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
+
+function pathSuggestsNonCard(path: string): boolean {
+  const normalized = path.toLowerCase().replace(/[^a-z0-9._]/g, "");
+  return (
+    /(^|\.)(tokenusage|usage)(\.|$)/.test(normalized) ||
+    /(startedat|endedat|durationms|timestamp|createdat|updatedat)(\.|$)/.test(normalized) ||
+    /(^|\.)(runid|traceid|spanid|eventid|sessionid|userid|parentid|requestid|correlationid)(\.|$)/.test(
+      normalized,
+    ) ||
+    /(^|\.)ts(\.|$)/.test(normalized)
+  );
+}
+
+function isUuidLike(value: string): boolean {
+  return UUID_RE.test(value.trim());
+}
+
+function isPlausibleCardCandidate(candidate: string, fullValue: string): boolean {
+  const digits = digitsOnly(candidate);
+  if (digits.length < 13 || digits.length > 19) return false;
+  if (!passesLuhn(candidate)) return false;
+
+  const trimmed = fullValue.trim();
+  if (isUuidLike(trimmed)) return false;
+
+  // Naked epoch-ms timestamps are not PANs.
+  if (EPOCH_MS_RE.test(digits) && digitsOnly(trimmed) === digits && /^\d+$/.test(trimmed)) {
+    return false;
+  }
+
+  // Reject candidates glued inside longer alphanumeric IDs without card separators.
+  const start = fullValue.indexOf(candidate);
+  if (start >= 0) {
+    const before = fullValue[start - 1];
+    const after = fullValue[start + candidate.length];
+    if (before && /[A-Za-z0-9_]/.test(before)) return false;
+    if (after && /[A-Za-z0-9_]/.test(after)) return false;
+  }
+
+  return true;
+}
+
+function looksLikePathOrPackageOrUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(trimmed)) return true;
+  if (/^webpack:/i.test(trimmed)) return true;
+  if (/^@[A-Za-z0-9_.-]+\/[A-Za-z0-9_.@/-]+$/.test(trimmed)) return true;
+  if (/^[A-Za-z]:[\\/]/.test(trimmed) || /^[/\\]/.test(trimmed)) return true;
+  // Path-like single token (slashes, no whitespace).
+  if (/[\\/]/.test(trimmed) && !/\s/.test(trimmed)) return true;
+  return false;
+}
+
+function emailMatchIsPathAdjacent(value: string, index: number, length: number): boolean {
+  const before = value[index - 1];
+  const after = value[index + length];
+  return before === "/" || before === "\\" || after === "/" || after === "\\";
+}
+
+function valueContainsEmail(value: string): boolean {
+  if (looksLikePathOrPackageOrUrl(value)) return false;
+  EMAIL_RE.lastIndex = 0;
+  for (const match of value.matchAll(EMAIL_RE)) {
+    const text = match[0] ?? "";
+    const index = match.index ?? 0;
+    if (emailMatchIsPathAdjacent(value, index, text.length)) continue;
+    return true;
+  }
+  return false;
+}
+
 const credentialDetectors: readonly RedactionDetector[] = [
   patternDetector({
     id: "value.authorizationHeader",
@@ -246,10 +324,12 @@ const credentialDetectors: readonly RedactionDetector[] = [
     matchKind: "value",
     detect(input) {
       if (typeof input.value !== "string") return [];
+      if (pathSuggestsNonCard(input.path)) return [];
+      if (isUuidLike(input.value)) return [];
       const candidatePattern = /(?:\d[ -]?){13,19}/g;
       for (const match of input.value.matchAll(candidatePattern)) {
         const candidate = match[0] ?? "";
-        if (passesLuhn(candidate)) {
+        if (isPlausibleCardCandidate(candidate, input.value)) {
           return [{ action: "replace", severity: "error", matchKind: "value" }];
         }
       }
@@ -259,10 +339,17 @@ const credentialDetectors: readonly RedactionDetector[] = [
 ];
 
 const identifierDetectors: readonly RedactionDetector[] = [
-  patternDetector({
+  {
     id: "value.email",
-    pattern: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
-  }),
+    severity: "warning",
+    matchKind: "value",
+    detect(input) {
+      if (typeof input.value !== "string") return [];
+      return valueContainsEmail(input.value)
+        ? [{ action: "replace", severity: "warning", matchKind: "value" }]
+        : [];
+    },
+  },
   patternDetector({
     id: "value.phone",
     pattern: /\b(?:\+\d{1,3}[\s.-]?)?(?:\(?\d{3}\)?[\s.-])\d{3}[\s.-]\d{4}\b/,
