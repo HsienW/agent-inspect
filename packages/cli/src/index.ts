@@ -62,6 +62,8 @@ import type { ArtifactsCommandOptions } from "./artifacts.js";
 import { artifactsCommand } from "./artifacts.js";
 import type { BundleCommandOptions } from "./bundle.js";
 import { bundleCommand } from "./bundle.js";
+import type { BundleVerifyCommandOptions } from "./bundle-verify.js";
+import { bundleVerifyCommand } from "./bundle-verify.js";
 import type { CiSummaryCommandOptions } from "./ci-summary.js";
 import { ciSummaryCommand } from "./ci-summary.js";
 import type { InitCommandOptions } from "./init.js";
@@ -628,9 +630,9 @@ export function createCliProgram(): Command {
       runCommand(() => artifactsCommand(target, opts));
     });
 
-  program
+  const bundleCmd = program
     .command("bundle")
-    .description("Create a share-safe offline trace bundle (local folder)")
+    .description("Create or verify share-safe offline evidence bundles")
     .argument("[run-id]", "run id to bundle (optional with --session or --since)")
     .option("--dir <path>", "trace directory for run/session lookup")
     .option("--session <session-id>", "bundle all runs in a session")
@@ -657,6 +659,20 @@ export function createCliProgram(): Command {
     .option("--json", "print deterministic JSON manifest")
     .action((runId: string | undefined, opts: BundleCommandOptions) => {
       runCommand(() => bundleCommand(runId, opts));
+    });
+
+  bundleCmd
+    .command("verify")
+    .description("Verify Evidence v2 integrity (manifest, hashes, presence)")
+    .argument("<path>", "evidence/bundle directory containing evidence.json")
+    .addOption(
+      new Option("--unexpected <mode>", "policy for files not listed in the manifest")
+        .choices(["fail", "warn", "ignore"])
+        .default("fail"),
+    )
+    .option("--json", "print deterministic JSON verify result")
+    .action((targetPath: string, opts: BundleVerifyCommandOptions) => {
+      runCommand(() => bundleVerifyCommand(targetPath, opts));
     });
 
   program

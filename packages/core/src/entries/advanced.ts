@@ -312,6 +312,7 @@ export {
   sha256Equals,
   sha256Hex,
   validateEvidenceManifest,
+  verifyEvidenceDirectory,
 } from "../evidence/index.js";
 export type {
   EvidenceCheckFindingSummary,
@@ -319,6 +320,10 @@ export type {
   EvidenceHtmlShellInput,
   EvidenceProvenanceViewInput,
   EvidenceSafetyViewInput,
+  EvidenceVerifyIssue,
+  EvidenceVerifyOptions,
+  EvidenceVerifyResult,
+  EvidenceVerifyStatus,
   EvidenceViewId,
   ZipEntry,
 } from "../evidence/index.js";

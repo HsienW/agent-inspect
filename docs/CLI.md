@@ -892,6 +892,14 @@ Options:
 - `--allow-unsafe` — write bundle even when verify-safe reports UNSAFE
 - `--json` — print deterministic JSON manifest
 
+Verify an Evidence v2 directory:
+
+```bash
+agent-inspect bundle verify <path> [--unexpected fail|warn|ignore] [--json]
+```
+
+Checks manifest schema, listed-file presence, SHA-256 hashes, unexpected files (default fail), assessment, and generator provenance. Unpack ZIP archives before verify.
+
 Output includes `trace.html`, `trace.jsonl`, `summary.md`, `metadata.json`, `check-results.json`, `redaction-report.json`, and `assets/runs/` mirrors for multi-run bundles.
 
 Examples:

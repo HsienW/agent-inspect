@@ -58,3 +58,10 @@ export {
   type EvidenceSafetyViewInput,
 } from "./views-safety.js";
 export { buildZipArchive, type ZipEntry } from "./zip.js";
+export {
+  verifyEvidenceDirectory,
+  type EvidenceVerifyIssue,
+  type EvidenceVerifyOptions,
+  type EvidenceVerifyResult,
+  type EvidenceVerifyStatus,
+} from "./verify.js";
