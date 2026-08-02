@@ -48,6 +48,28 @@ describe("@agent-inspect/redact", () => {
     expect(strict.value).toEqual({ prompt: "[REDACTED]", model: "fixture" });
   });
 
+  it("redacts framework task/user text keys on share profile", () => {
+    const result = redact(
+      {
+        currentTask: "Summarize the invoice",
+        userInput: "Please draft a reply",
+        requestText: "What tools are available?",
+        conversationText: "hello",
+        task: "pilot triage",
+        environment: "test",
+      },
+      { profile: "share" },
+    );
+    expect(result.value).toEqual({
+      currentTask: "[REDACTED]",
+      userInput: "[REDACTED]",
+      requestText: "[REDACTED]",
+      conversationText: "[REDACTED]",
+      task: "[REDACTED]",
+      environment: "test",
+    });
+  });
+
   it("applies profile strength predictably", () => {
     const local = redact({ note: "email person@example.com", prompt: "visible" });
     expect(local.value).toEqual({ note: "email person@example.com", prompt: "visible" });

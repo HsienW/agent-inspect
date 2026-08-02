@@ -626,6 +626,37 @@ describe("built-in structure and safety checks", () => {
     expect(paths).toContain("attributes.input");
     expect(JSON.stringify(result.findings)).not.toContain("real-prompt-should-flag");
   });
+
+  it("flags framework task/userInput metadata as raw content", () => {
+    const event = persisted("event-framework", {
+      attributes: {
+        currentTask: "Summarize the invoice",
+        userInput: "Please draft a reply",
+        requestText: "What tools are available?",
+        conversationText: "hello from the user",
+        task: "pilot triage",
+        taskStatus: "ok",
+      },
+    });
+    const result = runTraceChecks(
+      { read: readResult([event]) },
+      { rules: [createSafetyRawContentRule()] },
+    );
+    const paths = result.findings
+      .filter((finding) => finding.ruleId === "safety.rawPrompt")
+      .map((finding) => finding.evidence[0]?.path ?? "");
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        "attributes.currentTask",
+        "attributes.userInput",
+        "attributes.requestText",
+        "attributes.conversationText",
+        "attributes.task",
+      ]),
+    );
+    expect(paths.some((path) => path.endsWith("taskStatus"))).toBe(false);
+    expect(JSON.stringify(result.findings)).not.toContain("Summarize the invoice");
+  });
 });
 
 describe("built-in baseline regression checks", () => {

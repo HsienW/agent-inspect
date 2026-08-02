@@ -104,6 +104,11 @@ export const SHARE_PROFILE_EXTRA_KEYS = [
   "traceId",
   "spanId",
   "parentSpanId",
+  "currentTask",
+  "task",
+  "userInput",
+  "requestText",
+  "conversationText",
 ] as const;
 
 export const STRICT_PROFILE_EXTRA_KEYS = [

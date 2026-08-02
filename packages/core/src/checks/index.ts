@@ -598,6 +598,16 @@ const DEFAULT_RAW_CONTENT_KEYS = [
   "tool_input",
   "tooloutput",
   "tool_output",
+  // Framework / agent metadata that carries user or task text
+  "currenttask",
+  "current_task",
+  "task",
+  "userinput",
+  "user_input",
+  "requesttext",
+  "request_text",
+  "conversationtext",
+  "conversation_text",
 ];
 
 /** Parent path segments that hold token/usage metrics, not prompts. */
