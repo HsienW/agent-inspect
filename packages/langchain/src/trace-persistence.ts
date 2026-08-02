@@ -15,6 +15,17 @@ import {
   type TraceEvent,
 } from "agent-inspect/advanced";
 import type { RedactionRule } from "agent-inspect/logs";
+import {
+  beginCallbackRun,
+  canScheduleFinalize,
+  createInvocationState,
+  endCallbackRun,
+  markEnvelopeStarted,
+  markFinalized,
+  noteTerminalError,
+  resetInvocationState,
+  type AdapterInvocationState,
+} from "./invocation-state.js";
 
 export interface LangChainTracePersistenceOptions {
   runName?: string;
@@ -52,6 +63,9 @@ function toStepMetadata(attrs: Record<string, unknown>): StepMetadata {
 /**
  * Maps LangChain callback lifecycle to schemaVersion "0.1" manual JSONL events.
  * One callback session creates one standalone run; inside inspectRun, steps append to the active run.
+ *
+ * Standalone envelope completion is driven by {@link AdapterInvocationState}
+ * (activeRuns / completionGeneration / finalized) — not by empty parentRunId heuristics.
  */
 export class LangChainTracePersistence {
   readonly #traceDir: string;
@@ -61,15 +75,7 @@ export class LangChainTracePersistence {
   readonly #silent: boolean;
   readonly #safety: ReturnType<typeof resolveTraceSafetyOptions>;
 
-  #runStarted = false;
-  #runCompleted = false;
-  #runStartTime?: number;
-  #rootLcRunId?: string;
-  /** Live LangChain callback runIds for standalone envelope finalization. */
-  readonly #activeLcRunIds = new Set<string>();
-  #sawError = false;
-  #lastErrorMessage?: string;
-  #finalizationToken = 0;
+  readonly #lifecycle: AdapterInvocationState;
   readonly #lcToStepId = new Map<string, string>();
 
   constructor(options: LangChainTracePersistenceOptions = {}) {
@@ -88,6 +94,7 @@ export class LangChainTracePersistence {
       redact: options.redact ? { rules: options.redact } : true,
       maxPreviewLength: options.maxPreviewChars,
     });
+    this.#lifecycle = createInvocationState(this.#runId);
   }
 
   get runId(): string {
@@ -98,22 +105,22 @@ export class LangChainTracePersistence {
     return this.#traceDir;
   }
 
+  /** @internal Test / diagnostics access to per-invocation lifecycle. */
+  get lifecycle(): Readonly<AdapterInvocationState> {
+    return this.#lifecycle;
+  }
+
   reset(): void {
-    this.#finalizationToken += 1;
-    this.#runStarted = false;
-    this.#runCompleted = false;
-    this.#runStartTime = undefined;
-    this.#rootLcRunId = undefined;
-    this.#activeLcRunIds.clear();
-    this.#sawError = false;
-    this.#lastErrorMessage = undefined;
+    resetInvocationState(this.#lifecycle);
     this.#lcToStepId.clear();
   }
 
-  noteRoot(lcRunId: string, parentRunId?: string): void {
-    if (!parentRunId && !this.#rootLcRunId) {
-      this.#rootLcRunId = lcRunId;
-    }
+  /**
+   * @deprecated Root-ID heuristics are no longer used for envelope completion.
+   * Retained as a no-op for call-site compatibility during the v6.8 train.
+   */
+  noteRoot(_lcRunId: string, _parentRunId?: string): void {
+    // Intentionally empty — completion uses activeRuns lifecycle state.
   }
 
   resolveParentId(lcParentRunId?: string): string | undefined {
@@ -130,22 +137,31 @@ export class LangChainTracePersistence {
     attributes: Record<string, unknown>;
   }): Promise<void> {
     try {
-      // Invalidate any deferred run_completed — another lifecycle event started.
-      this.#finalizationToken += 1;
-      this.noteRoot(params.lcRunId, params.lcParentRunId);
-      this.#activeLcRunIds.add(params.lcRunId);
+      const stepId = createStepId();
+      this.#lcToStepId.set(params.lcRunId, stepId);
+      beginCallbackRun(this.#lifecycle, {
+        lcRunId: params.lcRunId,
+        parentLcRunId: params.lcParentRunId,
+        startedAt: params.startTime,
+        kind: params.kind,
+        stepId,
+      });
 
-      if (this.#standalone && !this.#runStarted) {
+      if (this.#standalone && !this.#lifecycle.envelopeStarted) {
         await this.#ensureRunStarted(params.startTime, params.attributes);
       }
 
-      const stepId = createStepId();
-      this.#lcToStepId.set(params.lcRunId, stepId);
       const parentId = this.resolveParentId(params.lcParentRunId);
       const metadata = toStepMetadata(params.attributes);
       if (params.lcParentRunId && !parentId) {
         metadata.parentMapping = "unresolved";
         metadata.unresolvedParentRunId = params.lcParentRunId;
+      }
+      if (
+        params.lcParentRunId &&
+        this.#lifecycle.knownRelationships.get(params.lcRunId) === params.lcParentRunId
+      ) {
+        metadata.parentConfidence = "explicit";
       }
 
       const event: TraceEvent = {
@@ -181,6 +197,14 @@ export class LangChainTracePersistence {
       if (!stepId && params.completionAttributes) {
         stepId = createStepId();
         this.#lcToStepId.set(params.lcRunId, stepId);
+        beginCallbackRun(this.#lifecycle, {
+          lcRunId: params.lcRunId,
+          parentLcRunId: params.lcParentRunId,
+          startedAt: params.endTime - (params.durationMs ?? 0),
+          kind:
+            (params.completionAttributes.kind as InspectKind | undefined) ?? "LLM",
+          stepId,
+        });
         const parentId = this.resolveParentId(params.lcParentRunId);
         const metadata = toStepMetadata(params.completionAttributes);
         if (params.lcParentRunId && !parentId) {
@@ -202,6 +226,9 @@ export class LangChainTracePersistence {
           startTime,
           metadata,
         };
+        if (this.#standalone && !this.#lifecycle.envelopeStarted) {
+          await this.#ensureRunStarted(startTime, params.completionAttributes);
+        }
         await this.#write(started);
       }
       if (!stepId) return;
@@ -209,7 +236,10 @@ export class LangChainTracePersistence {
       const durationMs =
         typeof params.durationMs === "number" && Number.isFinite(params.durationMs)
           ? Math.max(0, Math.floor(params.durationMs))
-          : Math.max(0, params.endTime - (this.#runStartTime ?? params.endTime));
+          : Math.max(
+              0,
+              params.endTime - (this.#lifecycle.runStartTime ?? params.endTime),
+            );
 
       const event: TraceEvent = {
         schemaVersion: "0.1",
@@ -228,10 +258,12 @@ export class LangChainTracePersistence {
       await this.#write(event);
 
       if (params.status === "error") {
-        this.#sawError = true;
-        if (params.errorMessage) this.#lastErrorMessage = params.errorMessage;
+        noteTerminalError(
+          this.#lifecycle,
+          params.errorMessage ?? "adapter step error",
+        );
       }
-      this.#activeLcRunIds.delete(params.lcRunId);
+      endCallbackRun(this.#lifecycle, params.lcRunId);
       await this.#scheduleStandaloneFinalization(params.endTime);
     } catch (err) {
       this.#warn(err);
@@ -250,16 +282,20 @@ export class LangChainTracePersistence {
     errorMessage?: string;
   }): Promise<void> {
     try {
-      this.#finalizationToken += 1;
-      this.noteRoot(params.lcRunId, params.lcParentRunId);
-      this.#activeLcRunIds.add(params.lcRunId);
+      const stepId = createStepId();
+      this.#lcToStepId.set(params.lcRunId, stepId);
+      beginCallbackRun(this.#lifecycle, {
+        lcRunId: params.lcRunId,
+        parentLcRunId: params.lcParentRunId,
+        startedAt: params.timestamp,
+        kind: params.kind,
+        stepId,
+      });
 
-      if (this.#standalone && !this.#runStarted) {
+      if (this.#standalone && !this.#lifecycle.envelopeStarted) {
         await this.#ensureRunStarted(params.timestamp, params.attributes);
       }
 
-      const stepId = createStepId();
-      this.#lcToStepId.set(params.lcRunId, stepId);
       const parentId = this.resolveParentId(params.lcParentRunId);
       const metadata = toStepMetadata(params.attributes);
       if (params.lcParentRunId && !parentId) {
@@ -297,10 +333,12 @@ export class LangChainTracePersistence {
       await this.#write(completed);
 
       if (params.status === "error") {
-        this.#sawError = true;
-        if (params.errorMessage) this.#lastErrorMessage = params.errorMessage;
+        noteTerminalError(
+          this.#lifecycle,
+          params.errorMessage ?? "adapter step error",
+        );
       }
-      this.#activeLcRunIds.delete(params.lcRunId);
+      endCallbackRun(this.#lifecycle, params.lcRunId);
       await this.#scheduleStandaloneFinalization(params.timestamp);
     } catch (err) {
       this.#warn(err);
@@ -314,20 +352,18 @@ export class LangChainTracePersistence {
    * block the envelope.
    */
   async #scheduleStandaloneFinalization(endTime: number): Promise<void> {
-    if (!this.#standalone || this.#runCompleted || !this.#runStarted) return;
-    if (this.#activeLcRunIds.size > 0) return;
+    if (!this.#standalone || !canScheduleFinalize(this.#lifecycle)) return;
 
-    const token = ++this.#finalizationToken;
+    const generation = this.#lifecycle.completionGeneration;
     await Promise.resolve();
-    if (token !== this.#finalizationToken) return;
-    if (!this.#standalone || this.#runCompleted || !this.#runStarted) return;
-    if (this.#activeLcRunIds.size > 0) return;
+    if (this.#lifecycle.completionGeneration !== generation) return;
+    if (!this.#standalone || !canScheduleFinalize(this.#lifecycle)) return;
 
-    const status = this.#sawError ? "error" : "success";
+    const status = this.#lifecycle.terminalError ? "error" : "success";
     await this.#ensureRunCompleted(
       endTime,
       status,
-      status === "error" ? this.#lastErrorMessage : undefined,
+      status === "error" ? this.#lifecycle.terminalError?.message : undefined,
     );
   }
 
@@ -335,9 +371,7 @@ export class LangChainTracePersistence {
     startTime: number,
     attrs: Record<string, unknown>,
   ): Promise<void> {
-    if (this.#runStarted) return;
-    this.#runStarted = true;
-    this.#runStartTime = startTime;
+    if (!markEnvelopeStarted(this.#lifecycle, startTime)) return;
 
     await initializeTraceFile(this.#runId, this.#traceDir);
 
@@ -365,10 +399,9 @@ export class LangChainTracePersistence {
     stepStatus: "success" | "error",
     errorMessage?: string,
   ): Promise<void> {
-    if (this.#runCompleted || !this.#runStarted) return;
-    this.#runCompleted = true;
+    if (!markFinalized(this.#lifecycle)) return;
 
-    const startTime = this.#runStartTime ?? endTime;
+    const startTime = this.#lifecycle.runStartTime ?? endTime;
     const durationMs = Math.max(0, endTime - startTime);
     const runStatus = stepStatus === "error" ? "error" : "success";
 

@@ -8,21 +8,23 @@
 baselineVersion: "6.7.5"
 publishedVersion: "6.7.5"
 currentTrain: "v6.8.0-langgraph-fidelity"
-trainStatus: "starting"
+trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.8-0-fidelity-rfc"
-lastConfirmedCommit: "b4146fc"
-lastValidationLevel: "npm 6.7.5 published"
-nextAction: "Land 6.8-0 LANGGRAPH-FIDELITY.md; continue 6.8-1+"
+currentChunk: "6.8-2-callback-reuse"
+lastConfirmedCommit: "a8f5292"
+lastValidationLevel: "langchain vitest + typecheck"
+nextAction: "Land 6.8-2 callback reuse; continue 6.8-3+"
 pendingManualGate: "v6.8-12 requires two external LangGraph fidelity validations"
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
   - "v6.4.1 through v6.7.5 npm publication"
   - "6.7.5 consumer/native/DX train (doctor, sqlite, jest, aliases, recipe)"
+  - "6.8-0 LANGGRAPH-FIDELITY.md draft + RFC note"
+  - "6.8-1 AdapterInvocationState lifecycle machine"
 remainingTrains:
-  - "v6.8.0 LangGraph fidelity contract (starting)"
+  - "v6.8.0 LangGraph fidelity contract (in progress)"
   - "v6.9.0 Safety precision and share policy"
   - "v6.10.0 Portable Evidence v2"
   - "v6.11.0 Local coding-agent debug loop"
@@ -37,4 +39,5 @@ updatedAt: "2026-08-02"
 
 - **Active plan:** [release-trains/V6.8.0-EXECUTION-PLAN.md](./release-trains/V6.8.0-EXECUTION-PLAN.md)
 - **Prior readiness:** [release-trains/V6.7.5-RELEASE-READINESS.md](./release-trains/V6.7.5-RELEASE-READINESS.md)
+- **Fidelity contract:** [../LANGGRAPH-FIDELITY.md](../LANGGRAPH-FIDELITY.md)
 - **Maintainer rules:** [AGENTS.md](../../AGENTS.md)
