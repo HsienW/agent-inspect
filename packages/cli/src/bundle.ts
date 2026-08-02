@@ -28,6 +28,10 @@ import { readWorkspaceManifestFile, resolveInsideWorkspace, resolveWorkspaceLoca
 import type { RedactionProfile } from "@agent-inspect/redact";
 
 import { version as packageVersion } from "../../../package.json";
+import {
+  resolveOutputOption,
+  resolveRedactionProfileOption,
+} from "./cli-option-aliases.js";
 import { redactTraceContent } from "./redact.js";
 import { assessOpenedTrace } from "./safety.js";
 import { loadSessionRuns } from "./sessions-load.js";
@@ -36,7 +40,11 @@ export interface BundleCommandOptions {
   dir?: string;
   session?: string;
   since?: string;
+  /** Canonical alias of `--profile`. */
+  redactionProfile?: string;
   profile?: string;
+  /** Canonical alias of `--out`. */
+  output?: string;
   out?: string;
   allowUnsafe?: boolean;
   json?: boolean;
@@ -98,8 +106,9 @@ async function resolveOutputDir(
   runIds: readonly string[],
   cwd: string,
 ): Promise<string> {
-  if (options.out !== undefined && options.out.trim() !== "") {
-    const normalized = normalizeBundleOutputPath(options.out);
+  const out = resolveOutputOption(options);
+  if (out !== undefined) {
+    const normalized = normalizeBundleOutputPath(out);
     try {
       const location = resolveWorkspaceLocation(cwd);
       const manifest = await readWorkspaceManifestFile(location);
@@ -194,7 +203,7 @@ export async function bundleCommand(
   runIdArg: string | undefined,
   options: BundleCommandOptions = {},
 ): Promise<void> {
-  const profile = parseBundleProfile(options.profile);
+  const profile = parseBundleProfile(resolveRedactionProfileOption(options));
   const traceDir = resolveTraceDir({ dir: options.dir });
   const cwd = process.cwd();
 

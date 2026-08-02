@@ -11,6 +11,7 @@ import {
   type TraceReadResult,
 } from "@agent-inspect/core/readers";
 
+import { resolveRedactionProfileOption } from "./cli-option-aliases.js";
 import { inputFromTarget } from "./trace-input.js";
 
 export interface ExplainCommandOptions {
@@ -21,6 +22,7 @@ export interface ExplainCommandOptions {
   json?: boolean;
   provider?: string;
   redactionProfile?: string;
+  profile?: string;
 }
 
 function parseRedactionProfile(value: string | undefined): RedactionProfile {
@@ -110,7 +112,7 @@ export async function explainCommand(
 
   let redactionProfile: RedactionProfile;
   try {
-    redactionProfile = parseRedactionProfile(options.redactionProfile);
+    redactionProfile = parseRedactionProfile(resolveRedactionProfileOption(options));
   } catch (error) {
     process.exitCode = 1;
     console.error(error instanceof Error ? error.message : String(error));

@@ -297,6 +297,7 @@ export function createCliProgram(): Command {
       ]),
     )
     .option("-o, --output <path>", "write export to file (creates parent dirs)")
+    .option("--out <path>", "alias for --output")
     .option("--json", "emit JSON wrapper about the export (includes content when writing to stdout)")
     .option("--validate", "validate exported payload shape after generation")
     .option("--include-attributes", "include bounded attributes (review before sharing)")
@@ -307,6 +308,13 @@ export function createCliProgram(): Command {
         "--redaction-profile <profile>",
         "redaction profile for exported copies: local, share, strict (default: local)",
       ).choices(["local", "share", "strict"]),
+    )
+    .addOption(
+      new Option("--profile <profile>", "alias for --redaction-profile").choices([
+        "local",
+        "share",
+        "strict",
+      ]),
     )
     .action((runId: string, opts: ExportCommandOptions) => {
       runCommand(() => exportCommand(runId, opts));
@@ -630,7 +638,14 @@ export function createCliProgram(): Command {
         .choices(["local", "share", "strict"])
         .default("share"),
     )
+    .addOption(
+      new Option(
+        "--redaction-profile <profile>",
+        "alias for --profile (canonical spelling)",
+      ).choices(["local", "share", "strict"]),
+    )
     .option("--out <path>", "output directory (folder; .zip suffix is stripped)")
+    .option("--output <path>", "alias for --out (canonical spelling)")
     .option("--allow-unsafe", "write bundle even when verify-safe reports UNSAFE")
     .option("--json", "print deterministic JSON manifest")
     .action((runId: string | undefined, opts: BundleCommandOptions) => {
@@ -859,6 +874,7 @@ export function createCliProgram(): Command {
       ]),
     )
     .option("-o, --output <path>", "write report to file (creates parent dirs)")
+    .option("--out <path>", "alias for --output")
     .option("--json", "emit JSON wrapper (includes content when writing to stdout)")
     .option("--include-attributes", "include bounded step attributes in tree section")
     .option("--no-errors", "omit error details from tree section")
@@ -878,6 +894,13 @@ export function createCliProgram(): Command {
         "redaction profile for entire report: local, share, strict (default: local)",
       ).choices(["local", "share", "strict"]),
     )
+    .addOption(
+      new Option("--profile <profile>", "alias for --redaction-profile").choices([
+        "local",
+        "share",
+        "strict",
+      ]),
+    )
     .action((runId: string, opts: ReportCommandOptions) => {
       runCommand(() => reportCommand(runId, opts));
     });
@@ -893,7 +916,14 @@ export function createCliProgram(): Command {
         "redaction profile: local, share, strict (default: share)",
       ).choices(["local", "share", "strict"]),
     )
+    .addOption(
+      new Option(
+        "--redaction-profile <profile>",
+        "alias for --profile (canonical spelling)",
+      ).choices(["local", "share", "strict"]),
+    )
     .option("-o, --output <path>", "write redacted content to a file")
+    .option("--out <path>", "alias for --output")
     .option("--json", "print deterministic JSON wrapper with findings")
     .action((target: string, opts: RedactCommandOptions) => {
       runCommand(() => redactCommand(target, opts));
@@ -923,6 +953,13 @@ export function createCliProgram(): Command {
         "--redaction-profile <profile>",
         "redaction profile for explanation payload: local, share, strict (default: local)",
       ).choices(["local", "share", "strict"]),
+    )
+    .addOption(
+      new Option("--profile <profile>", "alias for --redaction-profile").choices([
+        "local",
+        "share",
+        "strict",
+      ]),
     )
     .action((target: string, opts: ExplainCommandOptions) => {
       runCommand(() => explainCommand(target, opts));

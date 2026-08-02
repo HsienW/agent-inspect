@@ -7,17 +7,23 @@ import {
   type ReportFormat,
 } from "@agent-inspect/core/exporters";
 
+import {
+  resolveOutputOption,
+  resolveRedactionProfileOption,
+} from "./cli-option-aliases.js";
 import { readRunTraceEvents } from "./read-run.js";
 
 export interface ReportCommandOptions {
   dir?: string;
   format?: string;
   output?: string;
+  out?: string;
   json?: boolean;
   includeAttributes?: boolean;
   noErrors?: boolean;
   noCorrelation?: boolean;
   redactionProfile?: string;
+  profile?: string;
   section?: string;
 }
 
@@ -57,7 +63,7 @@ export async function reportCommand(
   let redactionProfile: RedactionProfile;
   try {
     format = parseReportFormat(options.format);
-    redactionProfile = parseRedactionProfile(options.redactionProfile);
+    redactionProfile = parseRedactionProfile(resolveRedactionProfileOption(options));
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error(msg);
@@ -93,10 +99,9 @@ export async function reportCommand(
     ...(options.section ? { section: options.section as never } : {}),
   });
 
+  const resolvedOutput = resolveOutputOption(options);
   const outPath =
-    options.output !== undefined && options.output.trim() !== ""
-      ? path.resolve(options.output.trim())
-      : undefined;
+    resolvedOutput !== undefined ? path.resolve(resolvedOutput) : undefined;
 
   if (outPath !== undefined) {
     await mkdir(path.dirname(outPath), { recursive: true });

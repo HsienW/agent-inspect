@@ -218,13 +218,13 @@ Options:
 
 - `--dir <path>`
 - `--format <format>`
-- `-o, --output <path>`: write file
+- `-o, --output <path>`: write file (canonical; `--out` is a legacy alias)
 - `--json`: JSON wrapper output (includes content if not writing to file)
 - `--validate`: validate exported payload shape
 - `--include-attributes`: include bounded attributes (review before sharing)
 - `--no-metadata`: omit summary/metadata sections
 - `--no-errors`: omit error sections
-- `--redaction-profile <profile>`: redaction profile for exported copies — `local` (default), `share`, or `strict`. Key-based safety only; review exports before sharing.
+- `--redaction-profile <profile>`: redaction profile for exported copies — `local` (default), `share`, or `strict`. Key-based safety only; review exports before sharing. (`--profile` is a legacy alias.)
 
 Examples:
 
@@ -879,8 +879,8 @@ Options:
 - `--dir <path>` — trace directory
 - `--session <session-id>` — bundle all runs in a session
 - `--since <duration>` — bundle runs with activity since a window (e.g. `24h`, `7d`)
-- `--profile <profile>` — `local`, `share` (default), or `strict` redaction for exported copies
-- `--out <path>` — output directory; `.zip` suffix is stripped (folder-first)
+- `--profile <profile>` — `local`, `share` (default), or `strict` redaction for exported copies (`--redaction-profile` is the canonical alias)
+- `--out <path>` — output directory; `.zip` suffix is stripped (folder-first; `--output` is the canonical alias)
 - `--allow-unsafe` — write bundle even when verify-safe reports UNSAFE
 - `--json` — print deterministic JSON manifest
 

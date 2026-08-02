@@ -10,12 +10,18 @@ import {
   type RedactionProfile,
 } from "@agent-inspect/redact";
 
+import {
+  resolveOutputOption,
+  resolveRedactionProfileOption,
+} from "./cli-option-aliases.js";
 import { readStdin } from "./trace-input.js";
 
 export interface RedactCommandOptions {
   dir?: string;
   profile?: string;
+  redactionProfile?: string;
   output?: string;
+  out?: string;
   json?: boolean;
 }
 
@@ -140,12 +146,13 @@ export async function redactCommand(
   options: RedactCommandOptions = {},
   stdin: NodeJS.ReadableStream = process.stdin,
 ): Promise<void> {
-  const profile = parseRedactionProfile(options.profile);
+  const profile = parseRedactionProfile(resolveRedactionProfileOption(options));
   const source = await contentFromTarget(target, options, stdin);
   const redacted = redactDocument(source.content, profile);
+  const outputPath = resolveOutputOption(options);
 
-  if (options.output !== undefined) {
-    await writeFile(options.output, redacted.content, "utf-8");
+  if (outputPath !== undefined) {
+    await writeFile(outputPath, redacted.content, "utf-8");
   }
 
   if (options.json) {
@@ -155,9 +162,9 @@ export async function redactCommand(
           ok: true,
           profile,
           source: source.source,
-          output: options.output,
+          output: outputPath,
           findings: redacted.findings,
-          content: options.output === undefined ? redacted.content : undefined,
+          content: outputPath === undefined ? redacted.content : undefined,
         }),
         null,
         2,
@@ -166,7 +173,7 @@ export async function redactCommand(
     return;
   }
 
-  if (options.output === undefined) {
+  if (outputPath === undefined) {
     process.stdout.write(redacted.content);
   }
 }

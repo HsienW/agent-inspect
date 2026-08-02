@@ -10,18 +10,24 @@ import {
   type ExportOptions,
 } from "@agent-inspect/core/exporters";
 
+import {
+  resolveOutputOption,
+  resolveRedactionProfileOption,
+} from "./cli-option-aliases.js";
 import { readRunTraceEvents } from "./read-run.js";
 
 export interface ExportCommandOptions {
   dir?: string;
   format?: string;
   output?: string;
+  out?: string;
   json?: boolean;
   validate?: boolean;
   includeAttributes?: boolean;
   noMetadata?: boolean;
   noErrors?: boolean;
   redactionProfile?: string;
+  profile?: string;
 }
 
 function parseRedactionProfile(s: string | undefined): RedactionProfile {
@@ -65,7 +71,7 @@ export async function exportCommand(
   let redactionProfile: RedactionProfile;
   try {
     format = parseExportFormat(options.format);
-    redactionProfile = parseRedactionProfile(options.redactionProfile);
+    redactionProfile = parseRedactionProfile(resolveRedactionProfileOption(options));
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error(msg);
@@ -120,10 +126,9 @@ export async function exportCommand(
     process.exitCode = 1;
   }
 
+  const resolvedOutput = resolveOutputOption(options);
   const outPath =
-    options.output !== undefined && options.output.trim() !== ""
-      ? path.resolve(options.output.trim())
-      : undefined;
+    resolvedOutput !== undefined ? path.resolve(resolvedOutput) : undefined;
 
   if (outPath !== undefined) {
     await mkdir(path.dirname(outPath), { recursive: true });
