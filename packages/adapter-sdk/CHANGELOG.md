@@ -1,5 +1,16 @@
 # @agent-inspect/adapter-sdk
 
+## 6.10.0
+
+### Minor Changes
+
+- 3d21e87: Portable Evidence v2: versioned evidence.json manifest (independent of trace schema), self-contained evidence.html with tree/timeline/causal/contract/diff/safety views, directory/html/zip bundle formats, bundle verify, CI artifacts/reporter evidence kind, XSS/a11y corpus, and packed E2E. No schema break; no new root/core dependencies; no default network upload; redaction defaults not weakened.
+
+### Patch Changes
+
+- Updated dependencies [3d21e87]
+  - agent-inspect@6.10.0
+
 ## 6.9.0
 
 ### Minor Changes
