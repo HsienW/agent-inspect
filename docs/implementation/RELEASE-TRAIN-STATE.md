@@ -8,14 +8,14 @@
 baselineVersion: "6.11.0"
 publishedVersion: "6.11.0"
 currentTrain: "v6.12.0-consolidation"
-trainStatus: "ready-to-start"
+trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
 currentChunk: "6.12-0"
-lastConfirmedCommit: "8679cc4"
+lastConfirmedCommit: "0074ebd"
 lastValidationLevel: "npm view agent-inspect@6.11.0 (18 fixed packages)"
-nextAction: "Begin v6.12.0 Consolidation and stable launch candidate"
+nextAction: "Land 6.12-0; continue 6.12-1 README/website hierarchy"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
