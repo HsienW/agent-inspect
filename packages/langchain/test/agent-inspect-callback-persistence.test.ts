@@ -271,4 +271,39 @@ describe("AgentInspectCallback persistence", () => {
     expect(meta.status).toBe("success");
     expect(meta.eventCount).toBeGreaterThan(0);
   });
+
+  it("omits absolute traceDir from event attributes and records local storage", async () => {
+    const absDir = path.join(os.tmpdir(), `agent-inspect-lc-abs-${Date.now()}`);
+    await mkdir(absDir, { recursive: true });
+    try {
+      const cb = new AgentInspectCallback({
+        traceDir: absDir,
+        persist: true,
+        runId: "run_no_abs_path",
+      });
+      await cb.handleChainStart(mockSerialized("c"), {}, "root");
+      const memAttrs = cb.getEvents()[0]?.attributes ?? {};
+      expect(memAttrs).not.toHaveProperty("traceDir");
+      expect(memAttrs.traceStorage).toBe("local");
+      expect(JSON.stringify(memAttrs)).not.toContain(absDir);
+
+      await cb.handleChainEnd({}, "root");
+      const events = await readTraceEvents("run_no_abs_path", absDir);
+      expect(JSON.stringify(events)).not.toContain(absDir);
+      const stepStart = events.find((e) => e.event === "step_started");
+      expect(stepStart?.event === "step_started" && stepStart.metadata?.traceDir).toBeUndefined();
+      expect(stepStart?.event === "step_started" && stepStart.metadata?.traceStorage).toBe("local");
+
+      const relativeCb = new AgentInspectCallback({
+        traceDir: ".agent-inspect/langchain",
+        persist: false,
+      });
+      await relativeCb.handleLLMStart(mockSerialized("m"), ["p"], "l1");
+      const relativeAttrs = relativeCb.getEvents()[0]?.attributes ?? {};
+      expect(relativeAttrs).not.toHaveProperty("traceDir");
+      expect(relativeAttrs.workspaceRelativeTraceDir).toBe(".agent-inspect/langchain");
+    } finally {
+      await rm(absDir, { recursive: true, force: true });
+    }
+  });
 });

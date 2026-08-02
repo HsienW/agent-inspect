@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import type { AgentAction, AgentFinish } from "@langchain/core/agents";
 import { BaseCallbackHandler } from "@langchain/core/callbacks/base";
 import type { Serialized } from "@langchain/core/load/serializable";
@@ -256,7 +258,16 @@ export class AgentInspectCallback extends BaseCallbackHandler {
     if (parentRunId) out.parentRunId = parentRunId;
     if (this.#opts.runName) out.adapterRunName = this.#opts.runName;
     if (runNameArg) out.runName = runNameArg;
-    if (this.#opts.traceDir) out.traceDir = this.#opts.traceDir;
+    // Never persist absolute local paths (usernames / machine layout) on events.
+    if (this.#opts.persist) out.traceStorage = "local";
+    const configuredTraceDir = this.#opts.traceDir?.trim();
+    if (
+      configuredTraceDir &&
+      !path.isAbsolute(configuredTraceDir) &&
+      !/^[A-Za-z]:[\\/]/.test(configuredTraceDir)
+    ) {
+      out.workspaceRelativeTraceDir = configuredTraceDir;
+    }
     const cap = this.#opts.capture;
     if (cap !== "none" && tags?.length) out.tags = [...tags];
     return out;
