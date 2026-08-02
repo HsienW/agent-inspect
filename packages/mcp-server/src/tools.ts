@@ -3,6 +3,7 @@ import path from "node:path";
 import {
   TraceDirectory,
   buildBundleMetadata,
+  buildEvidenceManifest,
   buildRunTimeline,
   buildRunWhatSummary,
   bundleFailsOnSafety,
@@ -12,6 +13,8 @@ import {
   renderRunWhat,
   resolveTraceDir,
   searchTraces,
+  serializeEvidenceManifest,
+  sha256Hex,
 } from "agent-inspect/advanced";
 import { createRunStatusRule, runTraceChecks } from "agent-inspect/checks";
 import { diffRuns, manualTraceEventsToComparableRun } from "agent-inspect/diff";
@@ -447,6 +450,20 @@ export async function callReadOnlyTool(
         { read },
         { rules: [createRunStatusRule()], select: ["run.status"], runId },
       );
+      if (name === "get_contract_failures") {
+        const failures = result.findings.filter((finding) => finding.status === "fail");
+        return deliverMcpPayload(
+          {
+            runId,
+            ok: result.ok,
+            status: result.status,
+            failures,
+            count: failures.length,
+            diagnostics: result.diagnostics,
+          },
+          context,
+        );
+      }
       return deliverMcpPayload(result, context);
     }
     case "create_share_safe_report": {
@@ -546,15 +563,60 @@ export async function callReadOnlyTool(
         },
         files: ["report.md", "tree.json"],
       });
+      const files: Record<string, string> = {
+        "report.md": markdown.content,
+        "tree.json": tree.content,
+      };
+      let evidenceJson: string | undefined;
+      if (name === "create_share_checked_evidence") {
+        const toEvidenceStatus = (
+          value: string | undefined,
+        ): "SAFE" | "SAFE WITH WARNINGS" | "UNSAFE" | "UNKNOWN" => {
+          if (value === "SAFE") return "SAFE";
+          if (value === "SAFE_WITH_WARNINGS" || value === "SAFE WITH WARNINGS") {
+            return "SAFE WITH WARNINGS";
+          }
+          if (value === "UNSAFE") return "UNSAFE";
+          return "UNKNOWN";
+        };
+        const packaged = [
+          { path: "report.md", content: Buffer.from(markdown.content, "utf8") },
+          { path: "tree.json", content: Buffer.from(tree.content, "utf8") },
+        ];
+        const manifest = buildEvidenceManifest({
+          generatorName: "@agent-inspect/mcp-server",
+          generatorVersion: "6.11.0-dev",
+          createdAt: new Date(0).toISOString(),
+          runIds: [runId],
+          traceSchemaVersions: [],
+          sourceHashes: [
+            {
+              runId,
+              algorithm: "sha256",
+              hash: sha256Hex(Buffer.from(meta.filePath, "utf8")),
+            },
+          ],
+          redactionProfile: profile,
+          verificationPolicy: "share",
+          assessmentStatus: toEvidenceStatus(safety.status),
+          sourceStatus: toEvidenceStatus(safety.sourceStatus),
+          files: packaged,
+        });
+        evidenceJson = serializeEvidenceManifest(manifest);
+        files["evidence.json"] = evidenceJson;
+      }
       return deliverMcpPayload(
         {
           runId,
           profile,
           metadata,
-          files: {
-            "report.md": markdown.content,
-            "tree.json": tree.content,
-          },
+          ...(evidenceJson
+            ? {
+                evidenceFormatVersion: "1.0",
+                shareChecked: true,
+              }
+            : {}),
+          files,
         },
         context,
       );

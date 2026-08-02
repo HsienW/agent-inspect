@@ -83,6 +83,18 @@ describe("@agent-inspect/mcp-server", () => {
     expect(["SAFE", "SAFE_WITH_WARNINGS"]).toContain(payload.metadata.safeStatus);
   });
 
+  it("creates share-checked evidence with evidence.json", async () => {
+    const context = createMcpServerContext({ traceDir });
+    const result = await callReadOnlyTool(context, "create_share_checked_evidence", { runId });
+    expect(result.isError).toBe(false);
+    const payload = JSON.parse(result.content[0]!.text as string) as {
+      evidenceFormatVersion?: string;
+      files: Record<string, string>;
+    };
+    expect(payload.evidenceFormatVersion).toBe("1.0");
+    expect(payload.files["evidence.json"]).toContain("evidenceFormatVersion");
+  });
+
   it("applies MCP result boundary on read_trace", async () => {
     const context = createMcpServerContext({ traceDir });
     const result = await callReadOnlyTool(context, "read_trace", { runId });
