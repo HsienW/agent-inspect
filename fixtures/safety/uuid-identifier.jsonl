@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","type":"run_started","runId":"safety-uuid","ts":1700000000000,"name":"safety-corpus"}
+{"schemaVersion":"0.1","type":"step_started","runId":"safety-uuid","stepId":"safety-uuid-s1","parentStepId":null,"ts":1700000000001,"name":"stimulus","kind":"tool"}
+{"schemaVersion":"0.1","type":"step_completed","runId":"safety-uuid","stepId":"safety-uuid-s1","parentStepId":null,"ts":1700000000002,"name":"stimulus","kind":"tool","status":"ok","attrs":{"requestId":"550e8400-e29b-41d4-a716-446655440000","spanId":"6ba7b810-9dad-11d1-80b4-00c04fd430c8"}}
+{"schemaVersion":"0.1","type":"run_completed","runId":"safety-uuid","ts":1700000000003,"status":"ok"}

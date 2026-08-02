@@ -12,6 +12,7 @@ Canonical **deterministic** samples for tests, CI validation, and documentation.
 | `logs/` | Structured log lines (JSON, log4js-style, intentional breakage) |
 | `configs/` | Log ingest JSON configs |
 | `performance/` | Small/medium/large deterministic traces for perf checks |
+| `safety/` | Synthetic share-check FP/TP corpus (`corpus.json` + JSONL); see [safety/README.md](./safety/README.md) |
 
 ## Safety
 

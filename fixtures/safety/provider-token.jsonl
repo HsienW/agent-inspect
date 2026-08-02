@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","type":"run_started","runId":"safety-provider-token","ts":1700000000000,"name":"safety-corpus"}
+{"schemaVersion":"0.1","type":"step_started","runId":"safety-provider-token","stepId":"safety-provider-token-s1","parentStepId":null,"ts":1700000000001,"name":"stimulus","kind":"tool"}
+{"schemaVersion":"0.1","type":"step_completed","runId":"safety-provider-token","stepId":"safety-provider-token-s1","parentStepId":null,"ts":1700000000002,"name":"stimulus","kind":"tool","status":"ok","attrs":{"openaiKey":"sk_test_fake_not_a_real_key_abcdefghijklmnopqrst","authorization":"Bearer fake-token-synthetic-0001"}}
+{"schemaVersion":"0.1","type":"run_completed","runId":"safety-provider-token","ts":1700000000003,"status":"ok"}

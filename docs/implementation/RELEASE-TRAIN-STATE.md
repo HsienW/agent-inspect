@@ -5,26 +5,24 @@
 > **Canonical roadmap:** [AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md](./AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md)
 
 ```yaml
-baselineVersion: "6.7.5"
-publishedVersion: "6.7.5"
-currentTrain: "v6.8.0-langgraph-fidelity"
-trainStatus: "release-ready"
+baselineVersion: "6.8.0"
+publishedVersion: "6.8.0"
+currentTrain: "v6.9.0-safety-precision"
+trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.8-12-publication"
-lastConfirmedCommit: "d115862"
-lastValidationLevel: "release readiness docs + changeset"
-nextAction: "Merge Version Packages for 6.8.0; verify npm; start v6.9.0"
+currentChunk: "6.9-0"
+lastConfirmedCommit: "6ae8969"
+lastValidationLevel: "npm view agent-inspect@6.8.0"
+nextAction: "Land 6.9-0 safety policy RFC + synthetic FP corpus"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
-  - "v6.4.1 through v6.7.5 npm publication"
-  - "6.8-0 through 6.8-11 LangGraph fidelity implementation"
-  - "6.8-12 maintainer gate clearance + readiness changeset"
+  - "v6.4.1 through v6.8.0 npm publication"
+  - "6.8 LangGraph fidelity train (published)"
 remainingTrains:
-  - "v6.8.0 npm publication (in flight)"
-  - "v6.9.0 Safety precision and share policy"
+  - "v6.9.0 Safety precision and share policy (active)"
   - "v6.10.0 Portable Evidence v2"
   - "v6.11.0 Local coding-agent debug loop"
   - "v6.12.0 Consolidation and stable launch candidate"
@@ -36,7 +34,7 @@ updatedAt: "2026-08-02"
 
 ## Quick links
 
-- **Active plan:** [release-trains/V6.8.0-EXECUTION-PLAN.md](./release-trains/V6.8.0-EXECUTION-PLAN.md)
-- **Readiness:** [release-trains/V6.8.0-RELEASE-READINESS.md](./release-trains/V6.8.0-RELEASE-READINESS.md)
-- **Fidelity contract:** [../LANGGRAPH-FIDELITY.md](../LANGGRAPH-FIDELITY.md)
+- **Active plan:** [release-trains/V6.9.0-EXECUTION-PLAN.md](./release-trains/V6.9.0-EXECUTION-PLAN.md)
+- **Safety contract:** [../SAFETY-POLICY.md](../SAFETY-POLICY.md)
+- **Repair policy:** [release-trains/V6.9.X-SAFETY-REPAIR-POLICY.md](./release-trains/V6.9.X-SAFETY-REPAIR-POLICY.md)
 - **Maintainer rules:** [AGENTS.md](../../AGENTS.md)

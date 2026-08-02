@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","type":"run_started","runId":"safety-token-counts","ts":1700000000000,"name":"safety-corpus"}
+{"schemaVersion":"0.1","type":"step_started","runId":"safety-token-counts","stepId":"safety-token-counts-s1","parentStepId":null,"ts":1700000000001,"name":"stimulus","kind":"tool"}
+{"schemaVersion":"0.1","type":"step_completed","runId":"safety-token-counts","stepId":"safety-token-counts-s1","parentStepId":null,"ts":1700000000002,"name":"stimulus","kind":"tool","status":"ok","attrs":{"tokenUsage":{"input":128,"output":64,"total":192},"usage":{"input_tokens":128,"output_tokens":64}}}
+{"schemaVersion":"0.1","type":"run_completed","runId":"safety-token-counts","ts":1700000000003,"status":"ok"}

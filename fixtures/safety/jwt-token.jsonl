@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","type":"run_started","runId":"safety-jwt","ts":1700000000000,"name":"safety-corpus"}
+{"schemaVersion":"0.1","type":"step_started","runId":"safety-jwt","stepId":"safety-jwt-s1","parentStepId":null,"ts":1700000000001,"name":"stimulus","kind":"tool"}
+{"schemaVersion":"0.1","type":"step_completed","runId":"safety-jwt","stepId":"safety-jwt-s1","parentStepId":null,"ts":1700000000002,"name":"stimulus","kind":"tool","status":"ok","attrs":{"accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlN5bnRoZXRpYyBVc2VyIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"}}
+{"schemaVersion":"0.1","type":"run_completed","runId":"safety-jwt","ts":1700000000003,"status":"ok"}

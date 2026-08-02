@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","type":"run_started","runId":"safety-path-at","ts":1700000000000,"name":"safety-corpus"}
+{"schemaVersion":"0.1","type":"step_started","runId":"safety-path-at","stepId":"safety-path-at-s1","parentStepId":null,"ts":1700000000001,"name":"stimulus","kind":"tool"}
+{"schemaVersion":"0.1","type":"step_completed","runId":"safety-path-at","stepId":"safety-path-at-s1","parentStepId":null,"ts":1700000000002,"name":"stimulus","kind":"tool","status":"ok","attrs":{"filePath":"/Users/demo/Library/Caches/@agent-inspect/cache/tmp.json","cwd":"/home/demo/@local/workdir"}}
+{"schemaVersion":"0.1","type":"run_completed","runId":"safety-path-at","ts":1700000000003,"status":"ok"}

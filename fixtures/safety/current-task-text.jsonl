@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","type":"run_started","runId":"safety-current-task","ts":1700000000000,"name":"safety-corpus"}
+{"schemaVersion":"0.1","type":"step_started","runId":"safety-current-task","stepId":"safety-current-task-s1","parentStepId":null,"ts":1700000000001,"name":"stimulus","kind":"tool"}
+{"schemaVersion":"0.1","type":"step_completed","runId":"safety-current-task","stepId":"safety-current-task-s1","parentStepId":null,"ts":1700000000002,"name":"stimulus","kind":"tool","status":"ok","attrs":{"currentTask":"Summarize the invoice for the pilot customer","userInput":"Please draft a reply to the support ticket","requestText":"What tools are available?"}}
+{"schemaVersion":"0.1","type":"run_completed","runId":"safety-current-task","ts":1700000000003,"status":"ok"}

@@ -1,0 +1,157 @@
+{
+  "corpusVersion": "0.1",
+  "description": "Synthetic safety FP/TP corpus for AgentInspect 6.9+",
+  "policies": ["development", "share", "strict"],
+  "cases": [
+    {
+      "id": "token-counts",
+      "fixture": "token-counts.jsonl",
+      "stimulus": "Numeric tokenUsage fields must not be treated as raw prompts or card numbers",
+      "expectations": {
+        "development": { "mustNotFlag": ["raw-content", "personal-data", "credential"], "status": "SAFE" },
+        "share": { "mustNotFlag": ["raw-content", "personal-data", "credential"], "status": "SAFE" },
+        "strict": { "mustNotFlag": ["raw-content", "personal-data", "credential"], "status": "SAFE" }
+      }
+    },
+    {
+      "id": "uuid-identifier",
+      "fixture": "uuid-identifier.jsonl",
+      "stimulus": "UUIDs are identifiers, not credit cards",
+      "expectations": {
+        "development": { "mustNotFlag": ["personal-data"], "status": "SAFE" },
+        "share": { "mustNotFlag": ["personal-data"], "mayFlag": ["identifier"], "status": "SAFE WITH WARNINGS" },
+        "strict": { "mustNotFlag": ["personal-data"], "mayFlag": ["identifier"], "status": "SAFE WITH WARNINGS" }
+      }
+    },
+    {
+      "id": "timestamps",
+      "fixture": "timestamps.jsonl",
+      "stimulus": "Epoch timestamps must not match card detectors",
+      "expectations": {
+        "development": { "mustNotFlag": ["personal-data", "credential"], "status": "SAFE" },
+        "share": { "mustNotFlag": ["personal-data", "credential"], "status": "SAFE" },
+        "strict": { "mustNotFlag": ["personal-data", "credential"], "status": "SAFE" }
+      }
+    },
+    {
+      "id": "trace-ids",
+      "fixture": "trace-ids.jsonl",
+      "stimulus": "Trace/span/run ids must not match card detectors",
+      "expectations": {
+        "development": { "mustNotFlag": ["personal-data"], "status": "SAFE" },
+        "share": { "mustNotFlag": ["personal-data"], "status": "SAFE" },
+        "strict": { "mustNotFlag": ["personal-data"], "status": "SAFE" }
+      }
+    },
+    {
+      "id": "path-with-at",
+      "fixture": "path-with-at.jsonl",
+      "stimulus": "Local path segments containing @ are not emails",
+      "expectations": {
+        "development": { "mustNotFlag": ["personal-data"], "status": "SAFE" },
+        "share": { "mustNotFlag": ["personal-data"], "status": "SAFE" },
+        "strict": { "mustNotFlag": ["personal-data"], "status": "SAFE" }
+      }
+    },
+    {
+      "id": "scoped-npm-package",
+      "fixture": "scoped-npm-package.jsonl",
+      "stimulus": "Scoped package names (@scope/name) are not emails",
+      "expectations": {
+        "development": { "mustNotFlag": ["personal-data"], "status": "SAFE" },
+        "share": { "mustNotFlag": ["personal-data"], "status": "SAFE" },
+        "strict": { "mustNotFlag": ["personal-data"], "status": "SAFE" }
+      }
+    },
+    {
+      "id": "source-map-path",
+      "fixture": "source-map-path.jsonl",
+      "stimulus": "Source-map paths with @ are not emails",
+      "expectations": {
+        "development": { "mustNotFlag": ["personal-data"], "status": "SAFE" },
+        "share": { "mustNotFlag": ["personal-data"], "status": "SAFE" },
+        "strict": { "mustNotFlag": ["personal-data"], "status": "SAFE" }
+      }
+    },
+    {
+      "id": "email-value",
+      "fixture": "email-value.jsonl",
+      "stimulus": "Plain email value is personal-data for share/strict",
+      "expectations": {
+        "development": { "mustFlag": ["personal-data"], "status": "SAFE WITH WARNINGS" },
+        "share": { "mustFlag": ["personal-data"], "status": "UNSAFE" },
+        "strict": { "mustFlag": ["personal-data"], "status": "UNSAFE" }
+      }
+    },
+    {
+      "id": "provider-token",
+      "fixture": "provider-token.jsonl",
+      "stimulus": "Synthetic provider API key must flag as credential",
+      "expectations": {
+        "development": { "mustFlag": ["credential"], "status": "UNSAFE" },
+        "share": { "mustFlag": ["credential"], "status": "UNSAFE" },
+        "strict": { "mustFlag": ["credential"], "status": "UNSAFE" }
+      }
+    },
+    {
+      "id": "jwt-token",
+      "fixture": "jwt-token.jsonl",
+      "stimulus": "Synthetic JWT must flag as credential",
+      "expectations": {
+        "development": { "mustFlag": ["credential"], "status": "UNSAFE" },
+        "share": { "mustFlag": ["credential"], "status": "UNSAFE" },
+        "strict": { "mustFlag": ["credential"], "status": "UNSAFE" }
+      }
+    },
+    {
+      "id": "card-test-pan",
+      "fixture": "card-test-pan.jsonl",
+      "stimulus": "Stripe test PAN must flag as personal-data / financial for share/strict",
+      "expectations": {
+        "development": { "mustFlag": ["personal-data"], "status": "SAFE WITH WARNINGS" },
+        "share": { "mustFlag": ["personal-data"], "status": "UNSAFE" },
+        "strict": { "mustFlag": ["personal-data"], "status": "UNSAFE" }
+      }
+    },
+    {
+      "id": "session-user-ids",
+      "fixture": "session-user-ids.jsonl",
+      "stimulus": "Session/user ids are identifiers, not cards",
+      "expectations": {
+        "development": { "mustNotFlag": ["personal-data", "credential"], "status": "SAFE" },
+        "share": { "mustNotFlag": ["personal-data", "credential"], "mayFlag": ["identifier"], "status": "SAFE WITH WARNINGS" },
+        "strict": { "mustNotFlag": ["personal-data", "credential"], "mayFlag": ["identifier"], "status": "SAFE WITH WARNINGS" }
+      }
+    },
+    {
+      "id": "current-task-text",
+      "fixture": "current-task-text.jsonl",
+      "stimulus": "Framework currentTask / userInput are raw-content risk fields",
+      "expectations": {
+        "development": { "mustFlag": ["raw-content"], "status": "SAFE WITH WARNINGS" },
+        "share": { "mustFlag": ["raw-content"], "status": "UNSAFE" },
+        "strict": { "mustFlag": ["raw-content"], "status": "UNSAFE" }
+      }
+    },
+    {
+      "id": "already-redacted",
+      "fixture": "already-redacted.jsonl",
+      "stimulus": "Already-redacted placeholders must not re-flag as live credentials",
+      "expectations": {
+        "development": { "mustNotFlag": ["credential"], "status": "SAFE" },
+        "share": { "mustNotFlag": ["credential"], "status": "SAFE" },
+        "strict": { "mustNotFlag": ["credential"], "status": "SAFE" }
+      }
+    },
+    {
+      "id": "hashed-identifier",
+      "fixture": "hashed-identifier.jsonl",
+      "stimulus": "Hashed identifiers are not secrets",
+      "expectations": {
+        "development": { "mustNotFlag": ["credential"], "status": "SAFE" },
+        "share": { "mustNotFlag": ["credential"], "mayFlag": ["identifier"], "status": "SAFE" },
+        "strict": { "mustNotFlag": ["credential"], "mayFlag": ["identifier"], "status": "SAFE WITH WARNINGS" }
+      }
+    }
+  ]
+}

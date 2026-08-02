@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","type":"run_started","runId":"safety-timestamps","ts":1700000000000,"name":"safety-corpus"}
+{"schemaVersion":"0.1","type":"step_started","runId":"safety-timestamps","stepId":"safety-timestamps-s1","parentStepId":null,"ts":1700000000001,"name":"stimulus","kind":"tool"}
+{"schemaVersion":"0.1","type":"step_completed","runId":"safety-timestamps","stepId":"safety-timestamps-s1","parentStepId":null,"ts":1700000000002,"name":"stimulus","kind":"tool","status":"ok","attrs":{"startedAt":1700000000000,"endedAt":1700000000420,"durationMs":420}}
+{"schemaVersion":"0.1","type":"run_completed","runId":"safety-timestamps","ts":1700000000003,"status":"ok"}
