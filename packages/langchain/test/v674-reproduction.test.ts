@@ -96,6 +96,10 @@ describe("v6.7.4-0 langchain reproduction", () => {
       expect(toolStart && "name" in toolStart ? toolStart.name : undefined).toBe(
         "tool:get_navan_rewards",
       );
+      if (toolStart?.event === "step_started") {
+        expect(toolStart.metadata?.toolName).toBe("get_navan_rewards");
+        expect(toolStart.metadata?.toolClass).toBe("DynamicStructuredTool");
+      }
     },
   );
 

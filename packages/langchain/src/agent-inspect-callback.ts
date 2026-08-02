@@ -33,6 +33,7 @@ import {
   streamMetadataFromState,
   type LlmStreamState,
 } from "./streaming-metadata.js";
+import { applyToolIdentityAttributes, resolveToolIdentity } from "./tool-identity.js";
 import { LangChainTracePersistence } from "./trace-persistence.js";
 import type { AgentInspectCallbackOptions } from "./types.js";
 
@@ -46,21 +47,6 @@ function serializedLabel(s: Serialized): string | undefined {
   if (typeof s.name === "string" && s.name.trim()) return s.name;
   if (Array.isArray(s.id) && s.id.length > 0) return s.id[s.id.length - 1];
   return s.type;
-}
-
-/** Prefer human tool names over wrapper class labels for display/step identity. */
-function resolveToolDisplayName(
-  tool: Serialized,
-  runName?: string,
-  metadata?: Record<string, unknown>,
-): string {
-  const fromRun = typeof runName === "string" ? runName.trim() : "";
-  if (fromRun) return fromRun;
-  const metaName = metadata?.toolName;
-  if (typeof metaName === "string" && metaName.trim()) return metaName.trim();
-  const metaTool = metadata?.tool;
-  if (typeof metaTool === "string" && metaTool.trim()) return metaTool.trim();
-  return serializedLabel(tool) ?? "tool";
 }
 
 function errorShape(err: unknown): { errorName?: string; errorMessage: string } {
@@ -694,23 +680,23 @@ export class AgentInspectCallback extends BaseCallbackHandler {
     tags?: string[],
     metadata?: Record<string, unknown>,
     runName?: string,
-    _toolCallId?: string,
+    toolCallId?: string,
   ): Promise<void> {
     this.#prepareCallbackInvocation();
     this.#ensureRoot(runId, parentRunId);
     this.#rememberStart(runId, "TOOL");
-    const toolName = resolveToolDisplayName(tool, runName, metadata);
+    const identity = resolveToolIdentity(tool, runName, metadata, toolCallId);
     const previews: Record<string, unknown> = {};
     if (this.#opts.capture === "preview") previews.inputPreview = input;
     const attrs: Record<string, unknown> = {
       ...this.#baseAttrs(runId, parentRunId, tags, runName),
-      tool: toolName,
     };
+    applyToolIdentityAttributes(attrs, identity);
     this.#mergeMetadata(attrs, metadata);
     this.#applyPreview(attrs, previews);
     this.#rememberStartMetadata(runId, attrs);
     const ts = Date.now();
-    const stepName = `tool:${toolName}`;
+    const stepName = `tool:${identity.displayName}`;
     this.#pushEvent({
       eventId: `${runId}:TOOL:start`,
       runId: this.#traceRunId(runId),

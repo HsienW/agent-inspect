@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-stability-and-focus-v6.7.3-to-v7-decision
 currentTrain: v6.8.0-langgraph-fidelity
 trainStatus: in-progress
-currentChunk: 6.8-5-tool-identity
-nextAction: Land 6.8-5 tool identity normalization (after CI green)
+currentChunk: 6.8-6-persist-by-intent
+nextAction: Land 6.8-6 persist-by-intent behavior
 canonicalRoadmap: docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md
 activePlan: docs/implementation/release-trains/V6.8.0-EXECUTION-PLAN.md
 ```
@@ -17,4 +17,4 @@ activePlan: docs/implementation/release-trains/V6.8.0-EXECUTION-PLAN.md
 
 ## Completed this chunk
 
-**6.8-4** Synthetic correlated grouping for shared semantic parents (≥2 siblings); fix unresolved non-semantic parents for conformance.
+**6.8-5** Tool identity module: `toolName` / `toolClass` / `toolCallId` / `frameworkRunName` preserved separately from display `tool:<name>`.
