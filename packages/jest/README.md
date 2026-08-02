@@ -26,12 +26,49 @@ npm install agent-inspect @agent-inspect/jest jest
 
 ```js
 // jest.config.js
+const { AgentInspectJestReporter } = require("@agent-inspect/jest");
+
 module.exports = {
   reporters: [
     "default",
-    ["@agent-inspect/jest", { traceDir: ".agent-inspect" }],
+    [AgentInspectJestReporter, { artifactDir: ".agent-inspect/jest-artifacts" }],
   ],
 };
+```
+
+## Trace association
+
+This reporter **does not** instrument Jest or invent associations from timestamps.
+Failed tests without an association produce one `no-trace-association` diagnostic
+(and a bounded `no-trace-association.md` note) instead of a silent no-op.
+
+Associate a test to a local trace with one of:
+
+```js
+const { withAgentInspectJestTrace } = require("@agent-inspect/jest");
+
+// 1) Helper metadata on the assertion result
+expect.extend({
+  /* your matcher can attach: */
+  ...withAgentInspectJestTrace({
+    runId: "run_abc",
+    tracePath: ".agent-inspect/run_abc.jsonl",
+  }),
+});
+
+// 2) Reporter options
+[
+  AgentInspectJestReporter,
+  {
+    associations: {
+      "agent.test.js::does the thing": {
+        runId: "run_abc",
+        tracePath: ".agent-inspect/run_abc.jsonl",
+      },
+    },
+    // or resolveTrace: (test) => ({ runId, tracePath })
+  },
+];
 ```
 
 ## Privacy
@@ -40,7 +77,8 @@ module.exports = {
 
 ## API
 
-Jest reporter class / factory (see package types).
+- `createAgentInspectJestReporter` / `AgentInspectJestReporter`
+- `withAgentInspectJestTrace` — explicit association helper (no automatic capture)
 
 ## CLI
 

@@ -50,6 +50,7 @@ export interface AgentInspectJestDiagnostic {
   readonly code:
     | "artifact-write-failed"
     | "github-summary-write-failed"
+    | "no-trace-association"
     | "on-diagnostic-failed";
   readonly message: string;
   readonly testId?: string;
@@ -130,6 +131,20 @@ const DEFAULT_SUCCESS_LIMIT = 20;
 const MAX_SUCCESS_LIMIT = 100;
 const MAX_TEXT = 180;
 const DEFAULT_GENERATED_AT = "1970-01-01T00:00:00.000Z";
+const ASSOCIATION_DOCS =
+  "https://github.com/rajudandigam/agent-inspect/blob/main/packages/jest/README.md#trace-association";
+
+/**
+ * Attach an explicit AgentInspect trace association to a Jest assertion result.
+ *
+ * The reporter does not instrument tests automatically; pass the returned object
+ * as `agentInspect` / `meta.agentInspect` or use `associations` / `resolveTrace`.
+ */
+export function withAgentInspectJestTrace(
+  association: AgentInspectJestTraceAssociation,
+): { readonly agentInspect: AgentInspectJestTraceAssociation } {
+  return { agentInspect: association };
+}
 
 /**
  * Create the experimental AgentInspect Jest reporter.
@@ -141,8 +156,10 @@ export function createAgentInspectJestReporter(
   const artifacts: AgentInspectJestArtifact[] = [];
   const seenKeys = new Set<string>();
   const artifactNames = new Map<string, number>();
+  const failedWithoutAssociation = new Set<string>();
   const successLimit = normalizeSuccessLimit(options);
   let retainedSuccesses = 0;
+  let reportedMissingAssociation = false;
 
   const reporter: AgentInspectJestReporterFacade = {
     async onTestResult(_test: unknown, testResult: unknown): Promise<void> {
@@ -152,6 +169,7 @@ export function createAgentInspectJestReporter(
       for (const fileResult of readRunResults(results)) {
         await handleFileResult(fileResult);
       }
+      await emitMissingAssociationDiagnostic();
       await appendGithubSummary();
     },
     getDiagnostics(): readonly AgentInspectJestDiagnostic[] {
@@ -173,7 +191,12 @@ export function createAgentInspectJestReporter(
     if (seenKeys.has(seenKey)) return;
 
     const association = resolveAssociation(testCase, options);
-    if (association === undefined) return;
+    if (association === undefined) {
+      if (testCase.status === "failed") {
+        failedWithoutAssociation.add(testCase.id);
+      }
+      return;
+    }
 
     if (testCase.status === "passed") {
       if (retainedSuccesses >= successLimit) return;
@@ -223,8 +246,52 @@ export function createAgentInspectJestReporter(
     }
   }
 
+  async function emitMissingAssociationDiagnostic(): Promise<void> {
+    if (reportedMissingAssociation || failedWithoutAssociation.size === 0) return;
+    reportedMissingAssociation = true;
+    const count = failedWithoutAssociation.size;
+    const sampleIds = [...failedWithoutAssociation].slice(0, 3);
+    const message =
+      `${count} failed Jest test(s) had no AgentInspect trace association. ` +
+      `Reporter does not instrument tests automatically; no trace artifact was generated. ` +
+      `Use withAgentInspectJestTrace, associations, resolveTrace, or meta.agentInspect. ` +
+      `Docs: ${ASSOCIATION_DOCS}. Samples: ${sampleIds.join("; ")}`;
+    reportDiagnostic({
+      code: "no-trace-association",
+      // Keep the helper name before truncation so the diagnostic stays actionable.
+      message: boundText(message, 320),
+    });
+
+    try {
+      const artifactDir = options.artifactDir ?? DEFAULT_ARTIFACT_DIR;
+      await mkdir(artifactDir, { recursive: true });
+      const diagnosticPath = path.join(artifactDir, "no-trace-association.md");
+      const body = [
+        "# AgentInspect Jest — missing trace association",
+        "",
+        "Failed tests were observed without an explicit AgentInspect trace association.",
+        "No trace artifact was generated for those tests.",
+        "",
+        "The reporter does **not** instrument Jest automatically.",
+        `Associate traces explicitly. Docs: ${ASSOCIATION_DOCS}`,
+        "",
+        "## Failed tests without association",
+        "",
+        ...[...failedWithoutAssociation].slice(0, 20).map((id) => `- ${boundText(id)}`),
+        "",
+      ].join("\n");
+      await writeFile(diagnosticPath, body, "utf-8");
+    } catch (error) {
+      reportDiagnostic({
+        code: "artifact-write-failed",
+        message: `Could not write AgentInspect Jest no-association diagnostic: ${errorMessage(error)}`,
+      });
+    }
+  }
+
   async function appendGithubSummary(): Promise<void> {
-    if (options.githubSummary === undefined || artifacts.length === 0) return;
+    if (options.githubSummary === undefined) return;
+    if (artifacts.length === 0 && failedWithoutAssociation.size === 0) return;
     const failed = artifacts.filter((artifact) => artifact.status === "failed").length;
     const passed = artifacts.filter((artifact) => artifact.status === "passed").length;
     const lines = [
@@ -233,9 +300,16 @@ export function createAgentInspectJestReporter(
       "",
       `- Failed test artifacts: ${failed}`,
       `- Passing test artifacts retained: ${passed}`,
+      `- Failed tests without trace association: ${failedWithoutAssociation.size}`,
       `- Artifact directory: ${boundText(path.basename(options.artifactDir ?? DEFAULT_ARTIFACT_DIR))}`,
       "",
     ];
+    if (failedWithoutAssociation.size > 0) {
+      lines.push(
+        "No automatic instrumentation: associate traces via `associations`, `resolveTrace`, or `withAgentInspectJestTrace`.",
+        "",
+      );
+    }
     try {
       await writeFile(options.githubSummary, `${lines.join("\n")}\n`, { flag: "a" });
     } catch (error) {
@@ -574,10 +648,10 @@ function safeSegment(value: string): string {
   return sanitized.length > 0 ? sanitized : "trace";
 }
 
-function boundText(value: string): string {
+function boundText(value: string, max = MAX_TEXT): string {
   const compact = value.replace(/\s+/g, " ").trim();
-  if (compact.length <= MAX_TEXT) return compact;
-  return `${compact.slice(0, MAX_TEXT - 12)}...[truncated]`;
+  if (compact.length <= max) return compact;
+  return `${compact.slice(0, max - 12)}...[truncated]`;
 }
 
 function redactText(value: string): string {

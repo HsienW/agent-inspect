@@ -8,6 +8,7 @@ import type { TraceArtifactManifest } from "agent-inspect/reporters";
 import {
   AgentInspectJestReporter,
   createAgentInspectJestReporter,
+  withAgentInspectJestTrace,
 } from "../src/index.js";
 
 type JestArtifactDocument = {
@@ -121,19 +122,58 @@ describe("@agent-inspect/jest reporter", () => {
     expect(summary).toContain("Manifest schema: 0.1");
   });
 
-  it("requires explicit association and does not guess by timestamp or trace directory", async () => {
-    const artifactDir = path.join(await makeTmpDir(), "artifacts");
+  it("requires explicit association and emits one diagnostic when failures lack a trace", async () => {
+    const dir = await makeTmpDir();
+    const artifactDir = path.join(dir, "artifacts");
     const reporter = createAgentInspectJestReporter({ artifactDir });
+    const file = path.join(dir, "missing.test.cjs");
 
     await reporter.onTestResult(
       undefined,
       makeJestResult({
         status: "failed",
-        testFilePath: path.join(artifactDir, "missing.test.cjs"),
+        testFilePath: file,
+      }),
+    );
+    await reporter.onRunComplete();
+
+    expect(reporter.getArtifacts()).toEqual([]);
+    const diagnostics = reporter.getDiagnostics();
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0]?.code).toBe("no-trace-association");
+    expect(diagnostics[0]?.message).toMatch(/does not instrument tests automatically/);
+    expect(diagnostics[0]?.message).toMatch(/withAgentInspectJestTrace/);
+    expect(diagnostics[0]?.message).toMatch(/no trace artifact was generated/i);
+
+    const diagnosticDoc = await readFile(
+      path.join(artifactDir, "no-trace-association.md"),
+      "utf-8",
+    );
+    expect(diagnosticDoc).toContain("missing.test.cjs");
+    expect(diagnosticDoc).toContain("does **not** instrument");
+  });
+
+  it("withAgentInspectJestTrace attaches association metadata for the reporter", async () => {
+    const dir = await makeTmpDir();
+    const artifactDir = path.join(dir, "artifacts");
+    const file = path.join(dir, "helper.test.cjs");
+    const reporter = createAgentInspectJestReporter({ artifactDir });
+    const association = withAgentInspectJestTrace({
+      runId: "run-helper",
+      tracePath: "/tmp/helper.jsonl",
+    });
+
+    await reporter.onTestResult(
+      undefined,
+      makeJestResult({
+        status: "failed",
+        testFilePath: file,
+        title: "helper association",
+        meta: association,
       }),
     );
 
-    expect(reporter.getArtifacts()).toEqual([]);
+    expect(reporter.getArtifacts()).toHaveLength(1);
     expect(reporter.getDiagnostics()).toEqual([]);
   });
 
