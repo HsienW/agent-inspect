@@ -86,3 +86,15 @@ See [FIRST-TRACE-IN-5-MINUTES.md](./FIRST-TRACE-IN-5-MINUTES.md).
 - **Framework:** switch to `examples/starters/ai-sdk` for adapter path
 
 Related: [VIDEO-WALKTHROUGH-SCRIPT.md](./VIDEO-WALKTHROUGH-SCRIPT.md) · [SCREENSHOTS.md](./SCREENSHOTS.md)
+
+
+## Optional MCP beat (30s)
+
+If time allows after inspect:
+
+```bash
+npx agent-inspect mcp configure --client cursor --dry-run
+npx @agent-inspect/mcp-server --dir .agent-inspect --help
+```
+
+Point to [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) and the coding-agent-debug-loop starter. Stay read-only; do not claim a live partner session unless one is on the call.
