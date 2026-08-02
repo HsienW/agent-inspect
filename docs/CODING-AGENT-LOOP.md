@@ -54,16 +54,15 @@ Behavior:
 
 ## Protocol (6.11-2)
 
-Harden or replace the hand-written JSON-RPC layer with the official MCP SDK where practical.
+**Decision (6.11-2):** Harden the hand-written stdio JSON-RPC layer rather than pull `@modelcontextprotocol/sdk` (HTTP/Express stack) or jump to MCP SDK v2 until the coding-agent client matrix is validated. Protocol version remains **`2024-11-05`**. Full SDK adoption stays optional and mcp-server-only when practical.
 
 Must support:
 
-- protocol negotiation / current protocol version
-- `initialize`, `tools/list`, `tools/call`
-- cancellation
-- bounded errors
-- resources where useful
-- prompts/skills only when read-only
+- protocol negotiation / `2024-11-05`
+- `initialize`, `ping`, `tools/list`, `tools/call`
+- `notifications/cancelled` (abort in-flight tool calls)
+- bounded request frames + bounded tool errors
+- resources/prompts only when read-only (not required for flagship stdio path)
 
 Existing consumers remain compatible or receive migration guidance.
 
