@@ -124,6 +124,8 @@ run the agent
 → create share-checked evidence
 ```
 
+Client instruction templates: [coding-agent-instructions/](./coding-agent-instructions/).
+
 ## Flagship recipe (6.11-8)
 
 ```text
