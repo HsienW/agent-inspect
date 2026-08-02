@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-stability-and-focus-v6.7.3-to-v7-decision
 currentTrain: v6.7.5-consumer-native-dx
 trainStatus: in-progress
-currentChunk: 6.7.5-2-better-sqlite3
-nextAction: Land better-sqlite3 12.11.1; then 6.7.5-3 lazy native driver
+currentChunk: 6.7.5-3-lazy-sqlite-driver
+nextAction: Land lazy sqlite driver; then 6.7.5-4 omit absolute traceDir
 canonicalRoadmap: docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md
 activePlan: docs/implementation/release-trains/V6.7.5-EXECUTION-PLAN.md
 ```
@@ -21,7 +21,8 @@ activePlan: docs/implementation/release-trains/V6.7.5-EXECUTION-PLAN.md
 - public-truth sync to 6.7.4 (`5950b25`)
 - **6.7.5-1** doctor entry-based resolve (`f50a64d`)
 - test:all build-before-test (`aad50b2`)
+- **6.7.5-2** better-sqlite3 ^12.11.1 (`3adc540`)
 
 ## In progress
 
-**6.7.5-2** better-sqlite3 ^12.11.1 + honest Node evidence.
+**6.7.5-3** Studio/index lazy native-driver boundary.

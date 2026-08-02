@@ -1,7 +1,9 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
+
+import { loadBetterSqlite3 } from "./load-sqlite.js";
 
 export const STUDIO_DB_SCHEMA_VERSION = "1.0";
 export const DEFAULT_STUDIO_DB_FILENAME = "studio.db";
@@ -114,7 +116,8 @@ export function openStudioDb(dbPath: string): Database.Database {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to create studio database directory: ${message}`);
   }
-  const db = new Database(dbPath);
+  const Sqlite = loadBetterSqlite3();
+  const db = new Sqlite(dbPath);
   db.pragma("journal_mode = WAL");
   db.exec(SCHEMA_SQL);
   const insertMeta = db.prepare(

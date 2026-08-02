@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs";
 
-import Database from "better-sqlite3";
+import type Database from "better-sqlite3";
 
+import { loadBetterSqlite3 } from "./load-sqlite.js";
 import { META_KEYS } from "./schema.js";
 import type { IndexStatus, IndexedRun, RunQuery } from "./types.js";
 
@@ -12,13 +13,19 @@ interface OpenResult {
 
 /**
  * Opens the index read-only and verifies integrity. Returns `null` when the
- * file is missing or fails `integrity_check` (corruption), so callers can fall
- * back to a full rebuild or a directory scan.
+ * file is missing, the native driver is unavailable, or integrity fails, so
+ * callers can fall back to a full rebuild or a directory scan.
  */
 function openHealthy(dbPath: string): OpenResult | null {
   if (!existsSync(dbPath)) return null;
+  let Sqlite: ReturnType<typeof loadBetterSqlite3>;
   try {
-    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    Sqlite = loadBetterSqlite3();
+  } catch {
+    return null;
+  }
+  try {
+    const db = new Sqlite(dbPath, { readonly: true, fileMustExist: true });
     try {
       const result = db.pragma("integrity_check", { simple: true });
       if (result !== "ok") {

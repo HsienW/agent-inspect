@@ -1,7 +1,6 @@
 import { mkdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 
-import Database from "better-sqlite3";
 import {
   TraceDirectory,
   parseTraceJsonl,
@@ -16,6 +15,7 @@ import {
   META_KEYS,
   metaDefaults,
 } from "./schema.js";
+import { loadBetterSqlite3 } from "./load-sqlite.js";
 import {
   INDEX_DB_FILENAME,
   type BuildIndexOptions,
@@ -153,7 +153,8 @@ export async function buildIndex(
   // Remove any prior (possibly corrupt) file so the rebuild is deterministic.
   await rm(dbPath, { force: true });
 
-  const db = new Database(dbPath);
+  const Sqlite = loadBetterSqlite3();
+  const db = new Sqlite(dbPath);
   let runCount = 0;
   let stepCount = 0;
   let errorCount = 0;
@@ -218,7 +219,8 @@ export const rebuildIndex = buildIndex;
 
 function readMetaValue(dbPath: string, key: string): string | null {
   try {
-    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    const Sqlite = loadBetterSqlite3();
+    const db = new Sqlite(dbPath, { readonly: true, fileMustExist: true });
     try {
       const row = db.prepare(`SELECT value FROM meta WHERE key = ?`).get(key) as
         | { value: string }
