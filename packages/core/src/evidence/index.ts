@@ -27,3 +27,12 @@ export {
   serializeEvidenceManifest,
   validateEvidenceManifest,
 } from "./manifest.js";
+export {
+  EVIDENCE_HTML_FILENAME,
+  EVIDENCE_VIEW_IDS,
+  buildEvidenceHtmlShell,
+  buildEvidenceHtmlShellFromManifest,
+  encodeEmbeddedEvidenceJson,
+  type EvidenceHtmlShellInput,
+  type EvidenceViewId,
+} from "./html-shell.js";

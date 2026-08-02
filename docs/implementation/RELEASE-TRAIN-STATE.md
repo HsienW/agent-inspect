@@ -12,18 +12,19 @@ trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.10-1"
-lastConfirmedCommit: "c52f85a"
-lastValidationLevel: "focused evidence + bundle tests pending push"
-nextAction: "Land 6.10-1; continue 6.10-2 self-contained HTML"
+currentChunk: "6.10-2"
+lastConfirmedCommit: "15b639a"
+lastValidationLevel: "focused evidence HTML + bundle tests pending push"
+nextAction: "Land 6.10-2; continue 6.10-3 views"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
   - "v6.4.1 through v6.9.0 npm publication"
   - "6.9 safety precision train (published)"
   - "6.10-0 Evidence format RFC"
+  - "6.10-1 Manifest and hash engine"
 remainingTrains:
-  - "v6.10.0 Portable Evidence v2 (active; 6.10-1 in flight)"
+  - "v6.10.0 Portable Evidence v2 (active; 6.10-2 in flight)"
   - "v6.11.0 Local coding-agent debug loop"
   - "v6.12.0 Consolidation and stable launch candidate"
   - "v6.12 adoption checkpoint (eight weeks)"
@@ -36,6 +37,6 @@ updatedAt: "2026-08-02"
 
 - **Active plan:** [release-trains/V6.10.0-EXECUTION-PLAN.md](./release-trains/V6.10.0-EXECUTION-PLAN.md)
 - **Evidence contract:** [../EVIDENCE-FORMAT.md](../EVIDENCE-FORMAT.md)
-- **6.10-1 review:** [reviews/V6.10.0-1-MANIFEST-HASH-ENGINE.md](./reviews/V6.10.0-1-MANIFEST-HASH-ENGINE.md)
+- **6.10-2 review:** [reviews/V6.10.0-2-HTML-SHELL.md](./reviews/V6.10.0-2-HTML-SHELL.md)
 - **Safety contract:** [../SAFETY-POLICY.md](../SAFETY-POLICY.md)
 - **Maintainer rules:** [AGENTS.md](../../AGENTS.md)

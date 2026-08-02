@@ -283,11 +283,16 @@ export type {
 export {
   EVIDENCE_ASSESSMENT_NOTE,
   EVIDENCE_FORMAT_VERSION,
+  EVIDENCE_HTML_FILENAME,
   EVIDENCE_MANIFEST_FILENAME,
+  EVIDENCE_VIEW_IDS,
   assertEvidenceRelativePath,
   buildEvidenceFileEntries,
+  buildEvidenceHtmlShell,
+  buildEvidenceHtmlShellFromManifest,
   buildEvidenceManifest,
   collectTraceSchemaVersions,
+  encodeEmbeddedEvidenceJson,
   inferEvidenceFileRole,
   isSha256Hex,
   parseEvidenceManifestJson,
@@ -295,6 +300,10 @@ export {
   sha256Equals,
   sha256Hex,
   validateEvidenceManifest,
+} from "../evidence/index.js";
+export type {
+  EvidenceHtmlShellInput,
+  EvidenceViewId,
 } from "../evidence/index.js";
 
 export type {

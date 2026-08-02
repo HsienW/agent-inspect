@@ -79,11 +79,15 @@ describe("bundle command", () => {
         "summary.md",
         "metadata.json",
         "evidence.json",
+        "evidence.html",
       ]),
     );
     expect(await readFile(path.join(outputDir, "summary.md"), "utf-8")).toContain(
       "AgentInspect trace bundle",
     );
+    const evidenceHtml = await readFile(path.join(outputDir, "evidence.html"), "utf-8");
+    expect(evidenceHtml).toContain("Content-Security-Policy");
+    expect(evidenceHtml).toContain("run-bundle-safe");
     const evidence = JSON.parse(
       await readFile(path.join(outputDir, "evidence.json"), "utf-8"),
     ) as {
@@ -91,7 +95,7 @@ describe("bundle command", () => {
       files: { path: string; sha256: string }[];
     };
     expect(evidence.evidenceFormatVersion).toBe("1.0");
-    expect(evidence.files.some((f) => f.path === "trace.jsonl")).toBe(true);
+    expect(evidence.files.some((f) => f.path === "evidence.html")).toBe(true);
     expect(evidence.files.every((f) => f.path !== "evidence.json")).toBe(true);
   });
 

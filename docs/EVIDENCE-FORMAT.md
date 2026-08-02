@@ -117,7 +117,7 @@ No signing / key infrastructure in 6.10.
 
 ## Self-contained HTML (6.10-2+)
 
-`evidence.html` requirements:
+`evidence.html` requirements (shell shipped in 6.10-2; views fill in 6.10-3…5):
 
 - No external assets or network fetches
 - Strict HTML escaping + restrictive CSP meta when embedded

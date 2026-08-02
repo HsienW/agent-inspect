@@ -4,6 +4,7 @@ import path from "node:path";
 import {
   buildBundleMetadata,
   buildBundleSummaryMarkdown,
+  buildEvidenceHtmlShell,
   buildEvidenceManifest,
   buildPlaceholderArtifact,
   buildSessionIndex,
@@ -21,6 +22,7 @@ import {
   sha256Hex,
   bundleRunAssetRelativePath,
   assertBundlePathContained,
+  EVIDENCE_HTML_FILENAME,
   EVIDENCE_MANIFEST_FILENAME,
   type BundleCheckResults,
   type BundleRedactionProfile,
@@ -457,9 +459,18 @@ export async function bundleCommand(
   const summaryPath = "summary.md";
   const metadataPath = "metadata.json";
 
-  // Provisional metadata file list includes evidence.json so final metadata
-  // bytes match the hash recorded in the evidence manifest.
-  const metadataFileList = [...files, metadataPath, summaryPath, EVIDENCE_MANIFEST_FILENAME]
+  const aggregateSourceStatus = aggregateBundleSafeStatus(
+    checkRuns.map((run) => run.sourceStatus ?? run.status),
+  );
+
+  // Known packaged names before writing summary/html/manifest so summary + metadata agree.
+  const metadataFileList = [
+    ...files,
+    summaryPath,
+    EVIDENCE_HTML_FILENAME,
+    metadataPath,
+    EVIDENCE_MANIFEST_FILENAME,
+  ]
     .filter((name, index, all) => all.indexOf(name) === index)
     .sort((a, b) => a.localeCompare(b));
 
@@ -470,14 +481,32 @@ export async function bundleCommand(
     checks,
     files: metadataFileList,
   });
-  const metadataJson = writeJson(metadata);
   const summaryMd = buildBundleSummaryMarkdown({
     metadata,
     checks,
     redaction: redactionReport,
   });
+  const evidenceHtml = buildEvidenceHtmlShell({
+    title: "AgentInspect evidence",
+    runIds: resolveResult.runIds,
+    assessmentStatus: checks.aggregateStatus,
+    sourceStatus: aggregateSourceStatus,
+    redactionProfile: profile,
+    verificationPolicy: profile,
+    generatorName: "agent-inspect",
+    generatorVersion: packageVersion,
+    createdAt: metadata.createdAt,
+    summaryText: summaryMd,
+    checkSummary: {
+      aggregateStatus: checks.aggregateStatus,
+      runs: checkRuns,
+    },
+  });
 
+  await writeBundleFile(outputDir, EVIDENCE_HTML_FILENAME, evidenceHtml, files, packaged);
   await writeBundleFile(outputDir, summaryPath, summaryMd, files, packaged);
+
+  const metadataJson = writeJson(metadata);
   packaged.set(metadataPath, metadataJson);
   if (!files.includes(metadataPath)) {
     files.push(metadataPath);
@@ -487,9 +516,6 @@ export async function bundleCommand(
     ([relativePath, content]) => ({ path: relativePath, content }),
   );
 
-  const aggregateSourceStatus = aggregateBundleSafeStatus(
-    checkRuns.map((run) => run.sourceStatus ?? run.status),
-  );
   const evidence = buildEvidenceManifest({
     generatorVersion: packageVersion,
     runIds: resolveResult.runIds,
