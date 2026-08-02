@@ -285,6 +285,41 @@ function detectorSeverity(finding: RedactionFinding): TraceCheckFinding["severit
   return finding.severity;
 }
 
+function classifyRedactionDetector(detector: string): {
+  category: NonNullable<TraceCheckFinding["category"]>;
+  confidence: NonNullable<TraceCheckFinding["confidence"]>;
+} {
+  if (
+    detector === "value.creditCard" ||
+    detector === "value.email" ||
+    detector === "value.phone"
+  ) {
+    return { category: "personal-data", confidence: "high" };
+  }
+  if (detector === "value.ipv4" || detector === "value.ipv6") {
+    return { category: "identifier", confidence: "medium" };
+  }
+  if (
+    detector.startsWith("value.") &&
+    (detector.includes("Token") ||
+      detector.includes("Key") ||
+      detector.includes("jwt") ||
+      detector.includes("authorization") ||
+      detector.includes("bearer") ||
+      detector.includes("cookie") ||
+      detector.includes("privateKey") ||
+      detector.includes("github") ||
+      detector.includes("aws") ||
+      detector.includes("provider"))
+  ) {
+    return { category: "credential", confidence: "high" };
+  }
+  if (detector.startsWith("key.")) {
+    return { category: "credential", confidence: "medium" };
+  }
+  return { category: "credential", confidence: "medium" };
+}
+
 function redactionDetectorFindings(
   read: Awaited<ReturnType<typeof openTrace>>,
   runId: string | undefined,
@@ -302,6 +337,7 @@ function redactionDetectorFindings(
       const result = redact(attrs, { profile: "share" });
       for (const finding of result.findings) {
         if (finding.action === "keep") continue;
+        const taxonomy = classifyRedactionDetector(finding.detector);
         out.push({
           ruleId: "safety.redactDetector",
           severity: detectorSeverity(finding),
@@ -320,6 +356,10 @@ function redactionDetectorFindings(
               path: `attributes.${finding.path.replace(/^\$\.?/, "")}`,
             },
           ],
+          category: taxonomy.category,
+          confidence: taxonomy.confidence,
+          detector: finding.detector,
+          action: finding.action,
         });
       }
     }

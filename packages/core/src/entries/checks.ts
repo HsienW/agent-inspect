@@ -34,6 +34,8 @@ export type {
   TraceCheckSeverity,
   TraceCheckStatus,
   TraceCheckSummary,
+  SafetyFindingCategory,
+  SafetyFindingConfidence,
   TraceSignalRuleOptions,
   ToolFailureRuleOptions,
   ToolOrderingRuleOptions,

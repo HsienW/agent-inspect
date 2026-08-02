@@ -584,6 +584,24 @@ describe("built-in structure and safety checks", () => {
     expect(result.findings.every((finding) => finding.evidence.every((item) => item.path))).toBe(
       true,
     );
+    expect(
+      result.findings.every(
+        (finding) =>
+          finding.category !== undefined &&
+          finding.confidence !== undefined &&
+          finding.detector !== undefined &&
+          finding.action !== undefined,
+      ),
+    ).toBe(true);
+    expect(result.findings.find((f) => f.ruleId === "safety.rawPrompt")?.category).toBe(
+      "raw-content",
+    );
+    expect(result.findings.find((f) => f.ruleId === "safety.secretPattern")?.category).toBe(
+      "credential",
+    );
+    expect(result.findings.find((f) => f.ruleId === "safety.oversizedAttribute")?.category).toBe(
+      "size",
+    );
   });
 });
 

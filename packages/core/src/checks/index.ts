@@ -35,6 +35,29 @@ export type TraceCheckRuleCategory =
   | "reader";
 
 /**
+ * Experimental safety finding taxonomy (additive on `TraceCheckFinding`).
+ *
+ * Distinct from `TraceCheckRuleCategory` (which classifies rules, not findings).
+ *
+ * @experimental Available through `agent-inspect/checks`; see `docs/SAFETY-POLICY.md`.
+ */
+export type SafetyFindingCategory =
+  | "credential"
+  | "personal-data"
+  | "identifier"
+  | "raw-content"
+  | "path"
+  | "size"
+  | "structure";
+
+/**
+ * Experimental detector confidence for safety findings.
+ *
+ * @experimental Available through `agent-inspect/checks`; see `docs/SAFETY-POLICY.md`.
+ */
+export type SafetyFindingConfidence = "high" | "medium" | "low";
+
+/**
  * Experimental trace-check finding status.
  *
  * @experimental Available through `agent-inspect/checks`; the checks API may
@@ -104,6 +127,30 @@ export interface TraceCheckFinding {
   expected?: unknown;
   actual?: unknown;
   evidence: TraceCheckEvidence[];
+  /**
+   * Additive safety taxonomy (6.9+). Omitted for non-safety / structural rules.
+   *
+   * @experimental
+   */
+  category?: SafetyFindingCategory;
+  /**
+   * Additive detector confidence (6.9+).
+   *
+   * @experimental
+   */
+  confidence?: SafetyFindingConfidence;
+  /**
+   * Detector id when known (rule id or redaction detector id).
+   *
+   * @experimental
+   */
+  detector?: string;
+  /**
+   * Recommended remediation action (e.g. redact, review, keep).
+   *
+   * @experimental
+   */
+  action?: string;
 }
 
 /**
@@ -776,6 +823,10 @@ function normalizeFinding(rule: TraceCheckRule, finding: TraceCheckFinding): Tra
     ...(finding.expected !== undefined ? { expected: finding.expected } : {}),
     ...(finding.actual !== undefined ? { actual: finding.actual } : {}),
     evidence: [...(finding.evidence ?? [])],
+    ...(finding.category !== undefined ? { category: finding.category } : {}),
+    ...(finding.confidence !== undefined ? { confidence: finding.confidence } : {}),
+    ...(finding.detector !== undefined ? { detector: finding.detector } : {}),
+    ...(finding.action !== undefined ? { action: finding.action } : {}),
   };
 }
 
@@ -844,21 +895,35 @@ function runEvidence(run: InspectRunTree | undefined): TraceCheckEvidence[] {
   return run ? [{ runId: run.runId, name: run.name, status: run.status }] : [];
 }
 
+interface SafetyFindingMeta {
+  category?: SafetyFindingCategory;
+  confidence?: SafetyFindingConfidence;
+  detector?: string;
+  action?: string;
+  severity?: TraceCheckSeverity;
+  status?: TraceCheckFindingStatus;
+}
+
 function failFinding(
   ruleId: string,
   message: string,
   evidence: readonly TraceCheckEvidence[],
   expected?: unknown,
   actual?: unknown,
+  meta?: SafetyFindingMeta,
 ): TraceCheckFinding {
   return {
     ruleId,
-    severity: "error",
-    status: "fail",
+    severity: meta?.severity ?? "error",
+    status: meta?.status ?? "fail",
     message,
     ...(expected !== undefined ? { expected } : {}),
     ...(actual !== undefined ? { actual } : {}),
     evidence: [...evidence],
+    ...(meta?.category !== undefined ? { category: meta.category } : {}),
+    ...(meta?.confidence !== undefined ? { confidence: meta.confidence } : {}),
+    ...(meta?.detector !== undefined ? { detector: meta.detector } : {}),
+    ...(meta?.action !== undefined ? { action: meta.action } : {}),
   };
 }
 
@@ -2162,6 +2227,12 @@ export function createSafetyRedactionRule(
               [eventEvidence(event, entry.path)],
               "redaction marker",
               { path: entry.path, valueType: valueType(entry.value) },
+              {
+                category: "credential",
+                confidence: "high",
+                detector: "safety.redaction",
+                action: "redact",
+              },
             ),
           );
         }
@@ -2198,6 +2269,12 @@ export function createSafetyRawContentRule(
               [eventEvidence(event, entry.path)],
               "metadata-only trace fields",
               { path: entry.path, valueType: valueType(entry.value) },
+              {
+                category: "raw-content",
+                confidence: "high",
+                detector: "safety.rawPrompt",
+                action: "redact-or-omit",
+              },
             ),
           );
         }
@@ -2239,6 +2316,12 @@ export function createSafetySecretPatternRule(
                 [eventEvidence(event, entry.path)],
                 "no secret-like strings",
                 { pattern: pattern.id, path: entry.path },
+                {
+                  category: "credential",
+                  confidence: "high",
+                  detector: pattern.id,
+                  action: "redact",
+                },
               ),
             );
             break;
@@ -2279,6 +2362,12 @@ export function createSafetyOversizedAttributeRule(
                 [eventEvidence(event, entry.path)],
                 { maxStringLength: options.maxStringLength },
                 { path: entry.path, length: entry.value.length },
+                {
+                  category: "size",
+                  confidence: "high",
+                  detector: "safety.oversizedAttribute",
+                  action: "truncate-or-omit",
+                },
               ),
             );
           }
@@ -2295,6 +2384,12 @@ export function createSafetyOversizedAttributeRule(
                 [eventEvidence(event, entry.path)],
                 { maxArrayLength: options.maxArrayLength },
                 { path: entry.path, length: entry.value.length },
+                {
+                  category: "size",
+                  confidence: "high",
+                  detector: "safety.oversizedAttribute",
+                  action: "truncate-or-omit",
+                },
               ),
             );
           }
@@ -2311,6 +2406,12 @@ export function createSafetyOversizedAttributeRule(
                 [eventEvidence(event, entry.path)],
                 { maxObjectKeys: options.maxObjectKeys },
                 { path: entry.path, keys: Object.keys(entry.value).length },
+                {
+                  category: "size",
+                  confidence: "high",
+                  detector: "safety.oversizedAttribute",
+                  action: "truncate-or-omit",
+                },
               ),
             );
           }
@@ -2325,6 +2426,12 @@ export function createSafetyOversizedAttributeRule(
                   [eventEvidence(event, entry.path)],
                   { maxSerializedBytes: options.maxSerializedBytes },
                   { path: entry.path, bytes },
+                  {
+                    category: "size",
+                    confidence: "high",
+                    detector: "safety.oversizedAttribute",
+                    action: "truncate-or-omit",
+                  },
                 ),
               );
             }
