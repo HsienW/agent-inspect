@@ -1,0 +1,14 @@
+{
+  "name": "agent-inspect-starter-coding-agent-debug-loop",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node run.mjs",
+    "fixed": "node run-fixed.mjs",
+    "inspect-mcp": "node inspect-mcp.mjs"
+  },
+  "dependencies": {
+    "@agent-inspect/mcp-server": "workspace:*",
+    "agent-inspect": "workspace:*"
+  }
+}

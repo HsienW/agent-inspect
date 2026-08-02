@@ -13,6 +13,7 @@ Full guide: [docs/ADOPTION.md](../../docs/ADOPTION.md)
 | [ci-eval-redact](./ci-eval-redact/) | `pnpm start` | same | `npx agent-inspect redact --profile share` |
 | [harness-nestjs](./harness-nestjs/) | `pnpm start` | `npx agent-inspect list --dir .agent-inspect` | same |
 | [broken-agent-debugging](./broken-agent-debugging/) | `pnpm start` | `npx agent-inspect report <run-id>` | `redact --profile share` |
+| [coding-agent-debug-loop](./coding-agent-debug-loop/) | `pnpm start` | `pnpm run inspect-mcp` | MCP causal + share-checked evidence |
 | VS Code (dev host) | F5 in `packages/vscode` | sidebar `list --json` | `doctor` command |
 
 ## Demo flow (broken → fixed)
