@@ -12,10 +12,10 @@ trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.12-4"
-lastConfirmedCommit: "HEAD"
+currentChunk: "6.12-5"
+lastConfirmedCommit: "bd80ecb"
 lastValidationLevel: "npm view agent-inspect@6.11.0 (18 fixed packages)"
-nextAction: "Land 6.12-4; continue 6.12-5 MCP client matrix"
+nextAction: "Land 6.12-5; continue 6.12-6 LangGraph trial"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
