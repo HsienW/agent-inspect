@@ -270,6 +270,34 @@ export {
 } from "../bundle/index.js";
 
 export type {
+  EvidenceFileEntry,
+  EvidenceFileRole,
+  EvidenceFormatVersion,
+  EvidenceManifest,
+  EvidencePackagedFile,
+  EvidenceRedactionProfile,
+  EvidenceSafeStatus,
+  EvidenceSourceHash,
+  EvidenceVerificationPolicy,
+} from "../evidence/index.js";
+export {
+  EVIDENCE_ASSESSMENT_NOTE,
+  EVIDENCE_FORMAT_VERSION,
+  EVIDENCE_MANIFEST_FILENAME,
+  assertEvidenceRelativePath,
+  buildEvidenceFileEntries,
+  buildEvidenceManifest,
+  collectTraceSchemaVersions,
+  inferEvidenceFileRole,
+  isSha256Hex,
+  parseEvidenceManifestJson,
+  serializeEvidenceManifest,
+  sha256Equals,
+  sha256Hex,
+  validateEvidenceManifest,
+} from "../evidence/index.js";
+
+export type {
   LoadSuiteConfigOptions,
   RenderSuiteReportOptions,
   RunSuiteOptions,

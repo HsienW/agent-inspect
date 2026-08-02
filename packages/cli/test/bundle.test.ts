@@ -73,11 +73,26 @@ describe("bundle command", () => {
     expect(payload.ok).toBe(true);
     expect(payload.metadata.safeStatus).toBe("SAFE");
     expect(payload.metadata.files).toEqual(
-      expect.arrayContaining(["trace.html", "trace.jsonl", "summary.md", "metadata.json"]),
+      expect.arrayContaining([
+        "trace.html",
+        "trace.jsonl",
+        "summary.md",
+        "metadata.json",
+        "evidence.json",
+      ]),
     );
     expect(await readFile(path.join(outputDir, "summary.md"), "utf-8")).toContain(
       "AgentInspect trace bundle",
     );
+    const evidence = JSON.parse(
+      await readFile(path.join(outputDir, "evidence.json"), "utf-8"),
+    ) as {
+      evidenceFormatVersion: string;
+      files: { path: string; sha256: string }[];
+    };
+    expect(evidence.evidenceFormatVersion).toBe("1.0");
+    expect(evidence.files.some((f) => f.path === "trace.jsonl")).toBe(true);
+    expect(evidence.files.every((f) => f.path !== "evidence.json")).toBe(true);
   });
 
   it("allows redactable secrets when the artifact assessment is safe", async () => {

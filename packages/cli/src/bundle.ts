@@ -4,9 +4,11 @@ import path from "node:path";
 import {
   buildBundleMetadata,
   buildBundleSummaryMarkdown,
+  buildEvidenceManifest,
   buildPlaceholderArtifact,
   buildSessionIndex,
   bundleFailsOnSafety,
+  collectTraceSchemaVersions,
   defaultBundleOutputPath,
   getTraceFilePath,
   normalizeBundleOutputPath,
@@ -15,12 +17,17 @@ import {
   resolveTraceDir,
   aggregateBundleSafeStatus,
   sanitizeBundleRunId,
+  serializeEvidenceManifest,
+  sha256Hex,
   bundleRunAssetRelativePath,
   assertBundlePathContained,
+  EVIDENCE_MANIFEST_FILENAME,
   type BundleCheckResults,
   type BundleRedactionProfile,
   type BundleRedactionReport,
   type BundleSafeStatus,
+  type EvidencePackagedFile,
+  type EvidenceSourceHash,
 } from "@agent-inspect/core/advanced";
 import { exportRunTree } from "@agent-inspect/core/exporters";
 import { openTrace } from "@agent-inspect/core/readers";
@@ -148,11 +155,13 @@ async function writeBundleFile(
   relativePath: string,
   content: string,
   files: string[],
+  packaged?: Map<string, string>,
 ): Promise<void> {
   const outPath = assertBundlePathContained(outputDir, relativePath);
   await mkdir(path.dirname(outPath), { recursive: true });
   await writeFile(outPath, content, "utf-8");
   files.push(relativePath);
+  packaged?.set(relativePath, content);
 }
 
 function renderBundleIndexHtml(parts: {
@@ -236,10 +245,13 @@ export async function bundleCommand(
 
   const outputDir = await resolveOutputDir(options, resolveResult.runIds, cwd);
   const files: string[] = [];
+  const packaged = new Map<string, string>();
   const checkRuns: BundleCheckResults["runs"] = [];
   const redactionRuns: BundleRedactionReport["runs"] = [];
   const htmlByRun = new Map<string, string>();
   const redactedJsonlByRun = new Map<string, string>();
+  const sourceHashes: EvidenceSourceHash[] = [];
+  const schemaVersions = new Set<string>();
   let combinedJsonl = "";
 
   for (const runId of resolveResult.runIds) {
@@ -279,6 +291,15 @@ export async function bundleCommand(
 
     const sourceSafety = assessOpenedTrace(read, { run: runId });
     const sourceStatus = safetyStatusFromAssess(sourceSafety.status);
+
+    sourceHashes.push({
+      runId,
+      algorithm: "sha256",
+      hash: sha256Hex(rawContent),
+    });
+    for (const version of collectTraceSchemaVersions(rawContent)) {
+      schemaVersions.add(version);
+    }
 
     const redacted = redactTraceContent(rawContent, toReportProfile(profile));
     redactedJsonlByRun.set(runId, redacted.content);
@@ -384,6 +405,7 @@ export async function bundleCommand(
       bundleRunAssetRelativePath(runId, ".jsonl"),
       jsonl,
       files,
+      packaged,
     );
     const html = htmlByRun.get(runId) ?? "";
     await writeBundleFile(
@@ -391,6 +413,7 @@ export async function bundleCommand(
       bundleRunAssetRelativePath(runId, ".html"),
       runReportWrap(html, runId),
       files,
+      packaged,
     );
   }
 
@@ -400,51 +423,92 @@ export async function bundleCommand(
       ? runReportWrap(htmlByRun.get(primaryRunId) ?? "", primaryRunId)
       : renderBundleIndexHtml({ runIds: resolveResult.runIds, reports: htmlByRun });
 
-  await writeBundleFile(outputDir, "trace.jsonl", combinedJsonl, files);
-  await writeBundleFile(outputDir, "trace.html", traceHtml, files);
+  await writeBundleFile(outputDir, "trace.jsonl", combinedJsonl, files, packaged);
+  await writeBundleFile(outputDir, "trace.html", traceHtml, files, packaged);
   await writeBundleFile(
     outputDir,
     "check-results.json",
     writeJson(checks),
     files,
+    packaged,
   );
   await writeBundleFile(
     outputDir,
     "eval-results.json",
     writeJson(buildPlaceholderArtifact()),
     files,
+    packaged,
   );
   await writeBundleFile(
     outputDir,
     "redaction-report.json",
     writeJson(redactionReport),
     files,
+    packaged,
   );
   await writeBundleFile(
     outputDir,
     "performance-summary.json",
     writeJson(buildPlaceholderArtifact()),
     files,
+    packaged,
   );
+
+  const summaryPath = "summary.md";
+  const metadataPath = "metadata.json";
+
+  // Provisional metadata file list includes evidence.json so final metadata
+  // bytes match the hash recorded in the evidence manifest.
+  const metadataFileList = [...files, metadataPath, summaryPath, EVIDENCE_MANIFEST_FILENAME]
+    .filter((name, index, all) => all.indexOf(name) === index)
+    .sort((a, b) => a.localeCompare(b));
 
   const metadata = buildBundleMetadata({
     agentInspectVersion: packageVersion,
     profile,
     resolve: resolveResult,
     checks,
-    files: [...files],
+    files: metadataFileList,
+  });
+  const metadataJson = writeJson(metadata);
+  const summaryMd = buildBundleSummaryMarkdown({
+    metadata,
+    checks,
+    redaction: redactionReport,
   });
 
-  await writeBundleFile(outputDir, "metadata.json", writeJson(metadata), files);
-  await writeBundleFile(
-    outputDir,
-    "summary.md",
-    buildBundleSummaryMarkdown({ metadata, checks, redaction: redactionReport }),
-    files,
+  await writeBundleFile(outputDir, summaryPath, summaryMd, files, packaged);
+  packaged.set(metadataPath, metadataJson);
+  if (!files.includes(metadataPath)) {
+    files.push(metadataPath);
+  }
+
+  const evidenceFiles: EvidencePackagedFile[] = [...packaged.entries()].map(
+    ([relativePath, content]) => ({ path: relativePath, content }),
   );
 
-  metadata.files = [...files].sort((a, b) => a.localeCompare(b));
-  await writeFile(path.join(outputDir, "metadata.json"), writeJson(metadata), "utf-8");
+  const aggregateSourceStatus = aggregateBundleSafeStatus(
+    checkRuns.map((run) => run.sourceStatus ?? run.status),
+  );
+  const evidence = buildEvidenceManifest({
+    generatorVersion: packageVersion,
+    runIds: resolveResult.runIds,
+    traceSchemaVersions: [...schemaVersions].sort((a, b) => a.localeCompare(b)),
+    sourceHashes,
+    redactionProfile: profile,
+    verificationPolicy: profile,
+    assessmentStatus: checks.aggregateStatus,
+    sourceStatus: aggregateSourceStatus,
+    files: evidenceFiles,
+    createdAt: metadata.createdAt,
+  });
+  const evidenceJson = serializeEvidenceManifest(evidence);
+
+  await writeFile(path.join(outputDir, metadataPath), metadataJson, "utf-8");
+  await writeFile(path.join(outputDir, EVIDENCE_MANIFEST_FILENAME), evidenceJson, "utf-8");
+  if (!files.includes(EVIDENCE_MANIFEST_FILENAME)) {
+    files.push(EVIDENCE_MANIFEST_FILENAME);
+  }
 
   if (options.json) {
     console.log(
@@ -452,6 +516,7 @@ export async function bundleCommand(
         ok: true,
         outputDir,
         metadata,
+        evidence,
         checks,
         redaction: redactionReport,
       }).trimEnd(),

@@ -136,7 +136,7 @@ Views (later chunks): summary, tree, timeline, causal failure, tools/LLM metadat
 | `files: string[]` | Superseded by `files[{path,sha256}]` in `evidence.json` |
 | No hashes | Hashes required in Evidence v2 |
 
-Emitters may write **both** during the transition.
+Emitters write **both** during the transition. As of 6.10-1, `agent-inspect bundle` emits `evidence.json` with SHA-256 hashes of packaged files and pre-redaction `sourceHashes`.
 
 ## Security and privacy
 
