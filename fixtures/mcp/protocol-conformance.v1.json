@@ -1,0 +1,21 @@
+{
+  "conformanceVersion": "1.0",
+  "cases": [
+    { "id": "initialize", "method": "initialize", "expect": "protocolVersion" },
+    { "id": "tools_list", "method": "tools/list", "expect": "tools" },
+    { "id": "tools_call_unknown", "method": "tools/call", "params": { "name": "no_such_tool" }, "expectToolError": true },
+    { "id": "ping", "method": "ping", "expect": "empty-result" },
+    { "id": "cancelled", "method": "notifications/cancelled", "params": { "requestId": 1 }, "expect": "no-response" },
+    { "id": "malformed", "raw": "{not-json", "expectErrorCode": -32700 },
+    { "id": "oversized", "oversizedBytes": 1048586, "expectErrorCode": -32600 },
+    { "id": "missing_method", "method": null, "expectErrorCode": -32600 },
+    { "id": "unknown_method", "method": "resources/read", "expectErrorCode": -32601 },
+    { "id": "protocol_negotiation", "method": "initialize", "params": { "protocolVersion": "2024-11-05" }, "expect": "protocolVersion" }
+  ],
+  "privacy": {
+    "defaultRedactionProfile": "share",
+    "readOnly": true,
+    "noNetwork": true,
+    "noCodeModification": true
+  }
+}
