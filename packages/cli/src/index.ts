@@ -64,6 +64,8 @@ import type { BundleCommandOptions } from "./bundle.js";
 import { bundleCommand } from "./bundle.js";
 import type { BundleVerifyCommandOptions } from "./bundle-verify.js";
 import { bundleVerifyCommand } from "./bundle-verify.js";
+import type { McpConfigureOptions } from "./mcp-configure.js";
+import { isMcpConfigureClient, mcpConfigureCommand } from "./mcp-configure.js";
 import type { CiSummaryCommandOptions } from "./ci-summary.js";
 import { ciSummaryCommand } from "./ci-summary.js";
 import type { InitCommandOptions } from "./init.js";
@@ -1277,6 +1279,33 @@ export function createCliProgram(): Command {
     .option("--json", "print deterministic JSON result")
     .action((opts: CohortCommandOptions) => {
       runCommand(() => cohortCommand(opts));
+    });
+
+  const mcpCmd = program
+    .command("mcp")
+    .description("Configure local coding-agent MCP clients (read-only; dry-run by default)");
+
+  mcpCmd
+    .command("configure")
+    .description("Print or write MCP client config for Cursor/Claude/Codex/Gemini")
+    .requiredOption(
+      "--client <name>",
+      "cursor | claude-code | codex | gemini",
+    )
+    .option("--dir <path>", "trace directory for the MCP server", ".agent-inspect")
+    .option("--project-local", "target a project-local config path")
+    .option("--write", "write config (requires --project-local --yes)")
+    .option("--yes", "confirm write")
+    .option("--json", "print deterministic JSON result")
+    .action((opts: McpConfigureOptions & { client: string }) => {
+      runCommand(async () => {
+        if (!isMcpConfigureClient(opts.client)) {
+          throw new Error(
+            `Unsupported --client "${opts.client}". Use: cursor, claude-code, codex, gemini`,
+          );
+        }
+        await mcpConfigureCommand({ ...opts, client: opts.client });
+      });
     });
 
   program

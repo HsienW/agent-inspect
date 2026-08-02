@@ -1052,3 +1052,14 @@ See:
 
 - `docs/KNOWN-ISSUES.md`
 - `docs/LIMITATIONS.md`
+
+
+## MCP configure (v6.11+)
+
+```bash
+agent-inspect mcp configure --client cursor
+agent-inspect mcp configure --client claude-code --project-local
+agent-inspect mcp configure --client cursor --project-local --write --yes
+```
+
+Dry-run by default. Writes project-local files only with `--project-local --write --yes`. No network; share redaction by default. See [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md).
