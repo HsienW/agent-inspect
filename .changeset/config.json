@@ -35,6 +35,7 @@
     "agent-inspect-recipe-log4js-json-layout",
     "agent-inspect-recipe-multi-agent-handoff",
     "agent-inspect-recipe-nestjs-json-logging",
+    "agent-inspect-recipe-nestjs-langgraph-local",
     "agent-inspect-recipe-parallel-tools",
     "agent-inspect-recipe-pino-json-logs",
     "agent-inspect-recipe-proactive-agent-logs",
