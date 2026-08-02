@@ -42,3 +42,10 @@ export {
   buildEvidenceTimelineViewHtml,
   buildEvidenceTreeViewHtml,
 } from "./views.js";
+export {
+  buildEvidenceContractsViewHtml,
+  buildEvidenceDiffViewHtml,
+  buildEvidenceOutcomesViewHtml,
+  type EvidenceCheckFindingSummary,
+  type EvidenceContractsViewInput,
+} from "./views-contract.js";

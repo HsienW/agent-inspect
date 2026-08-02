@@ -12,10 +12,10 @@ trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.10-3"
-lastConfirmedCommit: "375c015"
-lastValidationLevel: "focused evidence views + bundle tests pending push"
-nextAction: "Land 6.10-3; continue 6.10-4 views"
+currentChunk: "6.10-4"
+lastConfirmedCommit: "94bc35b"
+lastValidationLevel: "focused contract/diff/outcome views pending push"
+nextAction: "Land 6.10-4; continue 6.10-5 views"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
@@ -24,8 +24,9 @@ completedChunks:
   - "6.10-0 Evidence format RFC"
   - "6.10-1 Manifest and hash engine"
   - "6.10-2 Self-contained HTML shell"
+  - "6.10-3 Tree/timeline/causal views"
 remainingTrains:
-  - "v6.10.0 Portable Evidence v2 (active; 6.10-3 in flight)"
+  - "v6.10.0 Portable Evidence v2 (active; 6.10-4 in flight)"
   - "v6.11.0 Local coding-agent debug loop"
   - "v6.12.0 Consolidation and stable launch candidate"
   - "v6.12 adoption checkpoint (eight weeks)"
@@ -38,6 +39,6 @@ updatedAt: "2026-08-02"
 
 - **Active plan:** [release-trains/V6.10.0-EXECUTION-PLAN.md](./release-trains/V6.10.0-EXECUTION-PLAN.md)
 - **Evidence contract:** [../EVIDENCE-FORMAT.md](../EVIDENCE-FORMAT.md)
-- **6.10-3 review:** [reviews/V6.10.0-3-TREE-TIMELINE-CAUSAL-VIEWS.md](./reviews/V6.10.0-3-TREE-TIMELINE-CAUSAL-VIEWS.md)
+- **6.10-4 review:** [reviews/V6.10.0-4-CONTRACT-DIFF-OUTCOME-VIEWS.md](./reviews/V6.10.0-4-CONTRACT-DIFF-OUTCOME-VIEWS.md)
 - **Safety contract:** [../SAFETY-POLICY.md](../SAFETY-POLICY.md)
 - **Maintainer rules:** [AGENTS.md](../../AGENTS.md)

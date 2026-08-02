@@ -289,10 +289,13 @@ export {
   EVIDENCE_VIEW_IDS,
   assertEvidenceRelativePath,
   buildEvidenceCausalFailureViewHtml,
+  buildEvidenceContractsViewHtml,
+  buildEvidenceDiffViewHtml,
   buildEvidenceFileEntries,
   buildEvidenceHtmlShell,
   buildEvidenceHtmlShellFromManifest,
   buildEvidenceManifest,
+  buildEvidenceOutcomesViewHtml,
   buildEvidenceTimelineViewHtml,
   buildEvidenceTreeViewHtml,
   collectTraceSchemaVersions,
@@ -306,6 +309,8 @@ export {
   validateEvidenceManifest,
 } from "../evidence/index.js";
 export type {
+  EvidenceCheckFindingSummary,
+  EvidenceContractsViewInput,
   EvidenceHtmlShellInput,
   EvidenceViewId,
 } from "../evidence/index.js";

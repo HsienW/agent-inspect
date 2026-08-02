@@ -5,8 +5,11 @@ import {
   buildBundleMetadata,
   buildBundleSummaryMarkdown,
   buildEvidenceCausalFailureViewHtml,
+  buildEvidenceContractsViewHtml,
+  buildEvidenceDiffViewHtml,
   buildEvidenceHtmlShell,
   buildEvidenceManifest,
+  buildEvidenceOutcomesViewHtml,
   buildEvidenceTimelineViewHtml,
   buildEvidenceTreeViewHtml,
   buildPlaceholderArtifact,
@@ -31,12 +34,14 @@ import {
   type BundleRedactionProfile,
   type BundleRedactionReport,
   type BundleSafeStatus,
+  type EvidenceCheckFindingSummary,
   type EvidencePackagedFile,
   type EvidenceSourceHash,
   type InspectRunTree,
 } from "@agent-inspect/core/advanced";
 import { exportRunTree } from "@agent-inspect/core/exporters";
 import { openTrace } from "@agent-inspect/core/readers";
+import type { PersistedInspectEvent } from "@agent-inspect/core/persisted";
 import { readWorkspaceManifestFile, resolveInsideWorkspace, resolveWorkspaceLocation } from "@agent-inspect/core/workspace";
 import type { RedactionProfile } from "@agent-inspect/redact";
 
@@ -257,6 +262,8 @@ export async function bundleCommand(
   const htmlByRun = new Map<string, string>();
   const redactedJsonlByRun = new Map<string, string>();
   const artifactTrees: InspectRunTree[] = [];
+  const artifactEventsByRun = new Map<string, PersistedInspectEvent[]>();
+  const findingSummaries: EvidenceCheckFindingSummary[] = [];
   const sourceHashes: EvidenceSourceHash[] = [];
   const schemaVersions = new Set<string>();
   let combinedJsonl = "";
@@ -331,6 +338,10 @@ export async function bundleCommand(
       artifactSafety = assessOpenedTrace(artifactRead, { run: runId });
       artifactTree =
         artifactRead.runs.find((run) => run.runId === runId) ?? artifactRead.runs[0];
+      artifactEventsByRun.set(
+        runId,
+        artifactRead.events.filter((event) => event.runId === runId),
+      );
     } catch {
       // If the redacted artifact cannot be re-read, fail closed on UNKNOWN.
       artifactSafety = {
@@ -343,6 +354,19 @@ export async function bundleCommand(
           errors: Math.max(1, sourceSafety.summary.errors),
         },
       };
+    }
+
+    for (const finding of artifactSafety.findings) {
+      findingSummaries.push({
+        runId,
+        ruleId: finding.ruleId,
+        severity: finding.severity,
+        message: finding.message,
+        ...(finding.category !== undefined ? { category: finding.category } : {}),
+        ...(finding.detector !== undefined ? { detector: finding.detector } : {}),
+        ...(finding.confidence !== undefined ? { confidence: finding.confidence } : {}),
+        ...(finding.action !== undefined ? { action: finding.action } : {}),
+      });
     }
 
     if (artifactTree) {
@@ -520,6 +544,26 @@ export async function bundleCommand(
       tree: buildEvidenceTreeViewHtml(artifactTrees),
       timeline: buildEvidenceTimelineViewHtml(artifactTrees),
       causal: buildEvidenceCausalFailureViewHtml(artifactTrees),
+      contracts: buildEvidenceContractsViewHtml({
+        aggregateStatus: checks.aggregateStatus,
+        runs: checkRuns,
+        findingSummaries,
+      }),
+      outcomes: buildEvidenceOutcomesViewHtml(
+        resolveResult.runIds.map((id) => ({
+          runId: id,
+          events: artifactEventsByRun.get(id) ?? [],
+        })),
+      ),
+      diff:
+        resolveResult.runIds.length >= 2
+          ? buildEvidenceDiffViewHtml({
+              leftRunId: resolveResult.runIds[0]!,
+              rightRunId: resolveResult.runIds[1]!,
+              leftEvents: artifactEventsByRun.get(resolveResult.runIds[0]!) ?? [],
+              rightEvents: artifactEventsByRun.get(resolveResult.runIds[1]!) ?? [],
+            })
+          : buildEvidenceDiffViewHtml(),
     },
   });
 
