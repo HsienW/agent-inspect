@@ -54,7 +54,9 @@ export async function indexIsStale(
   const files = await td.list();
   for (const file of files) {
     const stats = await td.getFileStats(file);
-    if (stats.mtimeMs > builtMs) return true;
+    // Floor sub-ms filesystem mtimes: Node `mtimeMs` is often fractional while
+    // `builtAt` is millisecond-resolution ISO, so same-ms writes can look "newer".
+    if (Math.floor(stats.mtimeMs) > builtMs) return true;
   }
   return false;
 }
