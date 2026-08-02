@@ -12,10 +12,10 @@ trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.9-6"
-lastConfirmedCommit: "90cf78b"
+currentChunk: "6.9-7"
+lastConfirmedCommit: "5736e07"
 lastValidationLevel: "vitest source-vs-artifact verify-safe"
-nextAction: "Land 6.9-6 bundle artifact gate; continue 6.9-7+"
+nextAction: "Land 6.9-7 explain-findings; continue 6.9-8+"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:

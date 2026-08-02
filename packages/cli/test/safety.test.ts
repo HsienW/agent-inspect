@@ -156,6 +156,37 @@ describe("scan and verify-safe commands", () => {
     expect(verified.redactionSummary?.findings).toBeGreaterThan(0);
   });
 
+  it("explains findings without leaking matched values", async () => {
+    const secret = "sk-explainSecretValue1234567890";
+    const file = await writeTrace(
+      tmp,
+      "explain.jsonl",
+      jsonl(
+        event("event-a", {
+          attributes: { apiKey: secret, prompt: "hidden prompt text" },
+        }),
+      ),
+    );
+
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    process.exitCode = 0;
+    await scanCommand(file, { explain: true });
+    const human = logSpy.mock.calls.map((call) => String(call[0])).join("\n");
+    logSpy.mockClear();
+    await scanCommand(file, { json: true, explain: true });
+    const json = JSON.parse(String(logSpy.mock.calls[0]?.[0] ?? "{}")) as {
+      explanations?: { ruleId?: string; path?: string; blocksBundle?: boolean }[];
+    };
+    logSpy.mockRestore();
+
+    expect(human).toContain("Confidence:");
+    expect(human).toContain("Bundle gate:");
+    expect(human).not.toContain(secret);
+    expect(human).not.toContain("hidden prompt text");
+    expect(json.explanations?.length).toBeGreaterThan(0);
+    expect(JSON.stringify(json)).not.toContain(secret);
+  });
+
   it("reports UNKNOWN for unsupported inputs", async () => {
     const file = await writeTrace(tmp, "unsupported.json", "{\"hello\":\"world\"}\n");
 

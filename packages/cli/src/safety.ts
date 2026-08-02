@@ -25,6 +25,7 @@ export interface SafetyCommandOptions {
   format?: string;
   run?: string;
   json?: boolean;
+  explain?: boolean;
   maxStringLength?: string;
   maxArrayLength?: string;
   maxObjectKeys?: string;
@@ -427,11 +428,45 @@ function exitCodeFor(result: SafetyResult): number {
   return 2;
 }
 
-function printJson(result: SafetyResult): void {
-  console.log(JSON.stringify(stable(result), null, 2));
+function explainFinding(finding: TraceCheckFinding, blocksBundle: boolean): string[] {
+  const path = finding.evidence[0]?.path ?? "(unknown path)";
+  const category = finding.category ?? "structure";
+  const confidence = finding.confidence ?? "medium";
+  const detector = finding.detector ?? finding.ruleId;
+  const action = finding.action ?? "review";
+  const redactionHint =
+    category === "credential" ||
+    category === "personal-data" ||
+    category === "raw-content" ||
+    action.includes("redact")
+      ? "Usually removable by share/strict redaction before bundling."
+      : "May require omitting the field, lowering limits, or an explicit local override.";
+  return [
+    `  Matched: detector=${detector}; path=${path}; category=${category}`,
+    `  Why: ${finding.message}`,
+    `  Confidence: ${confidence}`,
+    `  Redaction: ${redactionHint}`,
+    `  Override: configure a custom redaction/detector rule locally (see docs/SAFETY-POLICY.md); do not weaken defaults globally.`,
+    `  Bundle gate: ${blocksBundle ? "blocks share-safe bundle unless --allow-unsafe" : "does not block by itself (warning/info)"}`,
+  ];
 }
 
-function printHuman(result: SafetyResult): void {
+function findingExplanation(finding: TraceCheckFinding): Record<string, unknown> {
+  const blocks = finding.severity === "error" || finding.status === "fail";
+  return {
+    ruleId: finding.ruleId,
+    detector: finding.detector ?? finding.ruleId,
+    path: finding.evidence[0]?.path,
+    category: finding.category,
+    confidence: finding.confidence,
+    action: finding.action,
+    blocksBundle: blocks,
+    // Never include matched secret/PII values.
+    message: finding.message,
+  };
+}
+
+function printHuman(result: SafetyResult, explain = false): void {
   console.log(`Safety status: ${result.status}`);
   console.log(`Format: ${result.format}`);
   if (result.runId !== undefined) console.log(`Run: ${result.runId}`);
@@ -457,8 +492,22 @@ function printHuman(result: SafetyResult): void {
         ? ` [${[finding.category, finding.confidence].filter(Boolean).join("/")}]`
         : "";
     console.log(`- ${finding.ruleId}: ${finding.message}${path ? ` (${path})` : ""}${taxonomy}`);
+    if (explain) {
+      const blocks = finding.severity === "error" || finding.status === "fail";
+      for (const line of explainFinding(finding, blocks)) {
+        console.log(line);
+      }
+    }
   }
   console.log(`Note: ${result.note}`);
+}
+
+function printJson(result: SafetyResult, explain = false): void {
+  const payload =
+    explain === true
+      ? { ...result, explanations: result.findings.map(findingExplanation) }
+      : result;
+  console.log(JSON.stringify(stable(payload), null, 2));
 }
 
 async function safetyCommand(
@@ -538,8 +587,8 @@ async function safetyCommand(
   }
 
   process.exitCode = exitCodeFor(result);
-  if (options.json) printJson(result);
-  else printHuman(result);
+  if (options.json) printJson(result, options.explain === true);
+  else printHuman(result, options.explain === true);
 }
 
 export function scanCommand(
