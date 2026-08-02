@@ -64,4 +64,5 @@ See also [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md) and [CLI.md §6.24](./
 
 ## RFC
 
-Design details: [proposals/SHAREABLE-BUNDLES-V4.3.md](./proposals/SHAREABLE-BUNDLES-V4.3.md).
+- Shareable bundles (v4.3): [proposals/SHAREABLE-BUNDLES-V4.3.md](./proposals/SHAREABLE-BUNDLES-V4.3.md)
+- Portable Evidence v2: [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md)
