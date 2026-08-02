@@ -625,6 +625,9 @@ export function createCliProgram(): Command {
     .option("--baseline <trace-path-or-run-id>", "optional baseline trace for diff artifacts")
     .option("--baseline-run <run-id>", "select a run from the baseline trace")
     .option("--github-summary <path>", "append a safe summary to this file, e.g. GITHUB_STEP_SUMMARY")
+    .option("--evidence", "write Evidence v2 package on failure (default behavior when omitted)")
+    .option("--no-evidence", "skip Evidence v2 package")
+    .option("--always-evidence", "write Evidence v2 package even when checks pass")
     .option("--json", "print deterministic JSON manifest")
     .action((target: string, opts: ArtifactsCommandOptions) => {
       runCommand(() => artifactsCommand(target, opts));

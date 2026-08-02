@@ -65,3 +65,8 @@ export {
   type EvidenceVerifyResult,
   type EvidenceVerifyStatus,
 } from "./verify.js";
+export {
+  buildEvidenceCiPackage,
+  type EvidenceCiPackageFiles,
+  type EvidenceCiPackageInput,
+} from "./ci.js";

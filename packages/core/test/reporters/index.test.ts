@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   TRACE_ARTIFACT_MANIFEST_SCHEMA_VERSION,
+  createEvidenceCiArtifacts,
   createReporterArtifactPath,
   createReporterFailureDiagnostic,
   createTraceArtifactManifest,
@@ -120,6 +121,21 @@ describe("reporters artifact manifest", () => {
     });
 
     expect(inputResults[0]?.artifacts?.[0]).not.toHaveProperty("diagnostics");
+  });
+
+  it("lists standard Evidence v2 CI artifact paths", () => {
+    expect(createEvidenceCiArtifacts({}).map((a) => a.path)).toEqual([
+      "evidence.html",
+      "evidence.json",
+      "check-results.json",
+      "trace.jsonl",
+    ]);
+    const nested = createEvidenceCiArtifacts({
+      redactionProfile: "share",
+      relativeDir: "tests/b/beta",
+    });
+    expect(nested.every((a) => a.kind === "evidence")).toBe(true);
+    expect(nested.some((a) => a.path === "tests/b/beta/evidence.html")).toBe(true);
   });
 });
 

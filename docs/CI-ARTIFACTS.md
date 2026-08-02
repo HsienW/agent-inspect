@@ -28,12 +28,21 @@ AgentInspect helps you **write and export traces locally** in CI. Uploading arti
 
 Prefer **`--redaction-profile share`** for internal PR/issue attachments; use **`strict`** for wider sharing.
 
-For a deterministic CI bundle with structural JSON, safe Markdown/HTML summaries, safety check output, optional baseline diff output, and optional GitHub step-summary output:
+For a deterministic CI bundle with structural JSON, safe Markdown/HTML summaries, safety check output, optional baseline diff output, optional Evidence v2 package on failure, and optional GitHub step-summary output:
 
 ```bash
 npx agent-inspect artifacts <run-id> --dir ./.agent-inspect \
   --output-dir ./artifacts --github-summary "$GITHUB_STEP_SUMMARY"
 ```
+
+On check failure (default), this also writes Evidence v2 files matching `bundle`:
+
+- `evidence.html`
+- `evidence.json`
+- `check-results.json`
+- `trace.jsonl` (redacted)
+
+Success stays quiet for evidence unless you pass `--always-evidence`. Disable with `--no-evidence`.
 
 This command writes local files only. It does not call GitHub APIs or upload artifacts.
 

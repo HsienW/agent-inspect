@@ -9,7 +9,7 @@ export type TraceReporterFramework = "vitest" | "jest" | "manual";
 export type TraceTestStatus = "passed" | "failed" | "skipped" | "todo";
 
 /** Experimental reporter artifact kind used in artifact manifests. */
-export type TraceArtifactKind = "trace" | "report" | "eval" | "redaction" | "summary";
+export type TraceArtifactKind = "trace" | "report" | "eval" | "redaction" | "summary" | "evidence";
 
 /** Experimental reporter artifact file format used in artifact manifests. */
 export type TraceArtifactFormat = "json" | "jsonl" | "md" | "html";
@@ -331,4 +331,47 @@ function slugForPathLabel(value: string): string {
     .replace(/^[._-]+|[._-]+$/g, "")
     .slice(0, 80);
   return slug.length > 0 ? slug : "artifact";
+}
+
+/**
+ * Standard Evidence v2 filenames for CI failure packages (same shape as `bundle`).
+ * Success remains quiet by default — callers should emit these only on failure.
+ */
+export const EVIDENCE_CI_ARTIFACT_FILES = [
+  "evidence.html",
+  "evidence.json",
+  "check-results.json",
+  "trace.jsonl",
+] as const;
+
+export type EvidenceCiArtifactFile = (typeof EVIDENCE_CI_ARTIFACT_FILES)[number];
+
+/**
+ * Experimental helper: TraceArtifact entries for a standard Evidence v2 CI package.
+ */
+export function createEvidenceCiArtifacts(options: {
+  redactionProfile?: TraceArtifactRedactionProfile;
+  /** Optional subdirectory under the test artifact folder (POSIX). */
+  relativeDir?: string;
+}): TraceArtifact[] {
+  const profile = options.redactionProfile ?? "share";
+  const prefix =
+    options.relativeDir !== undefined && options.relativeDir.trim() !== ""
+      ? options.relativeDir.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "")
+      : "";
+  const join = (name: string): string => (prefix === "" ? name : path.posix.join(prefix, name));
+
+  const formatFor = (name: EvidenceCiArtifactFile): TraceArtifactFormat => {
+    if (name.endsWith(".html")) return "html";
+    if (name.endsWith(".jsonl")) return "jsonl";
+    return "json";
+  };
+
+  return EVIDENCE_CI_ARTIFACT_FILES.map((name) => ({
+    kind: "evidence" as const,
+    path: join(name),
+    format: formatFor(name),
+    redactionProfile: profile,
+    title: `Evidence v2 ${name}`,
+  }));
 }

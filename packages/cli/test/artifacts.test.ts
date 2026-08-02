@@ -90,14 +90,26 @@ describe("artifacts command", () => {
     expect(manifest.status).toBe("unsafe");
     expect(manifest.check?.status).toBe("fail");
     expect(manifest.check?.findings).toBeGreaterThan(0);
-    expect(manifest.files).toEqual([
-      "check.json",
-      "diff.json",
-      "manifest.json",
-      "report.html",
-      "summary.md",
-      "trace.json",
-    ]);
+    expect(manifest.files).toEqual(
+      expect.arrayContaining([
+        "check.json",
+        "diff.json",
+        "manifest.json",
+        "report.html",
+        "summary.md",
+        "trace.json",
+        "evidence.html",
+        "evidence.json",
+        "check-results.json",
+        "trace.jsonl",
+      ]),
+    );
+    expect(existsSync(path.join(outputDir, "evidence.html"))).toBe(true);
+    expect(existsSync(path.join(outputDir, "evidence.json"))).toBe(true);
+    const evidenceHtml = await readFile(path.join(outputDir, "evidence.html"), "utf-8");
+    expect(evidenceHtml).toContain("Content-Security-Policy");
+    expect(evidenceHtml).not.toContain(rawSecret);
+    expect(evidenceHtml).not.toContain(rawPrompt);
 
     for (const file of manifest.files ?? []) {
       const content = await readFile(path.join(outputDir, file), "utf-8");
@@ -141,6 +153,22 @@ describe("artifacts command", () => {
     expect(diff.findings?.some((finding) => finding.ruleId === "baseline.regression")).toBe(
       true,
     );
+  });
+
+  it("keeps evidence quiet on success unless --always-evidence", async () => {
+    const trace = await writeTrace(tmp, "safe.jsonl", [event("event-a")]);
+    const quietDir = path.join(tmp, "quiet");
+    await artifactsCommand(trace, { outputDir: quietDir, json: true });
+    expect(existsSync(path.join(quietDir, "evidence.html"))).toBe(false);
+
+    const forcedDir = path.join(tmp, "forced");
+    await artifactsCommand(trace, {
+      outputDir: forcedDir,
+      alwaysEvidence: true,
+      json: true,
+    });
+    expect(existsSync(path.join(forcedDir, "evidence.html"))).toBe(true);
+    expect(existsSync(path.join(forcedDir, "evidence.json"))).toBe(true);
   });
 
   it("requires an explicit output directory", async () => {

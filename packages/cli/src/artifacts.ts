@@ -1,4 +1,4 @@
-import { appendFile, mkdir, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
@@ -16,7 +16,16 @@ import {
   type TraceCheckResult,
   type TraceCheckRule,
 } from "@agent-inspect/core/checks";
+import {
+  buildEvidenceCiPackage,
+  getTraceFilePath,
+  resolveTraceDir,
+  type EvidenceSafeStatus,
+} from "@agent-inspect/core/advanced";
+import { createEvidenceCiArtifacts } from "@agent-inspect/core/reporters";
 
+import { version as packageVersion } from "../../../package.json";
+import { redactTraceContent } from "./redact.js";
 import { inputFromTarget } from "./trace-input.js";
 
 export interface ArtifactsCommandOptions {
@@ -28,6 +37,15 @@ export interface ArtifactsCommandOptions {
   baselineRun?: string;
   githubSummary?: string;
   json?: boolean;
+  /** Write Evidence v2 package on failure (commander may set false via --no-evidence). */
+  evidence?: boolean | undefined;
+  /**
+   * When true (default), evidence files are written only if checks/diff are not clean.
+   * Success stays quiet for evidence unless `--always-evidence`.
+   */
+  onFailureOnly?: boolean | undefined;
+  /** Force evidence emit even when checks pass. */
+  alwaysEvidence?: boolean | undefined;
 }
 
 type SelectedRun = TraceReadResult["runs"][number];
@@ -273,6 +291,25 @@ function manifestStatus(
   return "ok";
 }
 
+function toEvidenceStatus(status: ArtifactManifest["status"]): EvidenceSafeStatus {
+  if (status === "ok") return "SAFE";
+  if (status === "warning") return "SAFE WITH WARNINGS";
+  if (status === "unsafe" || status === "regression") return "UNSAFE";
+  return "UNKNOWN";
+}
+
+function shouldWriteEvidence(
+  options: ArtifactsCommandOptions,
+  status: ArtifactManifest["status"],
+): boolean {
+  if (options.alwaysEvidence === true) return true;
+  if (options.evidence === false) return false;
+  // Default: evidence only when checks are not clean (success stays quiet).
+  const onFailureOnly = options.onFailureOnly !== false;
+  if (!onFailureOnly) return true;
+  return status === "unsafe" || status === "regression" || status === "unknown" || status === "warning";
+}
+
 export async function artifactsCommand(
   target: string,
   options: ArtifactsCommandOptions = {},
@@ -350,6 +387,77 @@ export async function artifactsCommand(
   await writeArtifact(outputDir, "summary.md", renderMarkdown(trace, check, diff), files);
   await writeArtifact(outputDir, "report.html", renderHtml(trace, check, diff), files);
 
+  const status = manifestStatus(check, diff);
+  if (shouldWriteEvidence(options, status)) {
+    try {
+      const runIds =
+        selectedRun !== undefined
+          ? [selectedRun.runId]
+          : read.runs.map((run) => run.runId);
+      const traceDir = resolveTraceDir({ dir: options.dir });
+      const sourceContents = new Map<string, string>();
+      let combined = "";
+      for (const runId of runIds) {
+        const tracePath = getTraceFilePath(runId, traceDir);
+        let raw = "";
+        try {
+          raw = await readFile(tracePath, "utf-8");
+        } catch {
+          // Fall back to re-serializing known events for this run when file missing.
+          raw = `${read.events
+            .filter((event) => event.runId === runId)
+            .map((event) => JSON.stringify(event))
+            .join("\n")}\n`;
+        }
+        sourceContents.set(runId, raw);
+        const redacted = redactTraceContent(raw, "strict");
+        combined += redacted.content.endsWith("\n")
+          ? redacted.content
+          : `${redacted.content}\n`;
+      }
+      const checkResultsJson = writeJson({
+        aggregateStatus: toEvidenceStatus(status),
+        runs: runIds.map((runId) => ({
+          runId,
+          status: toEvidenceStatus(status),
+          errors: check.summary.errors,
+          warnings: check.summary.warnings,
+          findings: check.findings.length,
+        })),
+      });
+      const evidencePackage = buildEvidenceCiPackage({
+        generatorVersion: packageVersion,
+        runIds,
+        sourceContents,
+        redactedTraceJsonl: combined,
+        redactionProfile: "strict",
+        assessmentStatus: toEvidenceStatus(status),
+        checkResultsJson,
+        summaryText: renderMarkdown(trace, check, diff),
+      });
+      await writeArtifact(outputDir, "evidence.html", evidencePackage["evidence.html"], files);
+      await writeArtifact(outputDir, "evidence.json", evidencePackage["evidence.json"], files);
+      await writeArtifact(
+        outputDir,
+        "check-results.json",
+        evidencePackage["check-results.json"],
+        files,
+      );
+      await writeArtifact(outputDir, "trace.jsonl", evidencePackage["trace.jsonl"], files);
+      // Ensure standard CI descriptors stay aligned with written files.
+      const expected = createEvidenceCiArtifacts({ redactionProfile: "strict" }).map((a) => a.path);
+      for (const name of expected) {
+        if (!files.includes(name)) {
+          throw new Error(`Evidence CI package missing expected file: ${name}`);
+        }
+      }
+    } catch (error) {
+      console.error(
+        `[AgentInspect] evidence package skipped: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
   const summaryTarget = options.githubSummary ?? process.env.GITHUB_STEP_SUMMARY;
   if (summaryTarget !== undefined && summaryTarget.trim() !== "") {
     await mkdir(path.dirname(path.resolve(summaryTarget)), { recursive: true });
@@ -358,7 +466,7 @@ export async function artifactsCommand(
 
   const manifestFiles = [...files, "manifest.json"].sort((a, b) => a.localeCompare(b));
   const manifest: ArtifactManifest = {
-    status: manifestStatus(check, diff),
+    status,
     outputDir,
     files: manifestFiles,
     trace,
