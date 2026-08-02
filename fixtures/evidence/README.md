@@ -1,9 +1,6 @@
-# Evidence fixtures (v6.10+)
+# Evidence fixtures
 
-Synthetic Evidence v2 examples. No production traces. No secrets.
+- `evidence.v1.example.json` — Evidence format contract example (6.10-0)
+- `xss-corpus.json` — synthetic XSS payloads for HTML escaping regression (6.10-9)
 
-| File | Role |
-|------|------|
-| `evidence.v1.example.json` | Canonical `evidenceFormatVersion: "1.0"` shape for contract tests |
-
-Authority: [docs/EVIDENCE-FORMAT.md](../../docs/EVIDENCE-FORMAT.md).
+These fixtures contain no real secrets. XSS strings are intentional attack samples for escaping tests only.
