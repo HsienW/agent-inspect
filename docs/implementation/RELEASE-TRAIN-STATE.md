@@ -10,9 +10,9 @@ trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.11-4"
-lastConfirmedCommit: "274f94f"
-nextAction: "Land 6.11-4; continue through 6.12-12"
+currentChunk: "6.11-7"
+lastConfirmedCommit: "6bb902d"
+nextAction: "Land 6.11-7; continue 6.11-8 Flagship no-key recipe"
 pendingManualGate: null
 updatedAt: "2026-08-02"
 ```

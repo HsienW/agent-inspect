@@ -1,6 +1,35 @@
 # Claude Code — AgentInspect debug loop
 
-1. `npx agent-inspect mcp configure --client claude-code`
-2. Add the printed `mcpServers` entry to Claude Code MCP settings (project-local preferred).
-3. Use read-only tools to locate the first causal failure and contract failures.
-4. Apply code fixes in the repo yourself; re-run tests; then create share-checked evidence.
+Paste into Claude Code **project instructions** or a repo-local `CLAUDE.md` section.
+
+## Configure MCP
+
+```bash
+npx agent-inspect mcp configure --client claude-code
+# project-local write:
+npx agent-inspect mcp configure --client claude-code --project-local --write --yes
+```
+
+Merge the printed `mcpServers.agent-inspect` block into Claude Code MCP settings. Prefer project-local config (`.mcp.json`) so trace scope stays with the repo.
+
+## Debug workflow
+
+AgentInspect is **read-only**. You edit code; MCP inspects local traces.
+
+1. Run the TypeScript agent so JSONL traces land in `.agent-inspect`.
+2. Call `list_recent_failures` to find the latest failed run.
+3. Call `get_first_causal_failure` for deterministic first-failure evidence (do not infer from timing alone).
+4. Call `get_execution_tree` / `get_slowest_path` to inspect the tool path.
+5. Call `compare_runs` against the last successful run when one exists.
+6. Call `get_contract_failures` for contract/check context.
+7. Suggest and apply a code fix in the repository.
+8. Rerun the app or test suite; confirm contracts pass.
+9. Call `create_share_checked_evidence` for a portable, share-redacted artifact.
+
+## Do not
+
+- Ask MCP to modify source files or execute the target application's tools.
+- Treat model-generated summaries as ground truth over MCP evidence ids.
+- Share unredacted traces or disable share redaction by default.
+
+See [README.md](./README.md) · [CODING-AGENT-LOOP.md](../CODING-AGENT-LOOP.md).

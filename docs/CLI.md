@@ -1062,4 +1062,4 @@ agent-inspect mcp configure --client claude-code --project-local
 agent-inspect mcp configure --client cursor --project-local --write --yes
 ```
 
-Dry-run by default. Writes project-local files only with `--project-local --write --yes`. No network; share redaction by default. See [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md).
+Dry-run by default. Writes project-local files only with `--project-local --write --yes`. No network; share redaction by default. See [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) and [coding-agent-instructions/](./coding-agent-instructions/).
