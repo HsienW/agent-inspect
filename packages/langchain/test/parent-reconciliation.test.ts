@@ -89,6 +89,22 @@ describe("parent reconciliation", () => {
     expect(resolution.parentStepId).toBeUndefined();
   });
 
+  it("marks unobserved non-semantic parents unresolved", () => {
+    const resolution = resolveParentRelationship(
+      { parentLcRunId: "missing-parent" },
+      {
+        exactStepByLcRunId: () => undefined,
+        uniqueStepByLangGraphKey: () => undefined,
+        uniqueStepBySemanticLabel: () => undefined,
+      },
+    );
+    expect(resolution).toEqual({
+      confidence: "unresolved",
+      parentMapping: "unresolved",
+      unresolvedParentRunId: "missing-parent",
+    });
+  });
+
   it("applies resolution metadata without fabricating edges", () => {
     const metadata: Record<string, unknown> = {};
     applyParentResolutionMetadata(metadata, {

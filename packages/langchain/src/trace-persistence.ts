@@ -85,6 +85,10 @@ export class LangChainTracePersistence {
   readonly #langGraphIndex = new Map<string, string | null>();
   /** Semantic / display label → stepId, or null when ambiguous. */
   readonly #semanticLabelIndex = new Map<string, string | null>();
+  /** Semantic label → synthetic step id (created once ≥2 siblings share the label). */
+  readonly #syntheticByLabel = new Map<string, string>();
+  /** Count of unresolved semantic-parent children seen per label (this invocation). */
+  readonly #semanticParentCounts = new Map<string, number>();
   #lateEventCount = 0;
 
   constructor(options: LangChainTracePersistenceOptions = {}) {
@@ -153,6 +157,8 @@ export class LangChainTracePersistence {
     this.#lcToStepId.clear();
     this.#langGraphIndex.clear();
     this.#semanticLabelIndex.clear();
+    this.#syntheticByLabel.clear();
+    this.#semanticParentCounts.clear();
   }
 
   #registerUnique(
@@ -226,6 +232,74 @@ export class LangChainTracePersistence {
     );
   }
 
+  /**
+   * When ≥2 steps share the same unresolved semantic parent label, emit one
+   * synthetic grouping node and attach this (and later) siblings under it.
+   * The first sibling remains unresolved (append-only JSONL cannot rewrite it).
+   */
+  async #maybeAttachSyntheticGroup(
+    resolution: ParentResolution,
+    startTime: number,
+  ): Promise<ParentResolution> {
+    const label = resolution.semanticParentLabel;
+    if (
+      resolution.parentMapping !== "unresolved" ||
+      !label ||
+      resolution.parentStepId
+    ) {
+      return resolution;
+    }
+
+    const existing = this.#syntheticByLabel.get(label);
+    if (existing) {
+      return {
+        parentStepId: existing,
+        confidence: "synthetic",
+        parentMapping: "synthetic-group",
+        semanticParentLabel: label,
+        unresolvedParentRunId: label,
+      };
+    }
+
+    const nextCount = (this.#semanticParentCounts.get(label) ?? 0) + 1;
+    this.#semanticParentCounts.set(label, nextCount);
+    if (nextCount < 2) {
+      return resolution;
+    }
+
+    const syntheticStepId = createStepId();
+    this.#syntheticByLabel.set(label, syntheticStepId);
+    const metadata: StepMetadata = {
+      adapter: "langchain",
+      confidence: "synthetic",
+      synthetic: true,
+      parentMapping: "synthetic-group",
+      parentConfidence: "synthetic",
+      semanticParentLabel: label,
+      unresolvedParentRunId: label,
+    };
+    const event: TraceEvent = {
+      schemaVersion: "0.1",
+      event: "step_started",
+      timestamp: startTime,
+      runId: this.#runId,
+      stepId: syntheticStepId,
+      name: `synthetic:${label}`,
+      type: "logic",
+      startTime,
+      metadata,
+    };
+    await this.#write(event);
+
+    return {
+      parentStepId: syntheticStepId,
+      confidence: "synthetic",
+      parentMapping: "synthetic-group",
+      semanticParentLabel: label,
+      unresolvedParentRunId: label,
+    };
+  }
+
   /** Rotate when a prior standalone invocation already finalized. */
   #prepareForStart(): void {
     if (this.#standalone && this.#lifecycle.finalized) {
@@ -271,7 +345,10 @@ export class LangChainTracePersistence {
         await this.#ensureRunStarted(params.startTime, params.attributes);
       }
 
-      const resolution = this.#resolveParent(params.lcParentRunId, params.attributes);
+      const resolution = await this.#maybeAttachSyntheticGroup(
+        this.#resolveParent(params.lcParentRunId, params.attributes),
+        params.startTime,
+      );
       const metadata = toStepMetadata(params.attributes);
       applyParentResolutionMetadata(metadata, resolution);
 
@@ -331,13 +408,13 @@ export class LangChainTracePersistence {
             (params.completionAttributes.kind as InspectKind | undefined) ?? "LLM",
           stepId,
         });
-        const resolution = this.#resolveParent(
-          params.lcParentRunId,
-          params.completionAttributes,
+        const startTime = params.endTime - (params.durationMs ?? 0);
+        const resolution = await this.#maybeAttachSyntheticGroup(
+          this.#resolveParent(params.lcParentRunId, params.completionAttributes),
+          startTime,
         );
         const metadata = toStepMetadata(params.completionAttributes);
         applyParentResolutionMetadata(metadata, resolution);
-        const startTime = params.endTime - (params.durationMs ?? 0);
         const started: TraceEvent = {
           schemaVersion: "0.1",
           event: "step_started",
@@ -424,7 +501,10 @@ export class LangChainTracePersistence {
         await this.#ensureRunStarted(params.timestamp, params.attributes);
       }
 
-      const resolution = this.#resolveParent(params.lcParentRunId, params.attributes);
+      const resolution = await this.#maybeAttachSyntheticGroup(
+        this.#resolveParent(params.lcParentRunId, params.attributes),
+        params.timestamp,
+      );
       const metadata = toStepMetadata(params.attributes);
       applyParentResolutionMetadata(metadata, resolution);
 
@@ -525,6 +605,20 @@ export class LangChainTracePersistence {
     errorMessage?: string,
   ): Promise<void> {
     if (!markFinalized(this.#lifecycle)) return;
+
+    for (const [, syntheticStepId] of this.#syntheticByLabel) {
+      const completed: TraceEvent = {
+        schemaVersion: "0.1",
+        event: "step_completed",
+        timestamp: endTime,
+        runId: this.#runId,
+        stepId: syntheticStepId,
+        status: "success",
+        endTime,
+        durationMs: Math.max(0, endTime - (this.#lifecycle.runStartTime ?? endTime)),
+      };
+      await this.#write(completed);
+    }
 
     const startTime = this.#lifecycle.runStartTime ?? endTime;
     const durationMs = Math.max(0, endTime - startTime);

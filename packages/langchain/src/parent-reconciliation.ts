@@ -12,9 +12,10 @@ export type ParentMappingKind =
   | "exact"
   | "langgraph-metadata"
   | "semantic-name"
+  | "synthetic-group"
   | "unresolved";
 
-export type ParentConfidence = "explicit" | "correlated" | "unresolved";
+export type ParentConfidence = "explicit" | "correlated" | "synthetic" | "unresolved";
 
 export interface ParentResolution {
   readonly parentStepId?: string;
@@ -144,6 +145,15 @@ export function resolveParentRelationship(
     };
   }
 
+  // 5. Unresolved and visible (unobserved callback / external id)
+  if (parentLcRunId) {
+    return {
+      confidence: "unresolved",
+      parentMapping: "unresolved",
+      unresolvedParentRunId: parentLcRunId,
+    };
+  }
+
   // No parent reference — root-like step (not unresolved).
   return {
     confidence: "explicit",
@@ -173,5 +183,8 @@ export function applyParentResolutionMetadata(
   }
   if (resolution.correlatedVia) {
     metadata.parentCorrelatedVia = resolution.correlatedVia;
+  }
+  if (resolution.parentMapping === "synthetic-group") {
+    metadata.synthetic = true;
   }
 }
