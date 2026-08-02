@@ -142,19 +142,3 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
   await runReadOnlyMcpServer(parsed.options);
   return 0;
 }
-
-const isDirectRun =
-  typeof process.argv[1] === "string" &&
-  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-
-if (isDirectRun || process.argv[1]?.endsWith(`${path.sep}cli.cjs`) || process.argv[1]?.endsWith(`${path.sep}cli.mjs`)) {
-  main().then(
-    (code) => {
-      if (code !== 0) process.exitCode = code;
-    },
-    (error) => {
-      process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-      process.exitCode = 1;
-    },
-  );
-}
