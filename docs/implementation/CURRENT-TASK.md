@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-stability-and-focus-v6.7.3-to-v7-decision
 currentTrain: v6.9.0-safety-precision
 trainStatus: in-progress
-currentChunk: 6.9-1
-nextAction: Land 6.9-1 category/confidence; then 6.9-2 path-aware raw-content
+currentChunk: 6.9-2
+nextAction: Land 6.9-2; then 6.9-3 card/UUID/path/email precision
 canonicalRoadmap: docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md
 activePlan: docs/implementation/release-trains/V6.9.0-EXECUTION-PLAN.md
 ```

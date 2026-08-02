@@ -452,6 +452,11 @@ export interface SafetyRedactionRuleOptions {
  */
 export interface SafetyRawContentRuleOptions {
   forbiddenKeys?: readonly string[];
+  /**
+   * Path prefixes (dot-separated, case-insensitive) whose terminal keys are
+   * treated as metrics rather than raw prompts (e.g. `tokenUsage`, `usage`).
+   */
+  safePathPrefixes?: readonly string[];
   includeSummaries?: boolean;
   maxFindings?: number;
 }
@@ -594,6 +599,26 @@ const DEFAULT_RAW_CONTENT_KEYS = [
   "tooloutput",
   "tool_output",
 ];
+
+/** Parent path segments that hold token/usage metrics, not prompts. */
+const DEFAULT_SAFE_RAW_CONTENT_PATH_PREFIXES = ["tokenUsage", "usage"] as const;
+
+const SAFE_USAGE_LEAF_KEYS = new Set([
+  "input",
+  "output",
+  "total",
+  "cached",
+  "input_tokens",
+  "inputtokens",
+  "output_tokens",
+  "outputtokens",
+  "total_tokens",
+  "totaltokens",
+  "prompt_tokens",
+  "prompttokens",
+  "completion_tokens",
+  "completiontokens",
+]);
 
 const DEFAULT_SECRET_PATTERNS: readonly SafetySecretPattern[] = [
   { id: "bearer-token", pattern: /Bearer\s+[A-Za-z0-9._~+/-]{12,}=*/ },
@@ -1104,6 +1129,35 @@ function isRawContentKey(key: string | undefined, forbiddenKeys: readonly string
   if (!key) return false;
   const normalized = normalizedKey(key);
   return forbiddenKeys.some((forbidden) => normalized === normalizedKey(forbidden));
+}
+
+/**
+ * True when the entry is under a metrics path (tokenUsage / usage) whose leaf
+ * is a count field — not a raw prompt/output payload.
+ */
+function isSafeRawContentMetricPath(
+  path: string,
+  key: string | undefined,
+  safePathPrefixes: readonly string[],
+): boolean {
+  const leaf = normalizedKey(key ?? lastPathSegment(path));
+  if (!SAFE_USAGE_LEAF_KEYS.has(leaf)) return false;
+
+  const parts = path.split(".").filter(Boolean);
+  if (parts.length < 2) return false;
+  const parent = parts[parts.length - 2] ?? "";
+  const parentNorm = normalizedKey(parent);
+  return safePathPrefixes.some((prefix) => parentNorm === normalizedKey(prefix));
+}
+
+function isRawContentPath(
+  path: string,
+  key: string | undefined,
+  forbiddenKeys: readonly string[],
+  safePathPrefixes: readonly string[],
+): boolean {
+  if (isSafeRawContentMetricPath(path, key, safePathPrefixes)) return false;
+  return isRawContentKey(key ?? lastPathSegment(path), forbiddenKeys);
 }
 
 function parentMarkedUnresolved(event: PersistedInspectEvent): boolean {
@@ -2252,6 +2306,7 @@ export function createSafetyRawContentRule(
   options: SafetyRawContentRuleOptions = {},
 ): TraceCheckRule {
   const forbiddenKeys = options.forbiddenKeys ?? DEFAULT_RAW_CONTENT_KEYS;
+  const safePathPrefixes = options.safePathPrefixes ?? DEFAULT_SAFE_RAW_CONTENT_PATH_PREFIXES;
   return {
     id: "safety.rawPrompt",
     category: "safety",
@@ -2261,7 +2316,7 @@ export function createSafetyRawContentRule(
       for (const event of context.events) {
         for (const entry of eventValueEntries(event, { includeSummaries: options.includeSummaries })) {
           const key = entry.key ?? lastPathSegment(entry.path);
-          if (!isRawContentKey(key, forbiddenKeys)) continue;
+          if (!isRawContentPath(entry.path, key, forbiddenKeys, safePathPrefixes)) continue;
           findings.push(
             failFinding(
               "safety.rawPrompt",

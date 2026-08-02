@@ -603,6 +603,29 @@ describe("built-in structure and safety checks", () => {
       "size",
     );
   });
+
+  it("does not treat tokenUsage/usage metric leaves as raw content", () => {
+    const event = persisted("event-metrics", {
+      attributes: {
+        tokenUsage: { input: 128, output: 64, total: 192 },
+        usage: { input_tokens: 128, output_tokens: 64 },
+        prompt: "real-prompt-should-flag",
+        input: "real-input-should-flag",
+      },
+    });
+    const result = runTraceChecks(
+      { read: readResult([event]) },
+      { rules: [createSafetyRawContentRule()] },
+    );
+    const paths = result.findings
+      .filter((finding) => finding.ruleId === "safety.rawPrompt")
+      .map((finding) => finding.evidence[0]?.path ?? "");
+    expect(paths.some((path) => path.includes("tokenUsage"))).toBe(false);
+    expect(paths.some((path) => path.includes("usage.input_tokens"))).toBe(false);
+    expect(paths).toContain("attributes.prompt");
+    expect(paths).toContain("attributes.input");
+    expect(JSON.stringify(result.findings)).not.toContain("real-prompt-should-flag");
+  });
 });
 
 describe("built-in baseline regression checks", () => {
