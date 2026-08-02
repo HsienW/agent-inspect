@@ -72,6 +72,8 @@ A synthetic group node may be created only when:
 
 Late ends after finalize produce diagnostics, not a second `run_completed`.
 
+`getDiagnostics()` returns **counts only** (late events, pending/known relationships, synthetic groups, finalized flag). No absolute paths or payloads — suitable for CLI/MCP summaries.
+
 ## Persist-by-intent
 
 Persistence defaults follow explicit options / environment intent:
@@ -90,6 +92,8 @@ Metadata-oriented capture remains the recommended default for shared traces.
 | Corpus | Role |
 |--------|------|
 | `fixtures/langgraph/*.jsonl` | Synthetic shapes (local, no provider) |
+| `packages/langchain/test/langgraph-no-provider-app.test.ts` | Real `@langchain/langgraph` StateGraph + tools |
+| `packages/langchain/test/langgraph-fixture-matrix.test.ts` | Parallel / stream / subgraph / error |
 | `examples/recipes/langgraph-callback-local` | Deterministic callback metadata recipe |
 | `examples/recipes/nestjs-langgraph-local` | Env-gated Nest-style wiring |
 | Real LangGraph apps / partner traces | **External gate** before publishing 6.8.0 |

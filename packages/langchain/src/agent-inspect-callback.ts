@@ -134,6 +134,45 @@ export class AgentInspectCallback extends BaseCallbackHandler {
   }
 
   /**
+   * Bounded adapter diagnostics for the current invocation (counts only).
+   * Safe for CLI/MCP summaries — no absolute paths or payloads.
+   *
+   * @experimental
+   */
+  getDiagnostics(): {
+    lateEventCount: number;
+    activeRunCount: number;
+    endedRunCount: number;
+    pendingRelationshipCount: number;
+    knownRelationshipCount: number;
+    syntheticGroupCount: number;
+    envelopeStarted: boolean;
+    finalized: boolean;
+    completionGeneration: number;
+    hasTerminalError: boolean;
+    inMemoryEventCount: number;
+    deferredPersistStartCount: number;
+  } {
+    const base = this.#persistence?.getDiagnostics() ?? {
+      lateEventCount: 0,
+      activeRunCount: 0,
+      endedRunCount: 0,
+      pendingRelationshipCount: 0,
+      knownRelationshipCount: 0,
+      syntheticGroupCount: 0,
+      envelopeStarted: false,
+      finalized: false,
+      completionGeneration: 0,
+      hasTerminalError: false,
+    };
+    return {
+      ...base,
+      inMemoryEventCount: this.#events.length,
+      deferredPersistStartCount: this.#deferredPersistStart.size,
+    };
+  }
+
+  /**
    * Drain deferred completion work (microtask finalization).
    * Idempotent. Failures are isolated and never thrown to user code.
    *

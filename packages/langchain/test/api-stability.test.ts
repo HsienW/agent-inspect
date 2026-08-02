@@ -12,6 +12,8 @@ describe("@agent-inspect/langchain API stability (v1.0 Pass 1)", () => {
 
     const _streamingOpts = null as unknown as lc.LangChainStreamingOptions;
     expect(_streamingOpts).toBeNull();
+    const _diag = null as unknown as lc.AdapterPersistenceDiagnostics;
+    expect(_diag).toBeNull();
   });
 
   it("AgentInspectCallback accepts streaming options", () => {
@@ -25,6 +27,12 @@ describe("@agent-inspect/langchain API stability (v1.0 Pass 1)", () => {
     expect(typeof cb.flush).toBe("function");
     expect(typeof cb.finalize).toBe("function");
     expect(typeof cb.close).toBe("function");
+    expect(typeof cb.getDiagnostics).toBe("function");
+    expect(cb.getDiagnostics()).toMatchObject({
+      lateEventCount: 0,
+      finalized: false,
+      inMemoryEventCount: 0,
+    });
     cb.clear();
     expect(cb.getEvents()).toEqual([]);
   });

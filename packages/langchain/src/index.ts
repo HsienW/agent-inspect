@@ -8,6 +8,7 @@ export type {
   LangChainRunMetadata,
   LangChainStreamingOptions,
 } from "./types.js";
+export type { AdapterPersistenceDiagnostics, FinalizeOptions } from "./trace-persistence.js";
 export {
   extractModelName,
   extractTokenUsage,

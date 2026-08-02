@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { readTraceEvents } from "agent-inspect/advanced";
 

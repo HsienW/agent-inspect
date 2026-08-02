@@ -49,6 +49,20 @@ export interface FinalizeOptions {
   endTime?: number;
 }
 
+/** Bounded persistence diagnostics (no absolute paths / customer payloads). */
+export interface AdapterPersistenceDiagnostics {
+  readonly lateEventCount: number;
+  readonly activeRunCount: number;
+  readonly endedRunCount: number;
+  readonly pendingRelationshipCount: number;
+  readonly knownRelationshipCount: number;
+  readonly syntheticGroupCount: number;
+  readonly envelopeStarted: boolean;
+  readonly finalized: boolean;
+  readonly completionGeneration: number;
+  readonly hasTerminalError: boolean;
+}
+
 function kindToStepType(kind: InspectKind): StepType {
   switch (kind) {
     case "LLM":
@@ -132,6 +146,22 @@ export class LangChainTracePersistence {
   /** Count of end/start events ignored after finalize (diagnostics). */
   get lateEventCount(): number {
     return this.#lateEventCount;
+  }
+
+  /** Bounded adapter diagnostics for CLI/MCP summaries (no filesystem paths). */
+  getDiagnostics(): AdapterPersistenceDiagnostics {
+    return {
+      lateEventCount: this.#lateEventCount,
+      activeRunCount: this.#lifecycle.activeRuns.size,
+      endedRunCount: this.#lifecycle.endedRuns.size,
+      pendingRelationshipCount: this.#lifecycle.pendingRelationships.length,
+      knownRelationshipCount: this.#lifecycle.knownRelationships.size,
+      syntheticGroupCount: this.#syntheticByLabel.size,
+      envelopeStarted: this.#lifecycle.envelopeStarted,
+      finalized: this.#lifecycle.finalized,
+      completionGeneration: this.#lifecycle.completionGeneration,
+      hasTerminalError: Boolean(this.#lifecycle.terminalError),
+    };
   }
 
   /**

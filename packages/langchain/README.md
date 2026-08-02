@@ -31,10 +31,16 @@ import { AgentInspectCallback } from "@agent-inspect/langchain";
 const handler = new AgentInspectCallback({
   traceDir: ".agent-inspect",
   runName: "my-chain",
-  persist: true,
+  // persist omitted: enabled automatically when traceDir is set
 });
 
-// Pass handler to your chain / runnable callbacks
+// Pass handler to your chain / LangGraph invoke callbacks
+await graph.invoke(input, { callbacks: [handler] });
+await handler.flush(); // optional — awaitHandlers already drains persistence
+await handler.close(); // serverless / unusual shapes — idempotent
+
+const d = handler.getDiagnostics();
+// counts only: lateEventCount, pendingRelationshipCount, finalized, …
 ```
 
 ## Privacy
@@ -46,8 +52,12 @@ const handler = new AgentInspectCallback({
 
 | Export | Purpose |
 | ------ | ------- |
-| `AgentInspectCallback` | LangChain `BaseCallbackHandler` |
+| `AgentInspectCallback` | LangChain `BaseCallbackHandler` (`awaitHandlers`, `flush`/`finalize`/`close`, `getDiagnostics`) |
 | `extractModelName`, `safePreview` | Metadata helpers |
+
+## Fidelity
+
+See [LANGGRAPH-FIDELITY.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/LANGGRAPH-FIDELITY.md) for the LangGraph/LangChain adapter contract (lifecycle, parents, tool identity, persist-by-intent).
 
 ## CLI
 
@@ -70,8 +80,10 @@ and review the generated artifact for sensitive metadata.
 
 ## Troubleshooting
 
-- **Empty trace:** Set `persist: true` and ensure callbacks are attached to the runnable
-- **LangGraph:** Route through LangChain callback surfaces where possible
+- **Empty trace:** Provide `traceDir` (persist-by-intent) or `persist: true`, and attach callbacks to invoke/stream
+- **LangGraph:** Prefer `{ callbacks: [handler] }` on `invoke`/`stream`; tool nodes should forward runnable `config`
+- **Incomplete run:** Call `await handler.finalize()` / `close()` on shutdown; check `getDiagnostics().lateEventCount`
+- **Unresolved parents:** Expected for semantic labels like `LangGraph` / `__start__` when no unique match exists — visible in step metadata
 
 
 ## Version
