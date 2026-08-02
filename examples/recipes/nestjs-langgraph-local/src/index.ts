@@ -80,7 +80,9 @@ await cb.handleToolStart(
 );
 await cb.handleToolEnd({ ok: true } as never, "tool-1" as never, "node-1" as never);
 await cb.handleChainEnd({ ok: true } as never, "node-1" as never, "external-root" as never);
+await cb.close?.();
 
+const diagnostics = cb.getDiagnostics?.() ?? {};
 const events = await readTraceEvents(runId, absoluteTraceDir);
 const eventNames = events.map((event) => event.event);
 const eventsJson = JSON.stringify(events);
@@ -92,6 +94,8 @@ console.log(`  relativeTraceDir: ${relativeTraceDir}`);
 console.log(`  events: ${eventNames.join(", ")}`);
 console.log(`  run_completed: ${eventNames.includes("run_completed")}`);
 console.log(`  absolute path leaked: ${eventsJson.includes(absoluteTraceDir)}`);
+console.log(`  diagnostics.finalized: ${String(diagnostics.finalized)}`);
+console.log(`  diagnostics.lateEventCount: ${String(diagnostics.lateEventCount ?? 0)}`);
 console.log("");
 console.log("Inspect:");
 console.log(

@@ -4,6 +4,7 @@
  * - Lazy-imports `@agent-inspect/langchain` only when enabled (dev/local).
  * - Returns `[]` when disabled so production callback arrays stay unchanged.
  * - Uses metadata-only capture and a workspace-relative trace directory.
+ * - Persist-by-intent: `traceDir` alone enables JSONL persistence.
  */
 
 export type AgentInspectCallbackLike = {
@@ -11,6 +12,10 @@ export type AgentInspectCallbackLike = {
   handleChainEnd: (...args: never[]) => Promise<void>;
   handleToolStart: (...args: never[]) => Promise<void>;
   handleToolEnd: (...args: never[]) => Promise<void>;
+  flush?: () => Promise<void>;
+  finalize?: (options?: { status?: "success" | "error" }) => Promise<void>;
+  close?: () => Promise<void>;
+  getDiagnostics?: () => Record<string, unknown>;
 };
 
 export function isAgentInspectEnabled(
@@ -26,9 +31,9 @@ export function isAgentInspectEnabled(
  * Usage in a Nest provider (conceptual — this recipe does not import Nest):
  *
  * ```ts
- * const result = await graph.invoke(input, {
- *   callbacks: [...(await createAgentInspectCallbacks()), ...otherCallbacks],
- * });
+ * const callbacks = await createAgentInspectCallbacks();
+ * const result = await graph.invoke(input, { callbacks });
+ * await callbacks[0]?.close?.();
  * ```
  */
 export async function createAgentInspectCallbacks(options: {
@@ -45,11 +50,11 @@ export async function createAgentInspectCallbacks(options: {
   // Lazy import: production builds that never set AGENT_INSPECT never load the adapter.
   const { AgentInspectCallback } = await import("@agent-inspect/langchain");
   const callback = new AgentInspectCallback({
-    persist: true,
     capture: "metadata-only",
     runId: options.runId ?? `run_nestjs_langgraph_${Date.now()}`,
     runName: options.runName ?? "nestjs-langgraph",
     // Prefer relative paths so event metadata never embeds absolute machine paths.
+    // Persist-by-intent: traceDir alone enables persistence.
     traceDir: options.traceDir ?? ".agent-inspect/langchain",
   });
   return [callback as unknown as AgentInspectCallbackLike];

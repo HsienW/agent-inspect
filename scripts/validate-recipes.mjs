@@ -31,6 +31,7 @@ const RECIPES = [
   "openai-agents-local-tracing",
   "langgraph-callback-local",
   "nestjs-langgraph-local",
+  "langgraph-swarm-local",
   "harness-basic",
   "harness-adapter-local",
   "eval-local-checks",

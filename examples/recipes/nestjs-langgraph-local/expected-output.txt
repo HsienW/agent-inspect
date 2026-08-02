@@ -5,6 +5,8 @@ NestJS/LangGraph recipe complete
   events: run_started, step_started, step_started, step_completed, step_completed, run_completed
   run_completed: true
   absolute path leaked: false
+  diagnostics.finalized: true
+  diagnostics.lateEventCount: 0
 
 Inspect:
   npx agent-inspect list --dir ./examples/recipes/nestjs-langgraph-local/.agent-inspect/langchain

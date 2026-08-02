@@ -1,0 +1,10 @@
+LangGraph swarm recipe complete
+  events: run_started, step_started, step_started, step_completed, step_started, step_started, step_completed, step_completed, step_completed, run_completed
+  run_completed: true
+  worker parentMapping: langgraph-metadata
+  tool name: tool:fetch_itinerary
+  diagnostics.finalized: true
+
+Inspect:
+  npx agent-inspect list --dir ./examples/recipes/langgraph-swarm-local/.agent-inspect-runs
+  npx agent-inspect view run_langgraph_swarm_recipe --dir ./examples/recipes/langgraph-swarm-local/.agent-inspect-runs

@@ -8,28 +8,29 @@
 baselineVersion: "6.7.5"
 publishedVersion: "6.7.5"
 currentTrain: "v6.8.0-langgraph-fidelity"
-trainStatus: "in-progress"
+trainStatus: "blocked-on-langgraph-validation"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "6.8-11-recipes"
-lastConfirmedCommit: "256c6c9"
-lastValidationLevel: "langchain vitest + typecheck"
-nextAction: "Land 6.8-11 recipes; then evaluate 6.8-12 external gate"
+currentChunk: "6.8-12-external-validation"
+lastConfirmedCommit: "bb8a7f8"
+lastValidationLevel: "langchain vitest + typecheck + recipes:check"
+nextAction: "HARD STOP — two independent external LangGraph fidelity validations required before 6.8.0 publish; then v6.9+"
 pendingManualGate: "v6.8-12 requires two external LangGraph fidelity validations"
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
   - "v6.4.1 through v6.7.5 npm publication"
-  - "6.7.5 consumer/native/DX train (doctor, sqlite, jest, aliases, recipe)"
-  - "6.8-0 through 6.8-10 LangGraph fidelity implementation chunks"
+  - "6.7.5 consumer/native/DX train"
+  - "6.8-0 through 6.8-11 LangGraph fidelity implementation (blocked at 6.8-12 gate)"
 remainingTrains:
-  - "v6.8.0 LangGraph fidelity contract (in progress — diagnostics/recipes/gate)"
+  - "v6.8.0 publication (blocked on external validation)"
   - "v6.9.0 Safety precision and share policy"
   - "v6.10.0 Portable Evidence v2"
   - "v6.11.0 Local coding-agent debug loop"
   - "v6.12.0 Consolidation and stable launch candidate"
   - "v6.12 adoption checkpoint (eight weeks)"
 blockedTrains:
+  - "v6.8.0 npm publication (external LangGraph fidelity gate)"
   - "v7.0.0 (conditional — assessment only; not scheduled)"
 updatedAt: "2026-08-02"
 ```
@@ -37,6 +38,5 @@ updatedAt: "2026-08-02"
 ## Quick links
 
 - **Active plan:** [release-trains/V6.8.0-EXECUTION-PLAN.md](./release-trains/V6.8.0-EXECUTION-PLAN.md)
-- **Prior readiness:** [release-trains/V6.7.5-RELEASE-READINESS.md](./release-trains/V6.7.5-RELEASE-READINESS.md)
 - **Fidelity contract:** [../LANGGRAPH-FIDELITY.md](../LANGGRAPH-FIDELITY.md)
 - **Maintainer rules:** [AGENTS.md](../../AGENTS.md)
