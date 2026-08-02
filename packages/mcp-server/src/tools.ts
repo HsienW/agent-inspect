@@ -7,6 +7,7 @@ import {
   buildRunWhatSummary,
   bundleFailsOnSafety,
   extractOutcomesFromTraceEvents,
+  findFirstCausalFailure,
   loadTraceMetadataList,
   renderRunWhat,
   resolveTraceDir,
@@ -63,8 +64,7 @@ export const FLAGSHIP_TOOLS: McpToolDefinition[] = [
   },
   {
     name: "get_first_causal_failure",
-    description:
-      "First causal failure evidence for one run (conservative; full engine in 6.11-4).",
+    description: "First causal failure evidence for one run (conservative ordered engine).",
     inputSchema: RUN_ID_SCHEMA,
   },
   {
@@ -176,7 +176,6 @@ const FLAGSHIP_HANDLER_ALIAS: Record<string, string> = {
   list_recent_runs: "list_traces",
   get_run_summary: "summarize_failed_run",
   get_execution_tree: "read_trace",
-  get_first_causal_failure: "find_first_error",
   get_slowest_path: "find_slowest_path",
   get_contract_failures: "run_checks",
   get_failed_observations: "find_failed_observation",
@@ -316,6 +315,29 @@ export async function callReadOnlyTool(
     );
   }
 
+  if (name === "get_first_causal_failure") {
+    const runId = String(args.runId ?? "");
+    const { read } = await openRunTrace(context, runId);
+    const check = runTraceChecks(
+      { read },
+      { rules: [createRunStatusRule()], select: ["run.status"], runId },
+    );
+    const contractFindings = check.findings
+      .filter((finding) => finding.status === "fail")
+      .map((finding) => ({
+        ruleId: finding.ruleId,
+        status: finding.status,
+        evidenceIds: finding.evidence
+          .map((item) => item.eventId ?? item.parentId)
+          .filter((id): id is string => typeof id === "string" && id.length > 0),
+        message: finding.message,
+      }));
+    const failure = findFirstCausalFailure(legacyTraceEvents(read.events), {
+      contractFindings,
+    });
+    return deliverMcpPayload({ runId, ...failure }, context);
+  }
+
   const handlerName = FLAGSHIP_HANDLER_ALIAS[name] ?? name;
 
   switch (handlerName) {
@@ -376,15 +398,6 @@ export async function callReadOnlyTool(
         {
           runId,
           firstError: firstError ?? null,
-          ...(name === "get_first_causal_failure"
-            ? {
-                engine: "timeline-first-error",
-                enginePending: "full causal-failure engine lands in 6.11-4",
-                rationale: firstError
-                  ? "First timeline entry marked isError (conservative; no timing-only inference)."
-                  : "No explicit error entry found.",
-              }
-            : {}),
         },
         context,
       );

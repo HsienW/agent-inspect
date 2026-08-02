@@ -96,6 +96,7 @@ describe("core API stability (v2.0 root contract)", () => {
     expect(typeof advanced.buildSessionIndex).toBe("function");
     expect(typeof advanced.buildEvidenceManifest).toBe("function");
     expect(typeof advanced.buildEvidenceHtmlShell).toBe("function");
+    expect(typeof advanced.findFirstCausalFailure).toBe("function");
     expect(typeof advanced.sha256Hex).toBe("function");
   });
 

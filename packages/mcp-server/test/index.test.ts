@@ -45,9 +45,11 @@ describe("@agent-inspect/mcp-server", () => {
     const causal = await callReadOnlyTool(context, "get_first_causal_failure", { runId });
     expect(causal.isError).toBe(false);
     const payload = JSON.parse(causal.content[0]!.text as string) as {
-      enginePending?: string;
+      engine?: string;
+      kind?: string;
     };
-    expect(payload.enginePending).toMatch(/6\.11-4/);
+    expect(payload.engine).toBe("conservative-causal-v1");
+    expect(payload.kind).toBeTruthy();
   });
 
   it("defaults redaction profile to share", () => {

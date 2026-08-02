@@ -162,6 +162,14 @@ export type { RunWhatSummary, RenderWhatOptions } from "../what.js";
 export { buildRunWhatSummary, renderRunWhat } from "../what.js";
 
 export type {
+  CausalContractFindingInput,
+  CausalFailureKind,
+  FindFirstCausalFailureOptions,
+  FirstCausalFailure,
+} from "../causal-failure.js";
+export { findFirstCausalFailure } from "../causal-failure.js";
+
+export type {
   ExplainFact,
   ExplainInference,
   ExplainMode,
