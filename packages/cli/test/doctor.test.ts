@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -8,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { doctorCommand, resolveInstalledPackage, runDoctorChecks } from "../src/doctor.js";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+const coreDistPresent = existsSync(path.join(repoRoot, "packages/core/dist/index.cjs"));
 
 describe("doctor CLI", () => {
   let tmpDir: string;
@@ -63,17 +65,20 @@ describe("doctor CLI", () => {
     );
   });
 
-  it("resolves installed packages via entry when package.json is not exported", async () => {
-    const checks = await runDoctorChecks({
-      cwd: repoRoot,
-      checkImports: true,
-      framework: "custom",
-    });
-    expect(checks.find((check) => check.id === "import-agent-inspect")?.status).toBe("pass");
-    expect(checks.find((check) => check.id === "import-agent-inspect-cjs")?.status).toBe("pass");
-    expect(checks.find((check) => check.id === "version-alignment")?.status).toBe("pass");
-    const resolved = resolveInstalledPackage(repoRoot, "agent-inspect");
-    expect(resolved.ok).toBe(true);
-    expect(resolved.version).toMatch(/^\d+\.\d+\.\d+/);
-  });
+  it.runIf(coreDistPresent)(
+    "resolves installed packages via entry when package.json is not exported",
+    async () => {
+      const checks = await runDoctorChecks({
+        cwd: repoRoot,
+        checkImports: true,
+        framework: "custom",
+      });
+      expect(checks.find((check) => check.id === "import-agent-inspect")?.status).toBe("pass");
+      expect(checks.find((check) => check.id === "import-agent-inspect-cjs")?.status).toBe("pass");
+      expect(checks.find((check) => check.id === "version-alignment")?.status).toBe("pass");
+      const resolved = resolveInstalledPackage(repoRoot, "agent-inspect");
+      expect(resolved.ok).toBe(true);
+      expect(resolved.version).toMatch(/^\d+\.\d+\.\d+/);
+    },
+  );
 });

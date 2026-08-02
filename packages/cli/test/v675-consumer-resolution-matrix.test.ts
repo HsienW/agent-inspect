@@ -16,6 +16,7 @@ import { resolveInstalledPackage, runDoctorChecks } from "../src/doctor.js";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, "../../..");
+const coreDistPresent = existsSync(path.join(repoRoot, "packages/core/dist/index.cjs"));
 
 const MATRIX_PACKAGES: { name: string; manifestRel: string }[] = [
   { name: "agent-inspect", manifestRel: "package.json" },
@@ -62,64 +63,68 @@ describe("v6.7.5-0 consumer package-resolution matrix", () => {
     }
   });
 
-  it("package entry resolves while package.json subpath is blocked by exports", () => {
-    const rows: {
-      name: string;
-      entryOk: boolean;
-      pkgJsonOk: boolean;
-      pkgJsonCode?: string;
-    }[] = [];
+  it.runIf(coreDistPresent)(
+    "package entry resolves while package.json subpath is blocked by exports",
+    () => {
+      const rows: {
+        name: string;
+        entryOk: boolean;
+        pkgJsonOk: boolean;
+        pkgJsonCode?: string;
+      }[] = [];
 
-    for (const pkg of MATRIX_PACKAGES) {
-      const manifestAbs = path.join(repoRoot, pkg.manifestRel);
-      expect(existsSync(manifestAbs), pkg.manifestRel).toBe(true);
-      const requireFn = createRequire(manifestAbs);
-      const entry = tryResolve(requireFn, pkg.name);
-      const pkgJson = tryResolve(requireFn, `${pkg.name}/package.json`);
-      rows.push({
-        name: pkg.name,
-        entryOk: entry.ok,
-        pkgJsonOk: pkgJson.ok,
-        pkgJsonCode: pkgJson.code,
+      for (const pkg of MATRIX_PACKAGES) {
+        const manifestAbs = path.join(repoRoot, pkg.manifestRel);
+        expect(existsSync(manifestAbs), pkg.manifestRel).toBe(true);
+        const requireFn = createRequire(manifestAbs);
+        const entry = tryResolve(requireFn, pkg.name);
+        const pkgJson = tryResolve(requireFn, `${pkg.name}/package.json`);
+        rows.push({
+          name: pkg.name,
+          entryOk: entry.ok,
+          pkgJsonOk: pkgJson.ok,
+          pkgJsonCode: pkgJson.code,
+        });
+      }
+
+      // Root package is always resolvable from its own manifest (workspace link).
+      const root = rows.find((row) => row.name === "agent-inspect");
+      expect(root?.entryOk).toBe(true);
+      expect(root?.pkgJsonOk).toBe(false);
+      expect(root?.pkgJsonCode).toBe("ERR_PACKAGE_PATH_NOT_EXPORTED");
+
+      for (const row of rows) {
+        expect(row.pkgJsonOk, `${row.name}/package.json should not resolve`).toBe(false);
+        expect(
+          row.pkgJsonCode,
+          `${row.name}/package.json error code`,
+        ).toMatch(/ERR_PACKAGE_PATH_NOT_EXPORTED|MODULE_NOT_FOUND/);
+      }
+
+      const selfResolvable = rows.filter((row) => row.entryOk);
+      expect(selfResolvable.map((row) => row.name)).toContain("agent-inspect");
+    },
+  );
+
+  it.runIf(coreDistPresent)(
+    "doctor never contradicts successful entry resolution for agent-inspect",
+    async () => {
+      const requireFn = createRequire(path.join(repoRoot, "package.json"));
+      expect(tryResolve(requireFn, "agent-inspect").ok).toBe(true);
+      expect(tryResolve(requireFn, "agent-inspect/package.json").ok).toBe(false);
+
+      const checks = await runDoctorChecks({
+        cwd: repoRoot,
+        checkImports: true,
+        traceDir: path.join(repoRoot, ".agent-inspect"),
       });
-    }
 
-    // Root package is always resolvable from its own manifest (workspace link).
-    const root = rows.find((row) => row.name === "agent-inspect");
-    expect(root?.entryOk).toBe(true);
-    expect(root?.pkgJsonOk).toBe(false);
-    expect(root?.pkgJsonCode).toBe("ERR_PACKAGE_PATH_NOT_EXPORTED");
-
-    for (const row of rows) {
-      expect(row.pkgJsonOk, `${row.name}/package.json should not resolve`).toBe(false);
-      expect(
-        row.pkgJsonCode,
-        `${row.name}/package.json error code`,
-      ).toMatch(/ERR_PACKAGE_PATH_NOT_EXPORTED|MODULE_NOT_FOUND/);
-    }
-
-    // At least the packages that declare themselves as the resolve context should
-    // load their entry when createRequire is rooted at their manifest.
-    const selfResolvable = rows.filter((row) => row.entryOk);
-    expect(selfResolvable.map((row) => row.name)).toContain("agent-inspect");
-  });
-
-  it("doctor never contradicts successful entry resolution for agent-inspect", async () => {
-    const requireFn = createRequire(path.join(repoRoot, "package.json"));
-    expect(tryResolve(requireFn, "agent-inspect").ok).toBe(true);
-    expect(tryResolve(requireFn, "agent-inspect/package.json").ok).toBe(false);
-
-    const checks = await runDoctorChecks({
-      cwd: repoRoot,
-      checkImports: true,
-      traceDir: path.join(repoRoot, ".agent-inspect"),
-    });
-
-    expect(checks.find((check) => check.id === "import-agent-inspect")?.status).toBe("pass");
-    expect(checks.find((check) => check.id === "import-agent-inspect-cjs")?.status).toBe("pass");
-    expect(checks.find((check) => check.id === "version-alignment")?.status).toBe("pass");
-    expect(checks.find((check) => check.id === "version-alignment")?.message).toMatch(/aligned/);
-  });
+      expect(checks.find((check) => check.id === "import-agent-inspect")?.status).toBe("pass");
+      expect(checks.find((check) => check.id === "import-agent-inspect-cjs")?.status).toBe("pass");
+      expect(checks.find((check) => check.id === "version-alignment")?.status).toBe("pass");
+      expect(checks.find((check) => check.id === "version-alignment")?.message).toMatch(/aligned/);
+    },
+  );
 
   it("doctor resolver reports unknown packages as not installed", () => {
     // Real package ids are Vitest-aliased in-repo; use a non-aliased name for absence.

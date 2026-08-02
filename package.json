@@ -214,7 +214,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "size": "size-limit --config size-limit.config.mjs",
-    "test:all": "pnpm run typecheck && pnpm run linked-versions:check && pnpm run test && pnpm run build && pnpm run size",
+    "test:all": "pnpm run typecheck && pnpm run linked-versions:check && pnpm run build && pnpm run test && pnpm run size",
     "prepublish:checks": "pnpm run typecheck && pnpm run test && pnpm run test:coverage && pnpm run build && pnpm run fixtures:check && pnpm run recipes:check && pnpm run size && pnpm run linked-versions:check && pnpm run pack:smoke",
     "prepublishOnly": "pnpm run prepublish:checks",
     "prepack": "pnpm run clean && pnpm run build",
