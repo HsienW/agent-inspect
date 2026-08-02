@@ -74,7 +74,16 @@ Late ends after finalize produce diagnostics, not a second `run_completed`.
 
 ## Persist-by-intent
 
-Persistence defaults follow explicit options / environment intent. Metadata-oriented capture remains the recommended default for shared traces.
+Persistence defaults follow explicit options / environment intent:
+
+| Options | Behavior |
+|---------|----------|
+| `traceDir` set, `persist` omitted | Persist on |
+| no `traceDir`, `persist` omitted | In-memory only |
+| `persist: false` | In-memory (even if `traceDir` set; construction warning) |
+| `persist: true` | Persist to supplied or default trace directory |
+
+Metadata-oriented capture remains the recommended default for shared traces.
 
 ## Validation corpus
 

@@ -17,12 +17,17 @@ export interface LangChainStreamingOptions {
 
 export interface AgentInspectCallbackOptions extends LangChainStreamingOptions {
   runName?: string;
+  /** Trace directory for JSONL. When set and `persist` is omitted, persistence is enabled. */
   traceDir?: string;
   silent?: boolean;
   capture?: CaptureMode;
   redact?: RedactionRule[];
   maxPreviewChars?: number;
-  /** When true, persist callback lifecycle as schemaVersion "0.1" JSONL (default false). */
+  /**
+   * Persist callback lifecycle as schemaVersion "0.1" JSONL.
+   * When omitted: enabled if `traceDir` is set, otherwise in-memory only.
+   * Explicit `false` forces in-memory even when `traceDir` is set.
+   */
   persist?: boolean;
   /** Optional run id for standalone persisted runs (defaults to generated id). */
   runId?: string;

@@ -34,6 +34,7 @@ import {
   type LlmStreamState,
 } from "./streaming-metadata.js";
 import { applyToolIdentityAttributes, resolveToolIdentity } from "./tool-identity.js";
+import { resolvePersistIntent } from "./persist-intent.js";
 import { LangChainTracePersistence } from "./trace-persistence.js";
 import type { AgentInspectCallbackOptions } from "./types.js";
 
@@ -83,16 +84,22 @@ export class AgentInspectCallback extends BaseCallbackHandler {
 
   constructor(options: AgentInspectCallbackOptions = {}) {
     super({});
+    const intent = resolvePersistIntent(options);
     this.#opts = {
       capture: options.capture ?? "metadata-only",
       silent: options.silent ?? false,
       maxPreviewChars: options.maxPreviewChars ?? 200,
-      persist: options.persist ?? false,
       runName: options.runName ?? "langchain-agent",
       ...options,
+      persist: intent.persist,
     };
     this.#redactor = new Redactor({ rules: this.#opts.redact });
-    if (this.#opts.persist) {
+    if (intent.contradictory && !this.#opts.silent) {
+      console.error(
+        "[agent-inspect:langchain] persist:false with traceDir set — traces stay in-memory; remove traceDir or set persist:true",
+      );
+    }
+    if (intent.persist) {
       this.#persistence = new LangChainTracePersistence({
         runName: this.#opts.runName,
         traceDir: this.#opts.traceDir,

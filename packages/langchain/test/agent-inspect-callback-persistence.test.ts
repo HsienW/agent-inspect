@@ -41,7 +41,7 @@ describe("AgentInspectCallback persistence", () => {
   });
 
   it("persist false keeps current in-memory behavior without JSONL", async () => {
-    const cb = new AgentInspectCallback({ traceDir, persist: false });
+    const cb = new AgentInspectCallback({ traceDir, persist: false, silent: true });
     await cb.handleLLMStart(mockSerialized("m"), ["secret"], "l1");
     expect(cb.getEvents().length).toBe(1);
     const files = await readdir(traceDir);
@@ -297,6 +297,7 @@ describe("AgentInspectCallback persistence", () => {
       const relativeCb = new AgentInspectCallback({
         traceDir: ".agent-inspect/langchain",
         persist: false,
+        silent: true,
       });
       await relativeCb.handleLLMStart(mockSerialized("m"), ["p"], "l1");
       const relativeAttrs = relativeCb.getEvents()[0]?.attributes ?? {};
