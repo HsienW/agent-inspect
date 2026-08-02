@@ -387,16 +387,49 @@ const optionalPackageChecks = [
     peerDependencies: {},
     installPeers: [],
     esm: `
-      import { READ_ONLY_TOOLS, createMcpServerContext } from "@agent-inspect/mcp-server";
+      import { spawnSync } from "node:child_process";
+      import { createRequire } from "node:module";
+      import path from "node:path";
+      import {
+        READ_ONLY_TOOLS,
+        createMcpServerContext,
+      } from "@agent-inspect/mcp-server";
+      const names = READ_ONLY_TOOLS.map((tool) => tool.name);
+      for (const required of [
+        "list_recent_runs",
+        "get_first_causal_failure",
+        "create_share_checked_evidence",
+        "list_traces",
+      ]) {
+        if (!names.includes(required)) throw new Error("missing tool " + required);
+      }
       const context = createMcpServerContext({ traceDir: "." });
-      if (READ_ONLY_TOOLS.length < 5) throw new Error("expected tools");
-      void context;
+      if (context.redactionProfile !== "share") throw new Error("expected share redaction");
+      const require = createRequire(import.meta.url);
+      const main = require.resolve("@agent-inspect/mcp-server");
+      const bin = path.join(path.dirname(main), "..", "bin", "agent-inspect-mcp-server.cjs");
+      const help = spawnSync(process.execPath, [bin, "--help"], { encoding: "utf8" });
+      if (help.status !== 0 || !String(help.stdout).includes("--dir")) {
+        throw new Error("packed mcp-server bin --help failed");
+      }
     `,
     cjs: `
-      const { READ_ONLY_TOOLS, createMcpServerContext } = require("@agent-inspect/mcp-server");
+      const { spawnSync } = require("node:child_process");
+      const path = require("node:path");
+      const {
+        READ_ONLY_TOOLS,
+        createMcpServerContext,
+      } = require("@agent-inspect/mcp-server");
+      const names = READ_ONLY_TOOLS.map((tool) => tool.name);
+      if (!names.includes("get_first_causal_failure")) throw new Error("missing flagship tool");
       const context = createMcpServerContext({ traceDir: "." });
-      if (READ_ONLY_TOOLS.length < 5) throw new Error("expected tools");
       void context;
+      const main = require.resolve("@agent-inspect/mcp-server");
+      const bin = path.join(path.dirname(main), "..", "bin", "agent-inspect-mcp-server.cjs");
+      const help = spawnSync(process.execPath, [bin, "--help"], { encoding: "utf8" });
+      if (help.status !== 0 || !String(help.stdout || "").includes("--dir")) {
+        throw new Error("bin help failed");
+      }
     `,
     ts: `
       import { READ_ONLY_TOOLS, createMcpServerContext } from "@agent-inspect/mcp-server";
