@@ -1,0 +1,11 @@
+NestJS/LangGraph recipe complete
+  enabled: true
+  callbacks: 1
+  relativeTraceDir: .agent-inspect/langchain
+  events: run_started, step_started, step_started, step_completed, step_completed, run_completed
+  run_completed: true
+  absolute path leaked: false
+
+Inspect:
+  npx agent-inspect list --dir ./examples/recipes/nestjs-langgraph-local/.agent-inspect/langchain
+  npx agent-inspect view run_nestjs_langgraph_recipe --dir ./examples/recipes/nestjs-langgraph-local/.agent-inspect/langchain

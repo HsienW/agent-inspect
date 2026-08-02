@@ -40,7 +40,17 @@ await createFixtureRunner({
 
 If you only need log ingestion, see [examples/recipes/nestjs-json-logging](../examples/recipes/nestjs-json-logging/).
 
+## LangGraph agent callbacks (env-gated)
+
+For Nest services that invoke LangGraph/LangChain with a `callbacks` array, prefer the
+blessed recipe [examples/recipes/nestjs-langgraph-local](../examples/recipes/nestjs-langgraph-local/):
+
+- `AGENT_INSPECT` gate + lazy dynamic import (no adapter load when disabled)
+- metadata-only capture and workspace-relative `traceDir`
+- no production-path change when the helper returns `[]`
+
 ## Related
 
 - [`@agent-inspect/harness`](../packages/harness/README.md)
 - [examples/starters/harness-nestjs](../examples/starters/harness-nestjs/)
+- [examples/recipes/nestjs-langgraph-local](../examples/recipes/nestjs-langgraph-local/)

@@ -30,6 +30,7 @@ const RECIPES = [
   "ai-sdk-next-route",
   "openai-agents-local-tracing",
   "langgraph-callback-local",
+  "nestjs-langgraph-local",
   "harness-basic",
   "harness-adapter-local",
   "eval-local-checks",

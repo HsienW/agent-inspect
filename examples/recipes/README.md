@@ -57,6 +57,7 @@ Use `AGENT_INSPECT_SILENT=true` to suppress live terminal tree output during scr
 | [ai-sdk-next-route](ai-sdk-next-route) | AI SDK route-style telemetry factory with local test mocks | `@agent-inspect/ai-sdk`, per-request integration, metadata-only capture | yes | no |
 | [openai-agents-local-tracing](openai-agents-local-tracing) | OpenAI Agents JS tracing processor with local fixtures | `@agent-inspect/openai-agents`, writers, `open`, metadata-only capture | yes | no |
 | [langgraph-callback-local](langgraph-callback-local) | LangGraph-shaped metadata through LangChain callbacks | `@agent-inspect/langchain`, callback metadata, local JSONL | yes | no |
+| [nestjs-langgraph-local](nestjs-langgraph-local) | Env-gated NestJS-style LangGraph callback wiring | lazy `@agent-inspect/langchain`, metadata-only, relative `traceDir` | yes | no |
 | [harness-basic](harness-basic) | v1.9 fixture harness basics | `@agent-inspect/harness`, fixture JSON, expected output | yes | no |
 | [harness-adapter-local](harness-adapter-local) | Adapter-shaped local harness target | `@agent-inspect/harness`, bootstrap/resolve/invoke, expected output | yes | no |
 | [mcp-client-tracing](mcp-client-tracing) | v2.4 MCP client wrap with mock client | `@agent-inspect/mcp`, `inspectRun`, `sessions` / `session` CLI | yes | no |
