@@ -24,7 +24,9 @@ npm install @agent-inspect/mcp-server
 ## Example
 
 ```bash
-npx agent-inspect-mcp-server --dir .agent-inspect
+npx @agent-inspect/mcp-server --dir .agent-inspect
+# or after install:
+# npx agent-inspect-mcp-server --dir .agent-inspect
 ```
 
 ## Privacy

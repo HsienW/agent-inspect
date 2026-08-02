@@ -14,6 +14,9 @@
   },
   "homepage": "https://github.com/rajudandigam/agent-inspect/tree/main/packages/mcp-server",
   "sideEffects": false,
+  "bin": {
+    "agent-inspect-mcp-server": "./bin/agent-inspect-mcp-server.cjs"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -31,6 +34,7 @@
   },
   "files": [
     "README.md",
+    "bin",
     "dist"
   ],
   "scripts": {

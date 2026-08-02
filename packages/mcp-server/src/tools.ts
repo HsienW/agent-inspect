@@ -455,6 +455,17 @@ export async function callReadOnlyTool(
   }
 }
 
+function resolveRedactionProfile(
+  explicit?: "local" | "share" | "strict",
+): "local" | "share" | "strict" {
+  if (explicit) return explicit;
+  const fromEnv = process.env.AGENT_INSPECT_MCP_REDACTION_PROFILE;
+  if (fromEnv === "local" || fromEnv === "share" || fromEnv === "strict") {
+    return fromEnv;
+  }
+  return "share";
+}
+
 export function createMcpServerContext(options: {
   traceDir?: string;
   maxEvents?: number;
@@ -463,6 +474,6 @@ export function createMcpServerContext(options: {
   return {
     traceDir: resolveTraceDir({ dir: options.traceDir }),
     maxEvents: options.maxEvents ?? 500,
-    redactionProfile: options.redactionProfile ?? "share",
+    redactionProfile: resolveRedactionProfile(options.redactionProfile),
   };
 }

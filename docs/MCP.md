@@ -7,8 +7,8 @@ For the **6.11+ coding-agent debug loop** (flagship tools, causal failure, confi
 ## Quick start
 
 ```bash
-npx @agent-inspect/mcp-server
-# preferred after 6.11-1: npx @agent-inspect/mcp-server --dir .agent-inspect
+npx @agent-inspect/mcp-server --dir .agent-inspect
+# bin name: agent-inspect-mcp-server
 # or see examples/recipes/read-only-mcp-server/
 ```
 
