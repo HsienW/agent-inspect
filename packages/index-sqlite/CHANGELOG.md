@@ -1,5 +1,16 @@
 # @agent-inspect/index-sqlite
 
+## 6.9.0
+
+### Minor Changes
+
+- 627f5f4: Safety precision and share policy: additive finding taxonomy, path-aware raw-content and detector precision, framework metadata sensitivity, source-vs-artifact verify-safe/bundle/MCP gating, --explain, and local override docs. No schema break; no new root/core dependencies; no default network upload; defaults not weakened.
+
+### Patch Changes
+
+- Updated dependencies [627f5f4]
+  - agent-inspect@6.9.0
+
 ## 6.8.0
 
 ### Minor Changes
