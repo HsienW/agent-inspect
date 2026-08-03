@@ -72,14 +72,32 @@ npx agent-inspect list --dir .agent-inspect
 
 ```bash
 # After copying a run id from list:
-npx agent-inspect view <run-id> --dir .agent-inspect
 npx agent-inspect report <run-id> --dir .agent-inspect
 npx agent-inspect check <run-id> --dir .agent-inspect
 npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share
 npx agent-inspect verify-safe <run-id> --dir .agent-inspect
+npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>
+# Optional coding-agent loop (dry-run by default):
+npx agent-inspect mcp configure --client cursor
 ```
 
-`init` scaffolds config and a demo script; the **demo** writes the trace. Guide: [First trace in 5 minutes](https://agentinspect.vercel.app/docs/getting-started/) · [repo](https://github.com/rajudandigam/agent-inspect/blob/main/docs/FIRST-TRACE-IN-5-MINUTES.md) · [Golden path](https://github.com/rajudandigam/agent-inspect/blob/main/docs/GOLDEN-PATH.md)
+`init` scaffolds config and a demo script; the **demo** writes the trace. Guide: [First trace in 5 minutes](https://agentinspect.vercel.app/docs/getting-started/) · [repo](https://github.com/rajudandigam/agent-inspect/blob/main/docs/FIRST-TRACE-IN-5-MINUTES.md) · [Golden path](https://github.com/rajudandigam/agent-inspect/blob/main/docs/GOLDEN-PATH.md) · [Coding-agent loop](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CODING-AGENT-LOOP.md)
+
+## Why AgentInspect
+
+**Unique position:** a local **evidence debugger** for TypeScript agents—not a hosted APM, eval host, or prompt registry. Complements LangSmith/Langfuse/Phoenix; owns the laptop → PR loop.
+
+**Proven mechanisms (shipped):**
+
+| Mechanism | What you get |
+| --------- | ------------ |
+| Faithful execution trees | Nested steps, tools, LLMs, status, duration on disk |
+| First causal failure | Conservative ordered engine for what failed first |
+| Deterministic checks / TraceContract (Beta) | Trajectory expectations without an LLM judge |
+| Share-checked Evidence v2 | `bundle` + `bundle verify` offline artifacts |
+| Read-only MCP coding-agent loop (Preview) | `mcp configure` + `@agent-inspect/mcp-server` over local traces |
+
+No fabricated adoption counts. External pilot evidence is still pending—see [Pilot kit](https://github.com/rajudandigam/agent-inspect/blob/main/docs/PRE-V7-PILOT-KIT.md).
 
 ## Choose your capture path
 
@@ -116,12 +134,15 @@ Support labels: [SUPPORT-LEVELS.md](https://github.com/rajudandigam/agent-inspec
 
 | Scenario | Start |
 | -------- | ----- |
-| Wrong tool call | [broken-agent starter](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters/broken-agent-debugging) |
-| CI trajectory gate | [CI artifacts](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CI-ARTIFACTS.md) |
+| Wrong tool / intentional failure | [broken-agent-debugging](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters/broken-agent-debugging) |
+| Coding-agent MCP debug loop | [coding-agent-debug-loop](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters/coding-agent-debug-loop) · [CODING-AGENT-LOOP](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CODING-AGENT-LOOP.md) |
+| CI trajectory gate + redact | [ci-eval-redact](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters/ci-eval-redact) · [CI artifacts](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CI-ARTIFACTS.md) |
 | Safe incident handoff | [Safe sharing](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SAFE-TRACE-SHARING.md) |
 | Multi-agent / session retry | [Sessions & outcomes](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SESSIONS-AND-OUTCOMES.md) |
-| Customer-owned team review | [Self-hosting](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SELF-HOSTING.md) · Studio |
+| Customer-owned team review | [Self-hosting](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SELF-HOSTING.md) · Studio (optional) |
 | Design partner trial | [Pilot kit](https://github.com/rajudandigam/agent-inspect/blob/main/docs/PRE-V7-PILOT-KIT.md) |
+
+All blessed starters (no API keys): [examples/starters](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters)
 
 ## Safety and network behavior
 
