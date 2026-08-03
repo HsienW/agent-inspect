@@ -12,10 +12,10 @@ trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "adoption-3"
-lastConfirmedCommit: "c45a1d6"
-lastValidationLevel: "public-truth:check + docs:check"
-nextAction: "Start adoption-3 external outreach / pilot kit readiness (no fabricated partners)"
+currentChunk: "adoption-4"
+lastConfirmedCommit: "393851b"
+lastValidationLevel: "docs:check"
+nextAction: "adoption-4 mid-checkpoint review (week ~4; calendar start 2026-08-02 → mid ~2026-08-30) — pending calendar; do not mark complete early"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
@@ -25,6 +25,7 @@ completedChunks:
   - "adoption-0 Arm checkpoint (calendar + ledger + v7 assessment)"
   - "adoption-1 Local compatibility evidence (macOS Node 22 pack:smoke PASS)"
   - "adoption-2 Public-truth and docs hygiene pass"
+  - "adoption-3 External outreach / pilot kit readiness (docs only; no fabricated partners)"
 remainingTrains:
   - "v6.12 adoption checkpoint (eight weeks; active)"
 blockedTrains:
@@ -36,6 +37,7 @@ updatedAt: "2026-08-02"
 
 - **Active plan:** [release-trains/V6.12-ADOPTION-CHECKPOINT.md](./release-trains/V6.12-ADOPTION-CHECKPOINT.md)
 - **Evidence ledger:** [PRE-V7-ADOPTION-EVIDENCE.md](./PRE-V7-ADOPTION-EVIDENCE.md)
+- **Outreach checklist:** [ADOPTION-OUTREACH-CHECKLIST.md](./ADOPTION-OUTREACH-CHECKLIST.md)
 - **v7 assessment:** [release-trains/V7.0.0-READINESS-ASSESSMENT.md](./release-trains/V7.0.0-READINESS-ASSESSMENT.md)
 - **Completed readiness:** [release-trains/V6.12.0-RELEASE-READINESS.md](./release-trains/V6.12.0-RELEASE-READINESS.md)
 - **Maintainer rules:** [AGENTS.md](../../AGENTS.md)

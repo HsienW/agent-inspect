@@ -6,6 +6,7 @@ Ledger for the **v6.12 adoption checkpoint** (eight weeks). **Do not fabricate e
 **Published baseline:** `agent-inspect@6.12.0` (18 fixed packages)
 **Calendar:** 2026-08-02 → 2026-09-27
 **Pilot kit:** [../PRE-V7-PILOT-KIT.md](../PRE-V7-PILOT-KIT.md)
+**Outreach checklist (placeholders only):** [ADOPTION-OUTREACH-CHECKLIST.md](./ADOPTION-OUTREACH-CHECKLIST.md) — do not fabricate responses.
 
 Empty / `_pending_` rows mean “not yet evidenced,” not product failure.
 
@@ -82,8 +83,10 @@ Assessment surface: [release-trains/V7.0.0-READINESS-ASSESSMENT.md](./release-tr
 
 When ready to solicit real evidence:
 
-- [DESIGN-PARTNER-GUIDE.md](../../DESIGN-PARTNER-GUIDE.md)
-- [DEMO-SCRIPT.md](../../DEMO-SCRIPT.md)
-- `examples/starters/` (incl. `coding-agent-debug-loop`) and `scripts/packed-quickstart-e2e.mjs`
+- [ADOPTION-OUTREACH-CHECKLIST.md](./ADOPTION-OUTREACH-CHECKLIST.md) — template messages with `{{partner}}` / `{{date}}` only; **do not fabricate responses**
+- [../DESIGN-PARTNER-GUIDE.md](../DESIGN-PARTNER-GUIDE.md)
+- [../DEMO-SCRIPT.md](../DEMO-SCRIPT.md)
+- [../PRE-V7-PILOT-KIT.md](../PRE-V7-PILOT-KIT.md)
+- `examples/starters/` (incl. `coding-agent-debug-loop`, `broken-agent-debugging`, `ci-eval-redact`) and `scripts/packed-quickstart-e2e.mjs`
 
 Record results only when partners return real data.

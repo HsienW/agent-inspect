@@ -1,10 +1,13 @@
-# Live demo script (~3 minutes)
+# Live demo script (~4 minutes)
 
-**Audience:** TypeScript developers debugging AI agents.  
-**Prereqs:** Node 20+. Consumers: `npm install agent-inspect`. Monorepo: `pnpm build` at repo root.  
+**Audience:** TypeScript developers debugging AI agents.
+**Prereqs:** Node 20+. Consumers: `npm install agent-inspect@6.12.0`. Monorepo: `pnpm build` at repo root.
 **Website:** [https://agentinspect.vercel.app/](https://agentinspect.vercel.app/)
 
-**Blessed demo starter:** [broken-agent-debugging](../examples/starters/broken-agent-debugging/) — intentional tool failure, no API keys.
+**Blessed demo starters:**
+
+- [broken-agent-debugging](../examples/starters/broken-agent-debugging/) — intentional tool failure, no API keys
+- [coding-agent-debug-loop](../examples/starters/coding-agent-debug-loop/) — MCP inspect + share-checked evidence, no API keys
 
 ## Setup (before the call)
 
@@ -39,39 +42,52 @@ npx agent-inspect timeline <run-id> --dir .agent-inspect
 
 Optional: `npx agent-inspect serve --dir .agent-inspect` for browser viewer.
 
-## Beat 4 — Verify (30s)
+## Beat 4 — Verify / CI gate (30s)
 
 ```bash
 npx agent-inspect check <run-id> --dir .agent-inspect
 ```
 
 Optional flags: `--require-completed`, `--detect-stalls`, `--max-step-duration 30s`.
+For CI artifact demos: `npx agent-inspect artifacts <run-id> --dir .agent-inspect -o ./ci-out`.
 
-## Beat 5 — Share safely (30s)
+## Beat 5 — Share-checked evidence (Evidence v2) (45s)
 
 ```bash
+npx agent-inspect bundle <run-id> --dir .agent-inspect --format html -o ./evidence-out
+npx agent-inspect bundle verify ./evidence-out
+# lighter alternative:
 npx agent-inspect redact <run-id> --dir .agent-inspect --profile share -o safe.jsonl
 npx agent-inspect verify-safe <run-id> --dir .agent-inspect
-# or: npx agent-inspect verify-safe safe.jsonl
 ```
 
-"Redacted / verified-safe artifacts are safe to attach to a GitHub issue or Slack."
+"Share-checked evidence is best-effort local policy — not a compliance certification. Safe to attach to a GitHub issue or Slack when assessment allows."
 
-## Beat 6 — Fix and diff (optional, 30s)
+## Beat 6 — MCP coding-agent loop (optional, 45s)
+
+```bash
+npx agent-inspect mcp configure --client cursor --dry-run
+cd ../coding-agent-debug-loop
+pnpm install && pnpm start && pnpm run inspect-mcp
+```
+
+Point to [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md). Stay read-only; do not claim a live partner session unless one is on the call.
+
+## Beat 7 — Fix and diff (optional, 30s)
 
 ```bash
 pnpm run fixed
 npx agent-inspect diff .agent-inspect/<broken-run>.jsonl .agent-inspect/<fixed-run>.jsonl
 ```
 
-## Beat 7 — Close (15s)
+## Beat 8 — Close (15s)
 
-"Starters for AI SDK, OpenAI Agents, LangChain, CI, and NestJS harness are in `examples/starters/`. Fresh repos: `npx agent-inspect init --yes`."
+"Starters for AI SDK, OpenAI Agents, LangChain, CI, NestJS harness, and the MCP coding-agent loop are in `examples/starters/`. Fresh repos: `npx agent-inspect init --yes`."
 
 ## Alternative opener (zero clone)
 
 ```bash
-npm install agent-inspect
+npm install agent-inspect@6.12.0
 npx agent-inspect init --yes
 node examples/agent-inspect-demo.mjs
 npx agent-inspect list --dir .agent-inspect
@@ -84,17 +100,6 @@ See [FIRST-TRACE-IN-5-MINUTES.md](./FIRST-TRACE-IN-5-MINUTES.md).
 - **VS Code:** F5 from `packages/vscode` (dev host) — Marketplace listing pending
 - **Doctor:** `npx agent-inspect doctor` when onboarding fails
 - **Framework:** switch to `examples/starters/ai-sdk` for adapter path
+- **CI starter:** `examples/starters/ci-eval-redact`
 
-Related: [VIDEO-WALKTHROUGH-SCRIPT.md](./VIDEO-WALKTHROUGH-SCRIPT.md) · [SCREENSHOTS.md](./SCREENSHOTS.md)
-
-
-## Optional MCP beat (30s)
-
-If time allows after inspect:
-
-```bash
-npx agent-inspect mcp configure --client cursor --dry-run
-npx @agent-inspect/mcp-server --dir .agent-inspect --help
-```
-
-Point to [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) and the coding-agent-debug-loop starter. Stay read-only; do not claim a live partner session unless one is on the call.
+Related: [VIDEO-WALKTHROUGH-SCRIPT.md](./VIDEO-WALKTHROUGH-SCRIPT.md) · [SCREENSHOTS.md](./SCREENSHOTS.md) · [PRE-V7-PILOT-KIT.md](./PRE-V7-PILOT-KIT.md) · [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md)
