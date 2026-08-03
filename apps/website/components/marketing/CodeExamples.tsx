@@ -58,30 +58,35 @@ npx agent-inspect view <run-id> --dir .agent-inspect
 npx agent-inspect report <run-id> --dir .agent-inspect
 npx agent-inspect check <run-id> --dir .agent-inspect
 npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share
-npx agent-inspect verify-safe <run-id> --dir .agent-inspect`,
+npx agent-inspect verify-safe <run-id> --dir .agent-inspect
+npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>`,
   },
   {
-    id: "harness",
-    label: "Harness",
-    language: "ts",
-    code: `import {
-  createFixtureRunner,
-  defineTarget
-} from "@agent-inspect/harness";
+    id: "mcp",
+    label: "MCP",
+    language: "bash",
+    code: `# Dry-run client config (default — no write until you opt in)
+npx agent-inspect mcp configure --client cursor
 
-await createFixtureRunner({
-  name: "support-agent",
-  trace: {
-    traceDir: ".agent-inspect/support-agent"
+# Local read-only MCP server over your trace dir
+npx @agent-inspect/mcp-server --dir .agent-inspect
+
+# Ask your coding agent for flagship tools, e.g.:
+#   get_first_causal_failure
+#   get_execution_tree
+#   create_share_checked_evidence`,
   },
-  targets: {
-    refund: defineTarget({
-      description: "Run refund policy agent",
-      resolve: (app) => app.get(RefundPolicyAgent),
-      invoke: (agent, input) => agent.run(input)
-    })
-  }
-}).runFromArgv();`,
+  {
+    id: "langgraph",
+    label: "LangGraph kit",
+    language: "bash",
+    code: `# Local-debug kit (Tier A + LangChain adapter + MCP)
+npm install -D agent-inspect @agent-inspect/langchain @agent-inspect/mcp-server
+
+# Blessed starters (no API keys):
+#   examples/starters/broken-agent-debugging
+#   examples/starters/coding-agent-debug-loop
+#   examples/starters/langchain`,
   },
 ] as const;
 
@@ -100,6 +105,10 @@ export function CodeExamples() {
           <h2 className="mt-3 text-3xl font-semibold tracking-tight">
             Start from the path you already use
           </h2>
+          <p className="mt-4 text-lg leading-8 text-muted">
+            Real install lines and CLI targets—copy, run, then attach share-checked
+            evidence. No collector account.
+          </p>
         </div>
 
         <div

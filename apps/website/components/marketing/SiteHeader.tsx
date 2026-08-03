@@ -6,7 +6,8 @@ import { site } from "@/lib/site";
 
 const nav = [
   { href: "/#five-minute-path", label: "Quickstart" },
-  { href: "/#features", label: "Features" },
+  { href: "/#code-examples", label: "Examples" },
+  { href: "/#product-loop", label: "Hero flow" },
   { href: "/#compare", label: "Compare" },
   { href: "/docs", label: "Docs" },
 ];

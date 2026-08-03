@@ -1,19 +1,29 @@
 # AgentInspect
 
-> Debug, regression-test, and safely share TypeScript AI-agent behavior—locally.
+> The local evidence debugger for TypeScript agents—faithful execution trees, deterministic regression checks, share-checked evidence, and coding-agent access without a collector or account.
 
 - Site: https://agentinspect.vercel.app/
 - Docs: https://agentinspect.vercel.app/docs/
 - GitHub: https://github.com/rajudandigam/agent-inspect
 - npm: https://www.npmjs.com/package/agent-inspect
 
+## Hero flow
+
+1. Capture one real run
+2. Find the causal failure
+3. Ask your coding agent to inspect it
+4. Lock the fix with a contract
+5. Attach the share-checked evidence
+
 ## Product
 
-Local trajectory evidence: execution trees, TraceContract checks, suites/gates, verified-safe bundles, optional customer-owned Studio Beta. No account, no default upload, metadata-only by default.
+Local trajectory evidence: execution trees, first-causal-failure, TraceContract checks, suites/gates, Evidence v2 bundles (`bundle` / `bundle verify`), read-only MCP Preview coding-agent loop. No account, no default upload, metadata-only by default. Optional customer-owned Studio Beta is Tier C—not the flagship story.
 
 ## Key docs
 
 - https://github.com/rajudandigam/agent-inspect/blob/main/docs/FIRST-TRACE-IN-5-MINUTES.md
+- https://github.com/rajudandigam/agent-inspect/blob/main/docs/POSITIONING-AND-PORTFOLIO.md
+- https://github.com/rajudandigam/agent-inspect/blob/main/docs/CODING-AGENT-LOOP.md
 - https://github.com/rajudandigam/agent-inspect/blob/main/docs/SUPPORT-LEVELS.md
 - https://github.com/rajudandigam/agent-inspect/blob/main/docs/NETWORK-BEHAVIOR.md
 - https://github.com/rajudandigam/agent-inspect/blob/main/docs/TRACE-CONTRACTS.md

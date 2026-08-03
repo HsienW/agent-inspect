@@ -39,7 +39,8 @@ export function Footer() {
         <div>
           <p className="text-lg font-semibold">{site.name}</p>
           <p className="mt-3 max-w-sm text-sm leading-6 text-muted">
-            Local-first trace + check + redact for TypeScript AI agents.
+            Local capture → causal failure → MCP inspect → contract → share-checked
+            evidence. No collector account.
           </p>
         </div>
         <div className="grid gap-8 sm:grid-cols-3">

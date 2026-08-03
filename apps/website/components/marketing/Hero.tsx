@@ -14,12 +14,15 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.18),transparent_45%)]" />
       <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
         <div>
-          <Badge tone="primary">Local evidence debugger · no collector</Badge>
+          <Badge tone="primary">Local evidence debugger · MCP-ready</Badge>
           <h1 className="mt-5 text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
             {product.headline}
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-8 text-muted">{product.subheadline}</p>
           <p className="mt-3 text-sm text-muted">{product.trustLine}</p>
+          <pre className="mt-5 max-w-xl overflow-x-auto rounded-xl border border-border bg-elevated/80 px-4 py-3 font-mono text-xs leading-5 text-muted">
+            {product.heroFlow}
+          </pre>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-xl border border-border bg-elevated px-4 py-3 font-mono text-sm">
@@ -33,8 +36,8 @@ export function Hero() {
               Run the five-minute path
               <ArrowRight className="h-4 w-4" aria-hidden />
             </ButtonLink>
-            <ButtonLink href="/docs/concepts/evidence-loop" variant="secondary">
-              See the golden workflow
+            <ButtonLink href="/docs/mcp" variant="secondary">
+              Coding-agent MCP loop
             </ButtonLink>
             <ButtonLink href={site.github} variant="secondary" external>
               View on GitHub
@@ -44,7 +47,8 @@ export function Hero() {
           <div className="mt-8 flex flex-wrap gap-2">
             {[
               `v${product.version}`,
-              "Tiered package portfolio",
+              "Evidence v2",
+              "MCP Preview",
               "Open source",
               "MIT",
             ].map((item) => (

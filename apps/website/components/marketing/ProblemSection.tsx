@@ -12,13 +12,13 @@ const cards = [
     icon: GitBranch,
   },
   {
-    title: "Hosted dashboards slow the local loop",
-    body: "Accounts, ingestion, and dashboards are great for fleets — not for the first failing run on your laptop.",
+    title: "You cannot ask a coding agent what failed first",
+    body: "Without a causal tree and read-only tools, chat agents guess from logs instead of inspecting the run.",
     icon: Timer,
   },
   {
     title: "Raw traces can leak customer data",
-    body: "Without redaction and verify-safe, PR and issue attachments can expose more than you intended.",
+    body: "Without redaction, verify-safe, and share-checked Evidence v2, PR attachments can expose more than you intended.",
     icon: ShieldAlert,
   },
 ];

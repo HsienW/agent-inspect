@@ -13,12 +13,13 @@ export function FiveMinutePath() {
             Five-minute path
           </p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight">
-            One trace, one check, one safe bundle
+            One broken run → causal report → share-checked evidence
           </h2>
           <p className="mt-4 text-lg leading-8 text-muted">
             <code className="text-sm">init</code> scaffolds files; the demo writes the
-            trace. Then check, bundle with a share profile, and verify-safe using a
-            real run id.
+            trace. Then report, check, bundle, verify-safe, and optionally{" "}
+            <code className="text-sm">mcp configure</code> /{" "}
+            <code className="text-sm">bundle verify</code> with real targets.
           </p>
           <p className="mt-4 rounded-xl border border-secondary/30 bg-secondary/10 px-4 py-3 text-sm text-secondary">
             Deterministic starter path — no API keys required.

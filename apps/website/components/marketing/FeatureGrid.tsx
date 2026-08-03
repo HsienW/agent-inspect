@@ -1,23 +1,43 @@
 import {
-  Boxes,
+  Bot,
   FileJson2,
   GitCompare,
-  Monitor,
-  Network,
+  ScanSearch,
   Shield,
+  ShieldCheck,
   TerminalSquare,
   Workflow,
 } from "lucide-react";
 
 const features = [
   {
-    title: "Local JSONL traces",
-    body: "Own your runs as files under `.agent-inspect/`. No account required.",
+    title: "First causal failure",
+    body: "Conservative ordered engine points at what failed first—not just the last stack frame.",
+    icon: ScanSearch,
+  },
+  {
+    title: "Coding-agent MCP loop",
+    body: "Read-only Preview MCP tools over local traces (`mcp configure`, stdio server).",
+    icon: Bot,
+  },
+  {
+    title: "Share-checked Evidence v2",
+    body: "`bundle` + `bundle verify` produce offline share-profile artifacts you can attach to a PR.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Deterministic contracts & CI",
+    body: "`check`, TraceContract (Beta), suites/cohorts, and Vitest/Jest reporters for PR gates.",
+    icon: TerminalSquare,
+  },
+  {
+    title: "Local JSONL as source of truth",
+    body: "Own runs as files under `.agent-inspect/`. No account, no default upload.",
     icon: FileJson2,
   },
   {
     title: "Execution trees",
-    body: "Nested steps, tool/LLM types, durations, and status in a readable tree.",
+    body: "Nested steps, tool/LLM types, durations, and status in a readable tree and timeline.",
     icon: Workflow,
   },
   {
@@ -26,29 +46,9 @@ const features = [
     icon: Shield,
   },
   {
-    title: "Framework adapters",
-    body: "AI SDK, OpenAI Agents, LangChain, plus manual and log-ingest paths.",
-    icon: Boxes,
-  },
-  {
-    title: "CI checks and reporters",
-    body: "Deterministic `check`, `eval`, and Vitest/Jest reporters for PR evidence.",
-    icon: TerminalSquare,
-  },
-  {
     title: "Redaction profiles",
-    body: "`local`, `share`, and `strict` profiles before issues, PRs, or partner threads.",
+    body: "`local`, `share`, and `strict` before issues, PRs, or partner threads—then `verify-safe`.",
     icon: GitCompare,
-  },
-  {
-    title: "Viewer, TUI, and VS Code surfaces",
-    body: "Inspect locally in terminal, localhost viewer, or the in-repo VS Code extension.",
-    icon: Monitor,
-  },
-  {
-    title: "OpenTelemetry and OpenInference export path",
-    body: "Compatibility-oriented local exports when you need a bridge to platform tooling.",
-    icon: Network,
   },
 ];
 
@@ -61,7 +61,7 @@ export function FeatureGrid() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-            Features
+            Proven mechanisms
           </p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight">
             Built for the TypeScript agent inner loop

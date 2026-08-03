@@ -36,10 +36,17 @@ const rows = [
   },
   {
     label: "Safe redaction flow",
-    agentInspect: "Profiles + verify-safe",
+    agentInspect: "Profiles + verify-safe + Evidence v2 bundle verify",
     consoleLog: "Manual",
     hosted: "Varies",
     otel: "Custom",
+  },
+  {
+    label: "Coding-agent inspect",
+    agentInspect: "Read-only MCP Preview (stdio, local traces)",
+    consoleLog: "No",
+    hosted: "Usually chat-only or remote tools",
+    otel: "Custom tooling",
   },
   {
     label: "Team dashboard",

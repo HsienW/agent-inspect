@@ -1,26 +1,31 @@
 import {
+  Bot,
   Bug,
   GitPullRequest,
   LineChart,
-  Puzzle,
   SquareTerminal,
   TimerOff,
 } from "lucide-react";
 
 const cases = [
   {
+    title: "Debug a broken run with your coding agent",
+    body: "Configure MCP (dry-run), ask for get_first_causal_failure, fix in the app, re-inspect, then create share-checked evidence.",
+    icon: Bot,
+  },
+  {
     title: "Debug a wrong tool call locally",
-    body: "See the tool step, siblings, and parent run without leaving your terminal.",
+    body: "See the tool step, siblings, and parent run without leaving your terminal or uploading traces.",
     icon: Bug,
   },
   {
-    title: "Attach a safe trace to a PR",
-    body: "Redact with the share profile, verify-safe, then attach the local artifact.",
+    title: "Attach share-checked evidence to a PR",
+    body: "Redact with the share profile, verify-safe, bundle, then bundle verify before you attach the artifact.",
     icon: GitPullRequest,
   },
   {
     title: "Catch stalled agent runs in CI",
-    body: "Use deterministic checks for completion and stalls on fixture traces.",
+    body: "Use deterministic checks for completion and stalls on fixture traces—no LLM judge required.",
     icon: TimerOff,
   },
   {
@@ -29,13 +34,8 @@ const cases = [
     icon: LineChart,
   },
   {
-    title: "Build a community adapter",
-    body: "Use the adapter SDK and conformance guidance for third-party frameworks.",
-    icon: Puzzle,
-  },
-  {
-    title: "Review traces in VS Code without a hosted dashboard",
-    body: "Open local JSONL in the in-repo extension while you stay on disk.",
+    title: "Review traces without a hosted dashboard",
+    body: "CLI, TUI, localhost viewer, or the in-repo VS Code extension—files stay on disk.",
     icon: SquareTerminal,
   },
 ];
@@ -49,10 +49,10 @@ export function UseCases() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-            Use cases
+            Real needs
           </p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight">
-            Where teams use AgentInspect today
+            Where the local evidence loop wins
           </h2>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">

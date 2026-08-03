@@ -9,46 +9,47 @@ export function TerminalDemo() {
           agent-inspect · local terminal
         </span>
       </div>
-      <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-6 text-slate-200 sm:text-sm">
+      <pre className="overflow-x-auto p-5 font-mono text-[12px] leading-5 text-slate-200 sm:text-[13px] sm:leading-6">
         <code>
-          <span className="text-slate-500">$ </span>
-          <span>npx agent-inspect init --yes</span>
-          {"\n"}
-          <span className="text-success">✓</span>
-          <span> created agent-inspect.config.ts</span>
-          {"\n"}
-          <span className="text-success">✓</span>
-          <span> created examples/agent-inspect-demo.mjs</span>
-          {"\n\n"}
-          <span className="text-slate-500">$ </span>
-          <span>node examples/agent-inspect-demo.mjs</span>
-          {"\n"}
-          <span className="text-success">✓</span>
-          <span> wrote .agent-inspect/run_….jsonl</span>
-          {"\n\n"}
           <span className="text-slate-500">$ </span>
           <span>npx agent-inspect list --dir .agent-inspect</span>
           {"\n"}
-          <span className="text-indigo-300">run_abc123</span>
-          <span>  ok  42ms</span>
+          <span className="text-rose-300">run_abc123</span>
+          <span>  failed  186ms</span>
+          {"\n\n"}
+          <span className="text-slate-500">$ </span>
+          <span>npx agent-inspect report run_abc123 --dir .agent-inspect</span>
+          {"\n"}
+          <span className="text-rose-300">✗</span>
+          <span> first causal failure: tool &quot;refund&quot; → error</span>
+          {"\n"}
+          <span className="text-slate-500">  parent: support-agent · siblings: 2 tools</span>
+          {"\n\n"}
+          <span className="text-slate-500">$ </span>
+          <span>npx agent-inspect mcp configure --client cursor</span>
+          {"\n"}
+          <span className="text-success">✓</span>
+          <span> dry-run config (stdio → @agent-inspect/mcp-server)</span>
+          {"\n"}
+          <span className="text-slate-500">  ask agent: get_first_causal_failure</span>
           {"\n\n"}
           <span className="text-slate-500">$ </span>
           <span>npx agent-inspect check run_abc123 --dir .agent-inspect</span>
           {"\n"}
-          <span className="text-success">✓</span>
-          <span> checks passed</span>
+          <span className="text-amber-300">✗</span>
+          <span> contract: require completed run</span>
           {"\n\n"}
           <span className="text-slate-500">$ </span>
           <span>npx agent-inspect bundle run_abc123 --dir .agent-inspect --profile share</span>
           {"\n"}
           <span className="text-success">✓</span>
-          <span> share-safe bundle written</span>
+          <span> evidence.json + evidence.html (share-checked)</span>
           {"\n\n"}
           <span className="text-slate-500">$ </span>
-          <span>npx agent-inspect verify-safe run_abc123 --dir .agent-inspect</span>
+          <span>npx agent-inspect bundle verify .agent-inspect/bundles/run_abc123</span>
           {"\n"}
           <span className="text-success">✓</span>
-          <span> SAFE (best-effort)</span>
+          <span> integrity OK</span>
         </code>
       </pre>
     </div>

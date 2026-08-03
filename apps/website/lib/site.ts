@@ -1,17 +1,18 @@
 export const site = {
   name: "agent-inspect",
-  title: "agent-inspect — Debug, regression-test, and safely share TypeScript AI-agent behavior locally",
+  title: "agent-inspect — The local evidence debugger for TypeScript agents",
   description:
-    "Local trajectory evidence for TypeScript agents: execution trees, TraceContract checks, CI gates, verified-safe bundles, and optional customer-owned Studio. No account, no default upload, metadata-only by default.",
+    "Faithful execution trees, first-causal-failure, deterministic TraceContract checks, share-checked Evidence v2, and a read-only coding-agent MCP loop—without a collector or account.",
   keywords: [
     "TypeScript AI agents",
     "AI agent trajectory testing",
     "TypeScript agent debugging",
+    "first causal failure",
     "AI agent CI gates",
     "trace contracts",
-    "safe trace bundles",
-    "self-hosted agent trace viewer",
-    "MCP trace debugging",
+    "share-checked evidence",
+    "Evidence v2",
+    "MCP coding-agent debug loop",
     "OpenInference TypeScript",
     "local-first observability",
   ],

@@ -21,9 +21,9 @@ export default function HomePage() {
         <Hero />
         <ProblemSection />
         <FiveMinutePath />
+        <CodeExamples />
         <ProductLoop />
         <FeatureGrid />
-        <CodeExamples />
         <UseCases />
         <ComparisonTable />
         <NotAPlatform />
