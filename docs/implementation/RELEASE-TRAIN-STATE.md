@@ -7,15 +7,15 @@
 ```yaml
 baselineVersion: "6.12.0"
 publishedVersion: "6.12.0"
-currentTrain: "v6.12-adoption-checkpoint"
+currentTrain: "6.12.1-presentation"
 trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "adoption-4"
-lastConfirmedCommit: "393851b"
+currentChunk: "6.12.1-0"
+lastConfirmedCommit: "4318c20"
 lastValidationLevel: "docs:check"
-nextAction: "adoption-4 mid-checkpoint review (week ~4; calendar start 2026-08-02 → mid ~2026-08-30) — pending calendar; do not mark complete early"
+nextAction: "6.12.1 example-heavy presentation patch → publish → return to adoption-4 calendar wait"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
@@ -27,15 +27,16 @@ completedChunks:
   - "adoption-2 Public-truth and docs hygiene pass"
   - "adoption-3 External outreach / pilot kit readiness (docs only; no fabricated partners)"
 remainingTrains:
-  - "v6.12 adoption checkpoint (eight weeks; active)"
+  - "v6.12 adoption checkpoint (eight weeks; active; resume adoption-4 after 6.12.1)"
 blockedTrains:
   - "v7.0.0 (conditional — assessment only; not scheduled)"
-updatedAt: "2026-08-02"
+updatedAt: "2026-08-03"
 ```
 
 ## Quick links
 
-- **Active plan:** [release-trains/V6.12-ADOPTION-CHECKPOINT.md](./release-trains/V6.12-ADOPTION-CHECKPOINT.md)
+- **Active presentation plan:** [release-trains/V6.12.1-PRESENTATION-EXECUTION-PLAN.md](./release-trains/V6.12.1-PRESENTATION-EXECUTION-PLAN.md)
+- **Adoption plan (resume after publish):** [release-trains/V6.12-ADOPTION-CHECKPOINT.md](./release-trains/V6.12-ADOPTION-CHECKPOINT.md)
 - **Evidence ledger:** [PRE-V7-ADOPTION-EVIDENCE.md](./PRE-V7-ADOPTION-EVIDENCE.md)
 - **Outreach checklist:** [ADOPTION-OUTREACH-CHECKLIST.md](./ADOPTION-OUTREACH-CHECKLIST.md)
 - **v7 assessment:** [release-trains/V7.0.0-READINESS-ASSESSMENT.md](./release-trains/V7.0.0-READINESS-ASSESSMENT.md)
