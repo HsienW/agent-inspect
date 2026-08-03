@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.12.0
+
+### Minor Changes
+
+- 3ee1692: Consolidation and stable launch candidate: positioning/portfolio tiers, install kits, honest packed/native/MCP matrices, PARTIAL design-partner trial worksheets, package maintenance audit (keep fixed group through v6), comparison/interop handoff, and launch demo checklist. No schema break; no new packages; no default upload; trial results not fabricated.
+
 ## 6.11.0
 
 ### Minor Changes
