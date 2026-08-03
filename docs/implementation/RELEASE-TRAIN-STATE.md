@@ -12,10 +12,10 @@ trainStatus: "in-progress"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-stability-and-focus-v6.7.3-to-v7-decision"
 branch: "main"
-currentChunk: "adoption-2"
-lastConfirmedCommit: "aa461cc"
-lastValidationLevel: "pnpm pack:smoke (darwin Node 22) + docs:check"
-nextAction: "Start adoption-2 public-truth and docs hygiene pass"
+currentChunk: "adoption-3"
+lastConfirmedCommit: "c45a1d6"
+lastValidationLevel: "public-truth:check + docs:check"
+nextAction: "Start adoption-3 external outreach / pilot kit readiness (no fabricated partners)"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md"
 completedChunks:
@@ -24,6 +24,7 @@ completedChunks:
   - "6.12 Consolidation and stable launch candidate (published; external trials PARTIAL)"
   - "adoption-0 Arm checkpoint (calendar + ledger + v7 assessment)"
   - "adoption-1 Local compatibility evidence (macOS Node 22 pack:smoke PASS)"
+  - "adoption-2 Public-truth and docs hygiene pass"
 remainingTrains:
   - "v6.12 adoption checkpoint (eight weeks; active)"
 blockedTrains:

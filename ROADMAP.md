@@ -10,23 +10,22 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ---
 
-## Current — Stability and Focus (from 6.7.3)
+## Current — v6.12 adoption checkpoint
 
-**Current release on npm:** **6.7.3** (eighteen fixed-group public packages). Persisted schema **1.0**. See [CHANGELOG.md](CHANGELOG.md#673).
+**Current release on npm:** **6.12.0** (eighteen fixed-group public packages). Persisted schema **1.0**. See [CHANGELOG.md](CHANGELOG.md#6120).
 
-Development continues with a focused sequence. No new public package before the conditional v7 decision.
+**6.12.0** is the published stable launch candidate. Active work is the eight-week adoption checkpoint (docs/evidence only; no fabricated partners). No new public package before the conditional v7 decision.
 
-| Release | Theme | Bump |
-| ------- | ----- | ---- |
-| **6.7.4** | Real-integration blocker patch | Patch |
-| **6.7.5** | Consumer, native dependency, and DX reliability | Patch |
-| **6.8.0** | LangGraph fidelity contract | Minor |
-| **6.9.0** | Safety precision and share policy | Minor |
-| **6.10.0** | Portable Evidence v2 | Minor |
-| **6.11.0** | Local coding-agent debug loop | Minor |
-| **6.12.0** | Consolidation and stable launch candidate | Minor |
-| then | Eight-week adoption checkpoint | — |
-| **v7** | Conditional decision only | — |
+| Release | Theme | Status |
+| ------- | ----- | ------ |
+| **6.7.4**–**6.7.5** | Consumer / native / DX reliability | Published |
+| **6.8.0** | LangGraph fidelity contract | Published |
+| **6.9.0** | Safety precision and share policy | Published |
+| **6.10.0** | Portable Evidence v2 | Published |
+| **6.11.0** | Local coding-agent debug loop | Published |
+| **6.12.0** | Consolidation and stable launch candidate | Published |
+| then | Eight-week adoption checkpoint | **Active** |
+| **v7** | Conditional decision only | Not scheduled |
 
 Train state: [docs/implementation/RELEASE-TRAIN-STATE.md](docs/implementation/RELEASE-TRAIN-STATE.md).
 Canonical maintainer roadmap: [docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md](docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md).

@@ -4,7 +4,7 @@ Quick index: [GOOD-FIRST-ISSUES.md](../../GOOD-FIRST-ISSUES.md)
 
 The live issue tracker is the source of truth. Use GitHub `#NNN` links — not archived draft markdown under [docs/archive/github/](../../docs/archive/github/).
 
-**Current npm release:** `agent-inspect@6.7.3` (eighteen linked public packages). Pre-v7 pilot evidence remains `_pending_` — do not mark gates complete.
+**Current npm release:** `agent-inspect@6.12.0` (eighteen linked public packages). Pre-v7 / adoption-checkpoint pilot evidence remains `_pending_` — do not mark gates complete.
 
 ---
 

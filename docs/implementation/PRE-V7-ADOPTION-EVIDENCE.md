@@ -54,7 +54,7 @@ Empty / `_pending_` rows mean “not yet evidenced,” not product failure.
 | Node 24 / 26 | — | — | UNTESTED in CI | | see packed matrix review |
 
 **Executed (real, local 2026-08-02):** host `Darwin` / `arm64` / Node `v22.22.3`; `pnpm pack:smoke` PASS (build + `package-smoke.mjs` + `packed-quickstart-e2e.mjs`); workspace ESM+CJS `createInspector` import; `packages/cli/dist/index.cjs --help`; `packages/mcp-server/bin/agent-inspect-mcp-server.cjs --help` / `-V` → `6.12.0`.
-**Not run:** `scripts/consumer-compat-matrix.mjs` (stale — still targets a removed `## Consumer compatibility matrix (v6.5.1)` heading; would append a duplicate section). `pnpm compat:smoke` not run this chunk.
+**Not run:** `scripts/consumer-compat-matrix.mjs` (heading aligned with this ledger; prefer manual Evidence-column updates — the helper overwrites the section). `pnpm compat:smoke` not run this chunk.
 **Not complete:** Full cross-platform matrix (Linux 20, macOS 20, Windows, Node 24/26). Do not mark complete without real runs.
 
 ## Portable evidence / MCP / CI seeds from v6.12

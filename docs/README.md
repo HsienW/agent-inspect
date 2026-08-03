@@ -2,7 +2,7 @@
 
 Local-first TypeScript AI agent toolkit: **debug, regression-test, and safely share** agent behavior on your machine.
 
-**Current release:** [agent-inspect@6.7.1](https://www.npmjs.com/package/agent-inspect) (eighteen linked packages). Technical launch candidate; external pilot evidence pending. Schema **1.0**. Node.js **≥ 20**.
+**Current release:** [agent-inspect@6.12.0](https://www.npmjs.com/package/agent-inspect) (eighteen linked packages). Stable launch candidate; eight-week adoption checkpoint in progress; external pilot evidence pending. Schema **1.0**. Node.js **≥ 20**. **v7 not scheduled.**
 
 **Website:** [https://agentinspect.vercel.app/](https://agentinspect.vercel.app/)  
 **Docs site:** [https://agentinspect.vercel.app/docs/](https://agentinspect.vercel.app/docs/)  
@@ -23,7 +23,7 @@ Local-first TypeScript AI agent toolkit: **debug, regression-test, and safely sh
 | [FIRST-TRACE-IN-5-MINUTES.md](./FIRST-TRACE-IN-5-MINUTES.md) | Fastest path from install to share-safe bundle |
 | [GOLDEN-PATH.md](./GOLDEN-PATH.md) | What is automated vs pilot-pending |
 | [GETTING-STARTED.md](./GETTING-STARTED.md) | Observe, manual steps, adapters |
-| [ADOPTION.md] · [INSTALL-KITS.md](./INSTALL-KITS.md)(./ADOPTION.md) | Team onboarding |
+| [ADOPTION.md](./ADOPTION.md) · [INSTALL-KITS.md](./INSTALL-KITS.md) | Team onboarding |
 | [USE-CASES.md](./USE-CASES.md) | Problem → command → starter |
 | [PRE-V7-PILOT-KIT.md](./PRE-V7-PILOT-KIT.md) | External pilot checklist |
 | [SUPPORT-LEVELS.md](./SUPPORT-LEVELS.md) | Stable / Supported / Beta / Preview |

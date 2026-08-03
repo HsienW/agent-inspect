@@ -1,6 +1,6 @@
 # Support levels
 
-Canonical maturity labels for AgentInspect public packages and major surfaces (6.7.x).
+Canonical maturity labels for AgentInspect public packages and major surfaces (6.12.x fixed release line).
 
 ## Definitions
 

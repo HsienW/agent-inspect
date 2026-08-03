@@ -1,6 +1,6 @@
-# Golden path (technical launch candidate)
+# Golden path (stable launch candidate)
 
-The 6.7.x technical launch candidate path. Be precise about what is automated today.
+The **6.12.0** stable launch candidate path. Be precise about what is automated today.
 
 ## Automated packed path (CI)
 

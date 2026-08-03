@@ -2,7 +2,7 @@
 
 **Status:** PARTIAL — evidence from maintainer CI + local smoke scripts; not a full OS×Node grid.  
 **Authority:** roadmap §13 Scope D · [V6.12.0-EXECUTION-PLAN.md](./implementation/release-trains/V6.12.0-EXECUTION-PLAN.md)  
-**Date:** 2026-08-02 · baseline `agent-inspect@6.11.0`
+**Date:** 2026-08-02 · baseline `agent-inspect@6.12.0`
 
 ## Method
 

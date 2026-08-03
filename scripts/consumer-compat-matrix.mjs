@@ -1,5 +1,11 @@
 /**
- * Record consumer compatibility matrix evidence for pre-v7 stabilization.
+ * Optional helper: local pack-smoke rows for the adoption evidence ledger.
+ *
+ * Prefer manual updates to docs/implementation/PRE-V7-ADOPTION-EVIDENCE.md during
+ * the v6.12 adoption checkpoint so Evidence-column / multi-host rows are preserved.
+ * This script overwrites the "## Consumer compatibility matrix" section (including
+ * any legacy "## Consumer compatibility matrix (v6.5.1)" heading).
+ *
  * Run from repo root: node scripts/consumer-compat-matrix.mjs
  */
 import { execSync, spawnSync } from "node:child_process";
@@ -39,7 +45,7 @@ try {
 }
 
 const table = [
-  "## Consumer compatibility matrix (v6.5.1)",
+  "## Consumer compatibility matrix",
   "",
   "| Environment | Node | Module | Status | Date |",
   "|-------------|------|--------|--------|------|",
@@ -53,9 +59,14 @@ const table = [
 ].join("\n");
 
 const existing = readFileSync(outPath, "utf8");
-const updated = existing.includes("## Consumer compatibility matrix (v6.5.1)")
-  ? existing.replace(/## Consumer compatibility matrix \(v6\.5\.1\)[\s\S]*?(?=\n## |$)/, table)
+const sectionPattern =
+  /## Consumer compatibility matrix(?: \(v6\.5\.1\))?[\s\S]*?(?=\n## |$)/;
+const updated = sectionPattern.test(existing)
+  ? existing.replace(sectionPattern, table)
   : `${existing.trim()}\n\n${table}\n`;
 
 writeFileSync(outPath, updated);
 console.log(`[consumer-compat-matrix] OK: updated ${outPath}`);
+console.log(
+  "[consumer-compat-matrix] Note: section overwrite — review Evidence-column rows if the ledger had richer manual data.",
+);
