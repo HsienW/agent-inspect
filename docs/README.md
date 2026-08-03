@@ -21,6 +21,8 @@ Local-first TypeScript AI agent toolkit: **debug, regression-test, and safely sh
 | Doc | For |
 | --- | --- |
 | [FIRST-TRACE-IN-5-MINUTES.md](./FIRST-TRACE-IN-5-MINUTES.md) | Fastest path from install to share-safe bundle |
+| [POSITIONING-AND-PORTFOLIO.md](./POSITIONING-AND-PORTFOLIO.md) | Canonical identity + Tier A/B/C portfolio |
+| [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) | MCP coding-agent debug loop (Preview) |
 | [GOLDEN-PATH.md](./GOLDEN-PATH.md) | What is automated vs pilot-pending |
 | [GETTING-STARTED.md](./GETTING-STARTED.md) | Observe, manual steps, adapters |
 | [ADOPTION.md](./ADOPTION.md) · [INSTALL-KITS.md](./INSTALL-KITS.md) | Team onboarding |
@@ -76,7 +78,9 @@ Local-first TypeScript AI agent toolkit: **debug, regression-test, and safely sh
 
 | Doc | Topic |
 | --- | ----- |
-| [`@agent-inspect/mcp`](../packages/mcp/README.md) · [`@agent-inspect/mcp-server`](../packages/mcp-server/README.md) | MCP client / read-only server |
+| [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) | Flagship MCP coding-agent loop |
+| [`@agent-inspect/mcp-server`](../packages/mcp-server/README.md) | Read-only MCP server (Preview) |
+| [`@agent-inspect/mcp`](../packages/mcp/README.md) | MCP **client** tracing |
 | [STANDARDS.md](./STANDARDS.md) | OpenInference / OTLP bridge |
 
 ## Reference

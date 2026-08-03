@@ -26,4 +26,16 @@ npx agent-inspect mcp configure --client cursor
 
 - `@agent-inspect/mcp-server` tools are **read-only**
 - Share redaction by default
+- Flagship tools include `get_first_causal_failure` and `create_share_checked_evidence`
 - See [docs/CODING-AGENT-LOOP.md](../../../docs/CODING-AGENT-LOOP.md)
+
+## Optional CLI evidence
+
+After a run id exists:
+
+```bash
+npx agent-inspect report <run-id> --dir .agent-inspect
+npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share
+npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>
+```
+

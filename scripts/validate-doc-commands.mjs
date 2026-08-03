@@ -17,6 +17,10 @@ const patterns = [
     name: "redact with only --dir (missing target)",
     re: /agent-inspect\s+redact\s+--profile\s+\w+\s+--dir\b/,
   },
+  {
+    name: "redact starting with --profile (missing target)",
+    re: /agent-inspect\s+redact\s+--profile\b/,
+  },
 ];
 
 const roots = [
@@ -25,6 +29,7 @@ const roots = [
   "apps/website/components",
   "apps/website/lib",
   "docs/marketing",
+  "examples/starters",
 ];
 
 function walk(dir, out = []) {

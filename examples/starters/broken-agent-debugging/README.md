@@ -10,23 +10,35 @@ No API keys. No network.
 pnpm install
 pnpm start
 npx agent-inspect list --dir .agent-inspect
+```
+
+Copy a `<run-id>` from `list`, then:
+
+```bash
 npx agent-inspect report <run-id> --dir .agent-inspect
-npx agent-inspect check .agent-inspect/*.jsonl
-npx agent-inspect redact .agent-inspect/*.jsonl --profile share -o safe.jsonl
-npx agent-inspect verify-safe safe.jsonl
+npx agent-inspect check <run-id> --dir .agent-inspect
+npx agent-inspect redact <run-id> --dir .agent-inspect --profile share -o safe.jsonl
+npx agent-inspect verify-safe <run-id> --dir .agent-inspect
+```
+
+Optional Evidence v2:
+
+```bash
+npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share
+npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>
 ```
 
 ## Fix flow
 
 ```bash
 pnpm run fixed
-npx agent-inspect diff .agent-inspect/<old-run>.jsonl .agent-inspect/<new-run>.jsonl
+npx agent-inspect diff <old-run-id> <new-run-id> --dir .agent-inspect
 ```
 
 ## What to look for
 
 - Failed `step.tool` with `status: "error"` in the trace
-- `report` highlights the first failing step
-- `redact --profile share` before posting artifacts anywhere
+- `report` highlights the first failing / causal step
+- Always pass a run id (or path) to `redact` / `verify-safe` / `check`
 
 Adoption: [docs/FIRST-TRACE-IN-5-MINUTES.md](../../../docs/FIRST-TRACE-IN-5-MINUTES.md)

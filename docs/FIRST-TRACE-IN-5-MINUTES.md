@@ -58,6 +58,7 @@ npx agent-inspect check <run-id> --dir .agent-inspect
 ```bash
 npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share
 npx agent-inspect verify-safe <run-id> --dir .agent-inspect
+npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>
 ```
 
 Attach the share-profile bundle (or a redacted file) to a PR or issue — not raw traces.
@@ -72,11 +73,13 @@ npx agent-inspect redact <run-id> --dir .agent-inspect --profile share -o redact
 
 | If you use… | Go to |
 | ----------- | ----- |
+| Broken agent demo | [broken-agent-debugging starter](../examples/starters/broken-agent-debugging/README.md) |
+| Coding-agent MCP loop | [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) · [coding-agent-debug-loop](../examples/starters/coding-agent-debug-loop/README.md) |
+| Contracts / CI gates | [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md) · [SUITES-COHORTS-GATES.md](./SUITES-COHORTS-GATES.md) |
 | AI SDK | [AI SDK adoption](./AI-SDK-ADOPTION.md) |
 | OpenAI Agents | [OpenAI Agents local](./OPENAI-AGENTS-LOCAL.md) |
 | LangChain | [Adapters](./ADAPTERS.md) |
-| CI tests | [CI artifacts](./CI-ARTIFACTS.md) · [Suites / gates](./SUITES-COHORTS-GATES.md) |
+| CI tests | [CI artifacts](./CI-ARTIFACTS.md) |
 | Golden path | [GOLDEN-PATH.md](./GOLDEN-PATH.md) |
-| Broken agent demo | [broken-agent-debugging starter](../examples/starters/broken-agent-debugging/README.md) |
 
 Full index: [docs/README.md](./README.md) · Website docs: [agentinspect.vercel.app/docs](https://agentinspect.vercel.app/docs/)

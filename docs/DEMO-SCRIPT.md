@@ -66,7 +66,7 @@ npx agent-inspect verify-safe <run-id> --dir .agent-inspect
 ## Beat 6 — MCP coding-agent loop (optional, 45s)
 
 ```bash
-npx agent-inspect mcp configure --client cursor --dry-run
+npx agent-inspect mcp configure --client cursor
 cd ../coding-agent-debug-loop
 pnpm install && pnpm start && pnpm run inspect-mcp
 ```

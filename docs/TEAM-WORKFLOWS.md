@@ -7,7 +7,7 @@ How teams adopt AgentInspect without a hosted platform.
 1. `npm install agent-inspect && npx agent-inspect init --yes`
 2. Run demo: `node examples/agent-inspect-demo.mjs`
 3. `npx agent-inspect view <run-id>`
-4. Before posting issues: `npx agent-inspect redact --profile share`
+4. Before posting issues: `npx agent-inspect redact <run-id> --dir .agent-inspect --profile share -o safe.jsonl`
 
 ## PR / code review
 

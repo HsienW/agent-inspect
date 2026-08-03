@@ -408,7 +408,7 @@ See [LIMITATIONS.md](./LIMITATIONS.md).
 | 2 | Eval failure — which step? | `check`, `@agent-inspect/vitest` | [ci-eval-redact](../examples/starters/ci-eval-redact/) |
 | 3 | CI PR artifact | upload + `redact` + `verify-safe` | [CI-ARTIFACTS.md](./CI-ARTIFACTS.md) |
 | 4 | Framework-native trace | adapter packages | [starters](../examples/starters/) |
-| 5 | Safe incident handoff | `redact --profile share` | [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md) |
+| 5 | Safe incident handoff | `redact <run-id> --profile share` | [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md) |
 | 6 | Multi-agent / sessions | `sessions`, `search`, `diff` | [USE-CASES.md](./USE-CASES.md) |
 | 7 | MCP tool tracing | `@agent-inspect/mcp` | [ADAPTERS.md](./ADAPTERS.md) |
 | 8 | Team adoption sprint | one agent, one check, one artifact | [DESIGN-PARTNER-GUIDE.md](./DESIGN-PARTNER-GUIDE.md) |
@@ -446,7 +446,7 @@ AgentInspect is a local-first TypeScript toolkit for AI agents. It writes execut
 When an agent calls the wrong tool or a test fails, flat logs are not enough. AgentInspect captures runs and nested steps locally, lets you `report` and `diff` failures, and gates CI with deterministic `check` rules — no LLM judge. Framework adapters exist for AI SDK, OpenAI Agents, and LangChain. Metadata-only by default; redact before posting traces anywhere.
 
 **120 seconds (technical):**  
-Add `observe()` or a framework adapter, get JSONL under `.agent-inspect/`, then use `agent-inspect list`, `view`, `report`, `check`, and `redact --profile share`. Sixteen npm packages cover adapters, eval, redaction, MCP tracing, harness fixtures, and test reporters. Schema 1.0 persisted events; readers handle 0.1/0.2/1.0. Not production APM — local debug and share-safe artifacts first.
+Add `observe()` or a framework adapter, get JSONL under `.agent-inspect/`, then use `agent-inspect list`, `view`, `report`, `check`, and `redact <run-id> --profile share`. Sixteen npm packages cover adapters, eval, redaction, MCP tracing, harness fixtures, and test reporters. Schema 1.0 persisted events; readers handle 0.1/0.2/1.0. Not production APM — local debug and share-safe artifacts first.
 
 ### 16.2 Pull quotes (factual)
 

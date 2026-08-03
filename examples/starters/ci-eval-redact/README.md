@@ -1,10 +1,16 @@
 # ci-eval-redact starter
 
-Generates a trace, then use check/eval/redact locally in CI.
+Generates a trace, then use check/redact locally (CI-friendly).
 
 ```bash
 pnpm install && pnpm start
-npx agent-inspect check .agent-inspect/*.jsonl
+npx agent-inspect list --dir .agent-inspect
 ```
 
-Safe sharing: `npx agent-inspect redact ... --profile share`
+Copy a `<run-id>`, then:
+
+```bash
+npx agent-inspect check <run-id> --dir .agent-inspect
+npx agent-inspect redact <run-id> --dir .agent-inspect --profile share -o safe.jsonl
+npx agent-inspect verify-safe <run-id> --dir .agent-inspect
+```

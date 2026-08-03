@@ -21,7 +21,7 @@ Thank you for trying AgentInspect early. This doc is the **evaluation contract**
 | 1 | `doctor` clean | No failed checks |
 | 2 | Wire adapter or `observe()` in your app | Real trace captured |
 | 2 | `check` or `artifacts` in CI | Job fails on bad fixture |
-| 3 | `bundle` + `bundle verify` (or `redact --profile share` + `verify-safe`) | Comfortable posting evidence externally |
+| 3 | `bundle` + `bundle verify` (or `redact <run-id> --profile share` + `verify-safe <run-id>`) | Comfortable posting evidence externally |
 | 3–4 | Optional: `mcp configure` + [coding-agent-debug-loop](../examples/starters/coding-agent-debug-loop/) | Repeated local MCP debug loop |
 | 4 | Feedback session | Case study draft or structured notes |
 

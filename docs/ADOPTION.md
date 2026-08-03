@@ -47,7 +47,7 @@ Copyable task kits (LangGraph, portable evidence, AI SDK, OpenAI Agents, CI): [I
 1. **Capture** — `observe()` / adapter / manual steps → `.agent-inspect/*.jsonl`
 2. **Inspect** — `list`, `view`, `timeline`, `report`, optional `serve` viewer
 3. **Verify** — `check`, `eval`, `@agent-inspect/circuit` rules in CI
-4. **Share safely** — `redact --profile share` before attaching traces to issues/PRs
+4. **Share safely** — `redact <run-id> --dir .agent-inspect --profile share` before attaching traces to issues/PRs
 5. **Scale** — when directories grow, see [SCALE-LIMITS.md](./SCALE-LIMITS.md) and `agent-inspect index build`
 
 ## CI checklist

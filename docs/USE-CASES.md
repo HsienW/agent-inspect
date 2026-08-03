@@ -17,7 +17,12 @@ npx agent-inspect report <run-id> --dir .agent-inspect
 
 **Output:** Step tree with tool metadata (not raw payloads by default).
 
-**Safety:** Metadata-only default. Redact before sharing: `npx agent-inspect redact --profile share`.
+**Safety:** Metadata-only default. Redact before sharing:
+
+```bash
+npx agent-inspect redact <run-id> --dir .agent-inspect --profile share -o safe.jsonl
+npx agent-inspect verify-safe <run-id> --dir .agent-inspect
+```
 
 **Starter:** [broken-agent-debugging](../examples/starters/broken-agent-debugging/README.md) (intentional failure) or [custom-observe](../examples/starters/custom-observe/README.md)
 
@@ -32,7 +37,7 @@ npx agent-inspect report <run-id> --dir .agent-inspect
 **Use:** `@agent-inspect/vitest` or `npx agent-inspect check`.
 
 ```bash
-npx agent-inspect check .agent-inspect/*.jsonl --require-completed
+npx agent-inspect check <run-id> --dir .agent-inspect
 ```
 
 **Starter:** [ci-eval-redact](../examples/starters/ci-eval-redact/README.md)
@@ -43,7 +48,7 @@ npx agent-inspect check .agent-inspect/*.jsonl --require-completed
 
 **Problem:** Reviewers need safe evidence without cloning your laptop.
 
-**Use:** CI upload + `redact --profile share` + `verify-safe`.
+**Use:** CI upload + `redact <run-id> --dir … --profile share` + `verify-safe <run-id>` + optional `bundle` / `bundle verify`.
 
 **Doc:** [CI artifacts](./CI-ARTIFACTS.md)
 
@@ -63,7 +68,7 @@ npx agent-inspect check .agent-inspect/*.jsonl --require-completed
 
 **Problem:** You need to paste a trace into Slack or a GitHub issue.
 
-**Use:** `@agent-inspect/redact` or CLI `redact` / `scan`.
+**Use:** `@agent-inspect/redact` or CLI `redact` / `scan` / `bundle` with a run id or path target.
 
 **Doc:** [Safe trace sharing](./SAFE-TRACE-SHARING.md)
 
@@ -77,23 +82,42 @@ npx agent-inspect check .agent-inspect/*.jsonl --require-completed
 
 ---
 
-## 7. MCP tool tracing
+## 7. Ask a coding agent what failed first (MCP)
+
+**Problem:** You want Cursor/Claude/Codex to inspect a local failing run without uploading traces.
+
+**Use:** `@agent-inspect/mcp-server` + `agent-inspect mcp configure` (dry-run by default).
+
+```bash
+npx agent-inspect mcp configure --client cursor
+cd examples/starters/coding-agent-debug-loop && pnpm start && pnpm run inspect-mcp
+```
+
+Ask the agent for `get_first_causal_failure` / `create_share_checked_evidence`.
+
+**Docs:** [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) · **Starter:** [coding-agent-debug-loop](../examples/starters/coding-agent-debug-loop/README.md)
+
+**Not:** Remote MCP gateway or default network upload.
+
+---
+
+## 8. MCP client tool tracing
 
 **Problem:** Which MCP tools were listed, called, and where did they fail?
 
-**Use:** `@agent-inspect/mcp` (client tracing only).
+**Use:** `@agent-inspect/mcp` (client tracing only — distinct from the coding-agent MCP **server** loop above).
 
 ---
 
-## 8. Design partner adoption
+## 9. Design partner adoption
 
 **Problem:** Team wants one real agent instrumented in one sprint.
 
-**Doc:** [Design partner guide](./DESIGN-PARTNER-GUIDE.md)
+**Doc:** [Design partner guide](./DESIGN-PARTNER-GUIDE.md) · [Pilot kit](./PRE-V7-PILOT-KIT.md)
 
 ---
 
-## 9. VS Code trace review
+## 10. VS Code trace review
 
 **Problem:** Browse `.agent-inspect/` from the editor.
 
@@ -103,7 +127,7 @@ npx agent-inspect check .agent-inspect/*.jsonl --require-completed
 
 ---
 
-## 10. Existing structured logs
+## 11. Existing structured logs
 
 **Problem:** You cannot change app code; logs already exist.
 
