@@ -48,13 +48,14 @@ Empty / `_pending_` rows mean “not yet evidenced,” not product failure.
 |-------------|------|--------|--------|------|----------|
 | Linux | 20 | ESM | _pending_ | | |
 | Linux | 22 | ESM | partial | 2026-08-02 | Publish CI / packed smoke (Ubuntu Node 22) |
-| macOS | 20 | CJS | _pending_ | | |
-| macOS | 22 | ESM | _pending_ | | local host run in adoption-1 |
+| macOS | 20 | CJS | _pending_ | | Node 20 not installed on this host |
+| macOS | 22 | ESM | pass | 2026-08-02 | Local `pnpm pack:smoke` (darwin arm64, Node v22.22.3); also CJS require + CLI/MCP help — [reviews/V6.12-ADOPTION-1-LOCAL-COMPAT.md](./reviews/V6.12-ADOPTION-1-LOCAL-COMPAT.md) |
 | Windows | 22 | ESM | _pending_ | | |
 | Node 24 / 26 | — | — | UNTESTED in CI | | see packed matrix review |
 
-**Executed:** `scripts/consumer-compat-matrix.mjs` / `pnpm pack:smoke` / packed quickstart in CI.
-**Not complete:** Full cross-platform matrix. Do not mark complete without real runs.
+**Executed (real, local 2026-08-02):** host `Darwin` / `arm64` / Node `v22.22.3`; `pnpm pack:smoke` PASS (build + `package-smoke.mjs` + `packed-quickstart-e2e.mjs`); workspace ESM+CJS `createInspector` import; `packages/cli/dist/index.cjs --help`; `packages/mcp-server/bin/agent-inspect-mcp-server.cjs --help` / `-V` → `6.12.0`.
+**Not run:** `scripts/consumer-compat-matrix.mjs` (stale — still targets a removed `## Consumer compatibility matrix (v6.5.1)` heading; would append a duplicate section). `pnpm compat:smoke` not run this chunk.
+**Not complete:** Full cross-platform matrix (Linux 20, macOS 20, Windows, Node 24/26). Do not mark complete without real runs.
 
 ## Portable evidence / MCP / CI seeds from v6.12
 
