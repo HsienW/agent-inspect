@@ -12,9 +12,9 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ## Current — v6.12 adoption checkpoint
 
-**Current release on npm:** **6.12.0** (eighteen fixed-group public packages). Persisted schema **1.0**. See [CHANGELOG.md](CHANGELOG.md#6120).
+**Current release on npm:** **6.12.1** (eighteen fixed-group public packages). Persisted schema **1.0**. See [CHANGELOG.md](CHANGELOG.md#6121).
 
-**6.12.0** is the published stable launch candidate. Active work is the eight-week adoption checkpoint (docs/evidence only; no fabricated partners). No new public package before the conditional v7 decision.
+**6.12.0** is the published stable launch candidate; **6.12.1** is a presentation/docs patch. Active work is the eight-week adoption checkpoint (docs/evidence only; no fabricated partners). No new public package before the conditional v7 decision.
 
 | Release | Theme | Status |
 | ------- | ----- | ------ |

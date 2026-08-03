@@ -3,7 +3,7 @@
  * Keep in sync with root package.json + .changeset fixed group + docs/SUPPORT-LEVELS.md.
  */
 export const product = {
-  version: "6.12.0",
+  version: "6.12.1",
   publicPackageCount: 18,
   releaseStatus: "Technical launch candidate · external pilot evidence pending",
   v7Scheduled: false,

@@ -159,7 +159,7 @@ Details: [Safe sharing](https://github.com/rajudandigam/agent-inspect/blob/main/
 
 ## Project status
 
-**Current release:** **6.12.0** (eighteen linked npm packages). Stable launch candidate; eight-week adoption checkpoint in progress; external pilot evidence pending. Persisted schema **1.0**. Node.js **≥ 20**. **v7 not scheduled.**
+**Current release:** **6.12.1** (eighteen linked npm packages). Stable launch candidate; eight-week adoption checkpoint in progress; external pilot evidence pending. Persisted schema **1.0**. Node.js **≥ 20**. **v7 not scheduled.**
 
 [Roadmap](ROADMAP.md) · [Pilot kit](https://github.com/rajudandigam/agent-inspect/blob/main/docs/PRE-V7-PILOT-KIT.md) · [Changelog](CHANGELOG.md)
 
