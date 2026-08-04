@@ -46,7 +46,11 @@ export interface TraceContractRunRules {
 
 export interface TraceContractToolRules {
   required?: string[];
+  /** Alias of `required` (TraceContract v2 normalization). */
+  requiredTools?: string[];
   forbidden?: string[];
+  /** Alias of `forbidden`. */
+  forbiddenTools?: string[];
   allowed?: string[];
   maxCalls?: number;
   requiredOrder?: string[];
@@ -163,10 +167,18 @@ function contractToRules(contract: TraceContract): TraceCheckRule[] {
   }
 
   if (contract.tools) {
+    const required = [
+      ...(contract.tools.required ?? []),
+      ...(contract.tools.requiredTools ?? []),
+    ];
+    const forbidden = [
+      ...(contract.tools.forbidden ?? []),
+      ...(contract.tools.forbiddenTools ?? []),
+    ];
     rules.push(
       createToolUsageRule({
-        ...(contract.tools.required ? { required: contract.tools.required } : {}),
-        ...(contract.tools.forbidden ? { forbidden: contract.tools.forbidden } : {}),
+        ...(required.length > 0 ? { required } : {}),
+        ...(forbidden.length > 0 ? { forbidden } : {}),
         ...(contract.tools.allowed ? { allowed: contract.tools.allowed } : {}),
         ...(contract.tools.maxCalls !== undefined ? { maxCount: contract.tools.maxCalls } : {}),
       }),

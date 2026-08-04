@@ -306,11 +306,21 @@ export function projectLogicalEvents(
 
     if (!remapped) {
       if (!logicalById.has(originalParentId) && !logicalByRawId.has(originalParentId)) {
-        diagnostics.push({
-          code: "AI_LOGICAL_PARENT_UNRESOLVED",
-          message: `Parent ${originalParentId} unresolved for ${event.eventId}.`,
-          eventIds: [event.eventId],
-        });
+        const mapping = event.attributes?.parentMapping;
+        const unresolved =
+          mapping === "unresolved" ||
+          event.attributes?.parentUnresolved === true ||
+          event.attributes?.unresolvedParent === true ||
+          // LangGraph/framework scaffolding sentinel labels are not event ids.
+          /^LangGraph$/i.test(originalParentId) ||
+          originalParentId.startsWith("unresolved:");
+        if (!unresolved) {
+          diagnostics.push({
+            code: "AI_LOGICAL_PARENT_UNRESOLVED",
+            message: `Parent ${originalParentId} unresolved for ${event.eventId}.`,
+            eventIds: [event.eventId],
+          });
+        }
       }
       normalized.push(event);
       continue;

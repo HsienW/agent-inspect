@@ -8,6 +8,12 @@
 
 ## Unreleased
 
+### Patch (6.12.3) / Minor (6.13.0) candidates
+
+- Cross-surface semantic parity: `summarizeSemanticParity`, MCP adapter diagnostics parity payload, scaffolding-root parent diagnostics, TraceContract `requiredTools`/`forbiddenTools` aliases.
+- Experimental `TraceFacts` (`buildTraceFacts`) with tool/LLM/outcome indexes over logicalEvents.
+- Experimental Vitest/Jest matchers: `toPassTraceContract`, `toHaveRequiredTool`.
+
 ## 6.12.1
 
 ### Patch Changes

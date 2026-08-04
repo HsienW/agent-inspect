@@ -19,6 +19,8 @@ import {
 
 export type { LogicalProjectionDiagnostic, LogicalTraceEvent } from "./logical-events.js";
 export { projectLogicalEvents, resolveCanonicalToolName } from "./logical-events.js";
+export type { SemanticParitySummary, TraceFacts } from "./trace-facts.js";
+export { buildTraceFacts, summarizeSemanticParity } from "./trace-facts.js";
 
 /**
  * Experimental trace-check finding severity.

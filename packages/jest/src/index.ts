@@ -357,6 +357,8 @@ export class AgentInspectJestReporter implements AgentInspectJestReporterFacade 
 export const agentInspectJestReporter = createAgentInspectJestReporter;
 export default AgentInspectJestReporter;
 
+export { agentInspectJestMatchers } from "./matchers.js";
+
 function normalizeSuccessLimit(options: AgentInspectJestReporterOptions): number {
   const cap = clampCount(options.maxSuccessfulTraces, DEFAULT_SUCCESS_LIMIT);
   if (options.retainSuccessful === true) return cap;

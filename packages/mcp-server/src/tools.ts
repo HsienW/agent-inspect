@@ -16,7 +16,7 @@ import {
   serializeEvidenceManifest,
   sha256Hex,
 } from "agent-inspect/advanced";
-import { createRunStatusRule, runTraceChecks } from "agent-inspect/checks";
+import { createRunStatusRule, runTraceChecks, summarizeSemanticParity } from "agent-inspect/checks";
 import { diffRuns, manualTraceEventsToComparableRun } from "agent-inspect/diff";
 import { exportMarkdown, exportRunTree } from "agent-inspect/exporters";
 import { persistedInspectEventsToTraceEvents } from "agent-inspect/persisted";
@@ -312,7 +312,8 @@ export async function callReadOnlyTool(
         sourceFile: path.basename(meta.filePath),
         warnings: read.warnings.slice(0, 20),
         unsupportedFields: read.unsupportedFields.slice(0, 20),
-        note: "Bounded local diagnostics only; not a network health check.",
+        semanticParity: summarizeSemanticParity(read.events),
+        note: "Bounded local diagnostics only; not a network health check. semanticParity uses logicalEvents projection.",
       },
       context,
     );

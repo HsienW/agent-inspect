@@ -257,6 +257,9 @@ export function createAgentInspectVitestReporter(
 
 export const agentInspectVitestReporter = createAgentInspectVitestReporter;
 
+export { agentInspectVitestMatchers } from "./matchers.js";
+export type { AgentInspectVitestMatchers } from "./matchers.js";
+
 function normalizeSuccessLimit(options: AgentInspectVitestReporterOptions): number {
   const cap = clampCount(options.maxSuccessfulTraces, DEFAULT_SUCCESS_LIMIT);
   if (options.retainSuccessful === true) return cap;
