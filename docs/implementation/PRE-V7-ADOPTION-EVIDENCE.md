@@ -1,10 +1,11 @@
 # Pre-v7 Adoption Evidence
 
-Ledger for the **v6.12 adoption checkpoint** (eight weeks). **Do not fabricate entries.**
+Ledger for retained real-world use before any v7 decision. **Do not fabricate entries.**
 
-**Checkpoint:** [release-trains/V6.12-ADOPTION-CHECKPOINT.md](./release-trains/V6.12-ADOPTION-CHECKPOINT.md)
-**Published baseline:** `agent-inspect@6.12.0` (18 fixed packages)
-**Calendar:** 2026-08-02 → 2026-09-27
+**Active checkpoint:** [release-trains/V6.14-ADOPTION-CHECKPOINT.md](./release-trains/V6.14-ADOPTION-CHECKPOINT.md) (armed after `6.14.0`)
+**Prior checkpoint:** [release-trains/V6.12-ADOPTION-CHECKPOINT.md](./release-trains/V6.12-ADOPTION-CHECKPOINT.md) — superseded, not completed
+**Published baseline:** `agent-inspect@6.14.0` (18 fixed packages)
+**v6.14.x calendar:** 2026-08-04 → 2026-09-29
 **Pilot kit:** [../PRE-V7-PILOT-KIT.md](../PRE-V7-PILOT-KIT.md)
 **Outreach checklist (placeholders only):** [ADOPTION-OUTREACH-CHECKLIST.md](./ADOPTION-OUTREACH-CHECKLIST.md) — do not fabricate responses.
 
@@ -16,7 +17,7 @@ Empty / `_pending_` rows mean “not yet evidenced,” not product failure.
 |-------|-------|
 | Partner name | _pending_ |
 | Date | _pending_ |
-| AgentInspect version | test against `6.12.0` |
+| AgentInspect version | test against `6.14.0` |
 | Workflow completed | _pending_ |
 | Blockers | _pending_ |
 | Sign-off | _pending_ |

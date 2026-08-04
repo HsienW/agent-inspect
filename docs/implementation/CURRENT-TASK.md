@@ -3,18 +3,18 @@
 ```yaml
 executionMode: autonomous-release-train
 namedTrain: agentinspect-canonical-stability-evidence-v6.12.1-to-v7-decision
-currentTrain: v6.14.0-evidence-first-lc
-trainStatus: releasing
-currentChunk: 6.14.0-12-release-publication
-nextAction: Publish 6.14.0 via Changeset + publish.yml; then enter 6.14.x stability hold
+currentTrain: v6.14.x-stability-and-adoption
+trainStatus: active
+currentChunk: 6.14.x-hold
+nextAction: Collect real external evidence; bugs/docs/assessment only; no feature expansion; no v7
 canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md
-activePlan: docs/implementation/release-trains/V6.14.0-EXECUTION-PLAN.md
+activePlan: docs/implementation/release-trains/V6.14.X-STABILITY-AND-ADOPTION-POLICY.md
 ```
 
 ## Published baseline
 
-**6.13.0** (target **6.14.0**)
+**6.14.0** (18 fixed-group packages; Trusted Publishing 2026-08-04)
 
 ## Notes
 
-Maintainer authorized publication of 6.14.0. External retention ledger still incomplete — do not fabricate pilots. No v7.
+6.14.0 published with maintainer authorization despite incomplete external retention ledger. Continue collecting real evidence during 6.14.x. Do not fabricate pilots. No v7.
