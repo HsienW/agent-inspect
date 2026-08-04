@@ -1,11 +1,11 @@
 # AgentInspect Canonical Stability and Evidence Roadmap — v6.12.1 to the v7 Decision
 
-**Status:** Proposed canonical implementation roadmap after the 6.12.1 real-world LangGraph pilots  
-**Audience:** Maintainers, Cursor implementation sessions, contributors, adapter authors, CI owners, and design partners  
-**Current published baseline:** `agent-inspect@6.12.1` and the linked public package family  
-**Persisted trace schema:** `1.0`; legacy v0.1 and v0.2 remain readable  
-**Roadmap horizon:** `v6.12.2 → v6.12.3 → v6.13.0 → v6.14.0 → v6.14.x validation → conditional v7`  
-**Primary goal:** Make the flagship local evidence loop correct on real TypeScript/LangGraph agents, then make it dependable in CI, portable as a verified artifact, and useful to coding agents without a collector or hosted account.  
+**Status:** Active canonical implementation roadmap after the 6.12.1 real-world LangGraph pilots
+**Audience:** Maintainers, Cursor implementation sessions, contributors, adapter authors, CI owners, and design partners
+**Current published baseline:** `agent-inspect@6.12.1` and the linked public package family
+**Persisted trace schema:** `1.0`; legacy v0.1 and v0.2 remain readable
+**Roadmap horizon:** `v6.12.2 → v6.12.3 → v6.13.0 → v6.14.0 → v6.14.x validation → conditional v7`
+**Primary goal:** Make the flagship local evidence loop correct on real TypeScript/LangGraph agents, then make it dependable in CI, portable as a verified artifact, and useful to coding agents without a collector or hosted account.
 **Hard constraint:** No new public package family before the v7 decision. Depth, correctness, and adoption proof take priority over breadth.
 
 ---

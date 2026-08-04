@@ -18,12 +18,13 @@ Use this order:
 2. `AGENTS.md`
 3. `docs/implementation/RELEASE-TRAIN-STATE.md`
 4. `docs/implementation/CURRENT-TASK.md`
-5. canonical Stability and Focus roadmap `docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md`
-6. active release-train plan under `docs/implementation/release-trains/` (v6.7.4→v6.12)
-7. relevant RFC/proposal/security docs
+5. canonical Stability and Evidence roadmap `docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md`
+6. active release-train plan under `docs/implementation/release-trains/`
+7. relevant RFC/proposal/security/evidence docs
 8. public `ROADMAP.md`
 9. historical roadmaps and archive, including:
-   - `docs/implementation/ROADMAP-V6.4-TO-PRE-V7.md` (completed pre-v7 stabilization / prior freeze)
+   - `docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md` (superseded program; historical)
+   - `docs/implementation/ROADMAP-V6.4-TO-PRE-V7.md` (completed pre-v7 stabilization)
    - `docs/implementation/ROADMAP_V3_5_TO_V7.md` (completed v3.5→v6.4 trains)
    - `docs/archive/`
 
@@ -32,7 +33,7 @@ Report material conflicts; never resolve them silently.
 Named autonomous train authorized when `CURRENT-TASK.md` sets `executionMode: "autonomous-release-train"`:
 
 ```text
-agentinspect-stability-and-focus-v6.7.3-to-v7-decision
+agentinspect-canonical-stability-evidence-v6.12.1-to-v7-decision
 ```
 
 ## Start every task
@@ -91,18 +92,19 @@ The maintainer reviews, commits, pushes, versions, tags, and publishes.
 
 The explicit autonomous release-train mode above is the only exception for routine commits, pushes, and validated Changesets PR merging. First publication of a new npm package remains a manual maintainer gate.
 
-## 1.x compatibility
+## Compatibility (published APIs)
 
 - Existing global APIs and published imports keep working.
 - Global/manual writes remain `schemaVersion: "0.1"`.
-- v0.1 and v0.2 traces remain readable.
+- v0.1 and v0.2 traces remain readable; schema **1.0** is the current persisted writer path.
 - No destructive migration or third persisted model.
-- New APIs are additive and experimental.
-- New specialized APIs prefer `/writers`, `/readers`, or `/advanced`.
+- New APIs are additive and experimental unless an active plan promotes them.
+- New specialized APIs prefer `/writers`, `/readers`, `/checks`, or `/advanced`.
 - Do not add new root exports unless the active plan requires them.
 - ESM, CJS, declarations, CLI behavior, and Node `>=20` remain valid.
 - Optional integrations must not leak dependencies into root/core.
 - No root/core runtime dependency without approval.
+- Through 6.12.x: public experimental check `events` stay raw persisted rows; semantic built-ins use additive `logicalEvents` / TraceFacts progression per the canonical roadmap.
 
 ## Architecture rules
 

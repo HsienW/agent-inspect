@@ -2,19 +2,19 @@
 
 ```yaml
 executionMode: autonomous-release-train
-namedTrain: agentinspect-stability-and-focus-v6.7.3-to-v7-decision
-currentTrain: v6.12-adoption-checkpoint
-trainStatus: in-progress
-currentChunk: adoption-4
-nextAction: adoption-4 mid-checkpoint review (week ~4; calendar start 2026-08-02 → mid ~2026-08-30) — pending calendar; do not mark complete early
-canonicalRoadmap: docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md
-activePlan: docs/implementation/release-trains/V6.12-ADOPTION-CHECKPOINT.md
+namedTrain: agentinspect-canonical-stability-evidence-v6.12.1-to-v7-decision
+currentTrain: v6.12.2-real-pilot-semantic-blockers
+trainStatus: active
+currentChunk: 6.12.2-0-audit-semantic-consumer-assumptions
+nextAction: Audit reader/check/safety/event-lifecycle assumptions; then implement logical projection (6.12.2-1+)
+canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md
+activePlan: docs/implementation/release-trains/V6.12.2-EXECUTION-PLAN.md
 ```
 
 ## Published baseline
 
-**6.12.1** (presentation patch on **6.12.0** LC)
+**6.12.1**
 
-## Last completed chunk
+## Notes
 
-**6.12.1 presentation** — website/README/starters/docs example-heavy refresh published. Resume **adoption-4** calendar wait (do not mark mid-checkpoint complete early).
+Canonical Stability and Evidence program activated. Old v6.12 adoption checkpoint is **superseded** (not completed). Do not fabricate pilots. Do not implement v7.

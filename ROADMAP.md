@@ -10,33 +10,33 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ---
 
-## Current — v6.12 adoption checkpoint
+## Current — canonical stability and evidence (from 6.12.1)
 
 **Current release on npm:** **6.12.1** (eighteen fixed-group public packages). Persisted schema **1.0**. See [CHANGELOG.md](CHANGELOG.md#6121).
 
-**6.12.0** is the published stable launch candidate; **6.12.1** is a presentation/docs patch. Active work is the eight-week adoption checkpoint (docs/evidence only; no fabricated partners). No new public package before the conditional v7 decision.
+**6.12.0** was the consolidation LC; **6.12.1** was presentation. Active work is the **canonical stability and evidence** program: logical TraceFacts foundation, semantic parity, then Evidence-first CI — not calendar wait. Prior eight-week adoption checkpoint is **superseded** (not completed). No new public package before the conditional v7 decision.
 
 | Release | Theme | Status |
 | ------- | ----- | ------ |
-| **6.7.4**–**6.7.5** | Consumer / native / DX reliability | Published |
-| **6.8.0** | LangGraph fidelity contract | Published |
-| **6.9.0** | Safety precision and share policy | Published |
-| **6.10.0** | Portable Evidence v2 | Published |
-| **6.11.0** | Local coding-agent debug loop | Published |
-| **6.12.0** | Consolidation and stable launch candidate | Published |
-| then | Eight-week adoption checkpoint | **Active** |
+| **6.7.4**–**6.12.1** | Prior Stability and Focus program | Published |
+| **6.12.2** | Real-pilot semantic blocker patch | **Active** |
+| **6.12.3** | Cross-surface semantic parity | Planned |
+| **6.13.0** | TraceFacts + TraceContract stabilization | Planned |
+| **6.13.1** | Reserved corrective patch | Conditional |
+| **6.14.0** | Evidence-first CI / no-egress LC | Planned |
+| **6.14.x** | Stability and adoption | Planned |
 | **v7** | Conditional decision only | Not scheduled |
 
 Train state: [docs/implementation/RELEASE-TRAIN-STATE.md](docs/implementation/RELEASE-TRAIN-STATE.md).
-Canonical maintainer roadmap: [docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md](docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md).
+Canonical maintainer roadmap: [docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md](docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md).
 
-External validation gates (real LangGraph/NestJS trials, no-egress evidence, retained CI contracts) are mandatory where the maintainer roadmap requires them — results are never fabricated.
+External validation gates remain mandatory where the roadmap requires them — results are never fabricated.
 
 ---
 
 ## Later — conditional v7
 
-v7 remains gated on retained adoption evidence and an explicit maintainer readiness assessment after the v6.12 adoption checkpoint. See [docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md](docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md).
+v7 remains gated on retained adoption evidence after the **v6.14.x** stability period and an explicit maintainer readiness assessment. See [docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md](docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md).
 
 Do not treat exploratory ideas as committed delivery. Do not implement v7 until a named train is authorized.
 
