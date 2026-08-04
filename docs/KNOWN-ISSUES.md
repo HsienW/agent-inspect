@@ -34,6 +34,7 @@ AgentInspect is **local-first** and **CLI-first**. These behaviors are intention
 - **LangChain adapter** captures **metadata-oriented** signals by default; it does not replace full framework observability.
 - **LangChain `stream: true`** records chunk counts and timing only — not a full token replay. Per-token JSONL events are not emitted.
 - **Correlation metadata** (`correlationId`, `requestId`, `decisionId`, `groupId`) is written on `run_started` but **CLI list/view does not filter by correlation fields** yet.
+- **Built-in check/contract semantics (6.12.2+)** use an additive `logicalEvents` projection that pairs v0.1 start/complete rows. Custom rules that only read raw `context.events` still see bridged `running` TOOL starts and separate LOGIC completions—opt into `logicalEvents` for lifecycle-aware matching. Formal `TraceFacts` promotion is planned for 6.13.
 
 ## Structured log parsing
 

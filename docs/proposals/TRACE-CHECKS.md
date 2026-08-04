@@ -66,7 +66,11 @@ The engine may derive a temporary `TraceCheckFacts` object to avoid repeated tre
 interface TraceCheckFacts {
   format: string;
   runs: InspectRunTree[];
+  /** Raw persisted rows (public experimental contract). */
   events: PersistedInspectEvent[];
+  /** Lifecycle-paired projection for built-in semantic rules (6.12.2+). */
+  logicalEvents: LogicalTraceEvent[];
+  logicalProjectionDiagnostics: LogicalProjectionDiagnostic[];
   readerWarnings: TraceReadWarning[];
   unsupportedFields: string[];
   sourceFiles: string[];
@@ -76,7 +80,7 @@ interface TraceCheckFacts {
 }
 ```
 
-`TraceCheckFacts` is internal and ephemeral. It must preserve references or copies of existing normalized objects without dropping unknown attributes. It must not be written to disk as a replacement schema.
+`TraceCheckFacts` is internal and ephemeral. It must preserve references or copies of existing normalized objects without dropping unknown attributes. It must not be written to disk as a replacement schema. Built-in semantic/structure rules read `logicalEvents`; safety rules continue to walk raw `events`.
 
 ## Rule registry
 

@@ -12,18 +12,20 @@ trainStatus: "active"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-canonical-stability-evidence-v6.12.1-to-v7-decision"
 branch: "main"
-currentChunk: "6.12.2-0-audit-semantic-consumer-assumptions"
-lastConfirmedCommit: "f070f39"
-lastValidationLevel: "planning"
-nextAction: "Build one canonical logical trace projection and repair the real-pilot check/tool/safety blockers."
+currentChunk: "6.12.2-12-release-readiness"
+lastConfirmedCommit: "09a75b7"
+lastValidationLevel: "implementation"
+nextAction: "Release readiness + patch Changeset + publish 6.12.2 via publish.yml"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md"
 completedChunks:
   - "v6.4.1 through v6.12.1 npm publication"
-  - "6.12.1 example-heavy presentation patch"
-  - "canonical roadmap activation (this commit)"
+  - "canonical roadmap activation"
+  - "6.12.2-0 semantic consumer assumptions audit"
+  - "6.12.2-1..7 logical projection + built-in rules + tool identity + token safety"
+  - "6.12.2-8..11 shared facts surfaces + fixture + packed E2E + docs"
 remainingTrains:
-  - "v6.12.2 real-pilot semantic blockers (active)"
+  - "v6.12.2 publication (active)"
   - "v6.12.3 cross-surface semantic parity"
   - "v6.13.0 TraceFacts + TraceContract stabilization"
   - "v6.13.1 reserved corrective patch (conditional)"
@@ -38,7 +40,3 @@ updatedAt: "2026-08-04"
 
 - **Active plan:** [release-trains/V6.12.2-EXECUTION-PLAN.md](./release-trains/V6.12.2-EXECUTION-PLAN.md)
 - **Baseline audit:** [reviews/V6.12.1-CANONICAL-STABILITY-BASELINE-AUDIT.md](./reviews/V6.12.1-CANONICAL-STABILITY-BASELINE-AUDIT.md)
-- **Superseded checkpoint (historical):** [release-trains/V6.12-ADOPTION-CHECKPOINT.md](./release-trains/V6.12-ADOPTION-CHECKPOINT.md)
-- **Evidence ledger:** [PRE-V7-ADOPTION-EVIDENCE.md](./PRE-V7-ADOPTION-EVIDENCE.md)
-- **v7 assessment:** [release-trains/V7.0.0-READINESS-ASSESSMENT.md](./release-trains/V7.0.0-READINESS-ASSESSMENT.md)
-- **Maintainer rules:** [AGENTS.md](../../AGENTS.md)
