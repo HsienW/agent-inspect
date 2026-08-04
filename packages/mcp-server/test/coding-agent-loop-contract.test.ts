@@ -35,6 +35,7 @@ describe("coding-agent-loop RFC contract", () => {
       "compare_runs",
       "create_share_checked_evidence",
       "get_adapter_diagnostics",
+      "get_trace_facts",
     ]);
     expect(raw.causalFailureOrder.at(-1)).toBe("no_timing_only_inference");
     expect(raw.outOfScope).toContain("code_modification");

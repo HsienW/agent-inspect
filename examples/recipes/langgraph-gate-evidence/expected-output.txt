@@ -1,0 +1,1 @@
+OK: check → gate → evidence (langgraph bridged-tool fixture)

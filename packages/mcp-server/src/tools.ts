@@ -16,7 +16,7 @@ import {
   serializeEvidenceManifest,
   sha256Hex,
 } from "agent-inspect/advanced";
-import { createRunStatusRule, runTraceChecks, summarizeSemanticParity } from "agent-inspect/checks";
+import { createRunStatusRule, runTraceChecks, buildTraceFacts, summarizeSemanticParity } from "agent-inspect/checks";
 import { diffRuns, manualTraceEventsToComparableRun } from "agent-inspect/diff";
 import { exportMarkdown, exportRunTree } from "agent-inspect/exporters";
 import { persistedInspectEventsToTraceEvents } from "agent-inspect/persisted";
@@ -105,6 +105,12 @@ export const FLAGSHIP_TOOLS: McpToolDefinition[] = [
   {
     name: "get_adapter_diagnostics",
     description: "Bounded adapter/source diagnostics for one run.",
+    inputSchema: RUN_ID_SCHEMA,
+  },
+  {
+    name: "get_trace_facts",
+    description:
+      "Bounded TraceFacts summary for one run (logical projection counts and finished tool names; no raw prompts).",
     inputSchema: RUN_ID_SCHEMA,
   },
 ];
@@ -314,6 +320,24 @@ export async function callReadOnlyTool(
         unsupportedFields: read.unsupportedFields.slice(0, 20),
         semanticParity: summarizeSemanticParity(read.events),
         note: "Bounded local diagnostics only; not a network health check. semanticParity uses logicalEvents projection.",
+      },
+      context,
+    );
+  }
+
+  if (name === "get_trace_facts") {
+    const runId = String(args.runId ?? "");
+    const { read } = await openRunTrace(context, runId);
+    const facts = buildTraceFacts(read.events);
+    return deliverMcpPayload(
+      {
+        runId,
+        projectionVersion: "logical-lifecycle-0.1",
+        summary: facts.summary,
+        toolNames: [...facts.toolsByName.keys()].sort((a, b) => a.localeCompare(b)),
+        llmCount: facts.llmEvents.length,
+        outcomeCount: facts.outcomeEvents.length,
+        note: "Bounded TraceFacts summary only; raw events and prompts are not included.",
       },
       context,
     );

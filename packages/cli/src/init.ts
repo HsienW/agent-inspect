@@ -3,7 +3,12 @@ import path from "node:path";
 
 import { version as packageVersion } from "../../../package.json";
 
-export type InitFramework = "ai-sdk" | "openai-agents" | "langchain" | "custom";
+export type InitFramework =
+  | "ai-sdk"
+  | "openai-agents"
+  | "langchain"
+  | "langgraph"
+  | "custom";
 
 export interface InitCommandOptions {
   framework?: InitFramework;
@@ -32,11 +37,17 @@ const GITKEEP = ".agent-inspect/.gitkeep";
 
 function normalizeFramework(value: string | undefined): InitFramework {
   const raw = (value ?? "custom").trim();
-  if (raw === "ai-sdk" || raw === "openai-agents" || raw === "langchain" || raw === "custom") {
+  if (
+    raw === "ai-sdk" ||
+    raw === "openai-agents" ||
+    raw === "langchain" ||
+    raw === "langgraph" ||
+    raw === "custom"
+  ) {
     return raw;
   }
   throw new Error(
-    'Unsupported --framework value. Use ai-sdk, openai-agents, langchain, or custom.',
+    "Unsupported --framework value. Use ai-sdk, openai-agents, langchain, langgraph, or custom.",
   );
 }
 
@@ -109,6 +120,30 @@ async function main() {
     await step.tool("mock-chain", async () => "ok");
   }, { traceDir: ".agent-inspect", silent: true });
   console.log("Trace written to .agent-inspect/");
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
+`;
+    case "langgraph":
+      return `/**
+ * LangGraph onboarding starter — no provider keys.
+ * Prefer @agent-inspect/langchain callbacks with your StateGraph in app code.
+ * This demo writes a bridged tool lifecycle you can check/gate locally.
+ */
+import { inspectRun, step } from "agent-inspect";
+
+async function main() {
+  await inspectRun("langgraph-demo", async () => {
+    await step("chain:agent", async () => {
+      await step.tool("lookup_orders", async () => ({ orders: 0 }));
+      return { ok: true };
+    });
+  }, { traceDir: ".agent-inspect", silent: true });
+  console.log("Trace written to .agent-inspect/");
+  console.log("Next: npx agent-inspect check <run-id> --required-tool lookup_orders");
 }
 
 main().catch((error) => {

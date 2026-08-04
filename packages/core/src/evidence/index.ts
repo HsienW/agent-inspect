@@ -6,6 +6,7 @@ export type {
   EvidencePackagedFile,
   EvidenceRedactionProfile,
   EvidenceSafeStatus,
+  EvidenceSemantics,
   EvidenceSourceHash,
   EvidenceVerificationPolicy,
 } from "./types.js";

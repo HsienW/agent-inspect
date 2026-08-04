@@ -15,7 +15,8 @@
     "get_failed_observations",
     "compare_runs",
     "create_share_checked_evidence",
-    "get_adapter_diagnostics"
+    "get_adapter_diagnostics",
+    "get_trace_facts"
   ],
   "legacyToolAliases": {
     "list_traces": "list_recent_runs",

@@ -80,6 +80,7 @@ Canonical shape (fields may grow additively; unknown fields must be preserved by
 - **`policy`:** redaction + verification profiles from [SAFETY-POLICY.md](./SAFETY-POLICY.md).
 - **`assessment.status`:** **artifact** assessment (gates share-safe write), matching CLI/MCP bundle policy.
 - **`assessment.sourceStatus`:** optional informational source assessment.
+- **`semantics` (optional, 6.14+):** bounded TraceFacts / logical-projection summary (`rawEventCount`, `logicalEventCount`, `finishedToolNames`, `contractStatus`, …). Does not embed prompts or raw events. Older readers ignore unknown fields.
 - **`files[]`:** every packaged file with `sha256` of exact bytes written; paths are relative, no `..`, no absolute paths.
 - **`role`:** optional classifier (`report`, `redacted-trace`, `checks`, `redaction-report`, `summary`, `other`).
 

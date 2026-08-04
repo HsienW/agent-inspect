@@ -1,0 +1,15 @@
+# Example — user-owned CI (no AgentInspect network)
+
+# name: LangGraph gate + Evidence
+# on: [push]
+# jobs:
+#   evidence:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - run: pnpm install && pnpm build
+#       - run: pnpm --filter agent-inspect-recipe-langgraph-gate-evidence start
+#       - uses: actions/upload-artifact@v4
+#         with:
+#           name: agent-inspect-evidence
+#           path: examples/recipes/langgraph-gate-evidence/.agent-inspect/evidence-out

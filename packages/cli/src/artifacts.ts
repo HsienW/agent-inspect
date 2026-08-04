@@ -13,6 +13,7 @@ import {
   createSafetyRedactionRule,
   createSafetySecretPatternRule,
   runTraceChecks,
+  summarizeSemanticParity,
   type TraceCheckResult,
   type TraceCheckRule,
 } from "@agent-inspect/core/checks";
@@ -425,6 +426,7 @@ export async function artifactsCommand(
           findings: check.findings.length,
         })),
       });
+      const parity = summarizeSemanticParity(read.events);
       const evidencePackage = buildEvidenceCiPackage({
         generatorVersion: packageVersion,
         runIds,
@@ -434,6 +436,17 @@ export async function artifactsCommand(
         assessmentStatus: toEvidenceStatus(status),
         checkResultsJson,
         summaryText: renderMarkdown(trace, check, diff),
+        semantics: {
+          projectionVersion: "logical-lifecycle-0.1",
+          rawEventCount: parity.rawEventCount,
+          logicalEventCount: parity.logicalEventCount,
+          runningLogicalCount: parity.runningLogicalCount,
+          finishedToolCount: parity.finishedToolCount,
+          finishedToolNames: [...parity.finishedToolNames],
+          pairedCount: parity.pairedCount,
+          parentRemapCount: parity.parentRemapCount,
+          contractStatus: check.status === "pass" ? "pass" : check.status === "fail" ? "fail" : "error",
+        },
       });
       await writeArtifact(outputDir, "evidence.html", evidencePackage["evidence.html"], files);
       await writeArtifact(outputDir, "evidence.json", evidencePackage["evidence.json"], files);

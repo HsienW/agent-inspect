@@ -49,7 +49,28 @@ export interface EvidenceManifest {
     sourceStatus?: EvidenceSafeStatus;
     note?: string;
   };
+  /**
+   * Optional TraceFacts / logical-projection summary (6.14+).
+   * Additive; older readers ignore unknown fields.
+   */
+  semantics?: EvidenceSemantics;
   files: EvidenceFileEntry[];
+}
+
+/**
+ * Bounded semantic summary embedded in Evidence v2 (mirrors check parity summary).
+ * Does not embed raw events or prompts.
+ */
+export interface EvidenceSemantics {
+  projectionVersion?: string;
+  rawEventCount?: number;
+  logicalEventCount?: number;
+  runningLogicalCount?: number;
+  finishedToolCount?: number;
+  finishedToolNames?: string[];
+  pairedCount?: number;
+  parentRemapCount?: number;
+  contractStatus?: "pass" | "fail" | "error";
 }
 
 export interface EvidencePackagedFile {

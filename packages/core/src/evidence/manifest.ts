@@ -95,6 +95,7 @@ export function buildEvidenceManifest(parts: {
   files: readonly EvidencePackagedFile[];
   createdAt?: string;
   note?: string;
+  semantics?: EvidenceManifest["semantics"];
 }): EvidenceManifest {
   const runIds = [...parts.runIds];
   if (runIds.length === 0) {
@@ -134,6 +135,7 @@ export function buildEvidenceManifest(parts: {
       verificationPolicy: parts.verificationPolicy ?? parts.redactionProfile,
     },
     assessment,
+    ...(parts.semantics !== undefined ? { semantics: { ...parts.semantics } } : {}),
     files: buildEvidenceFileEntries(parts.files),
   };
 }

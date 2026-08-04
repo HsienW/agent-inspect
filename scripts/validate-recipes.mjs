@@ -49,6 +49,7 @@ const RECIPES = [
   "trace-suite-basic",
   "cohort-baseline-candidate",
   "github-actions-gate",
+  "langgraph-gate-evidence",
 ];
 
 const LOG_RECIPE_FILES = {

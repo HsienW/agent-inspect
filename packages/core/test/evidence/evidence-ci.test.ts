@@ -20,6 +20,11 @@ describe("evidence CI package (6.10-8)", () => {
         assessmentStatus: "UNSAFE",
         checkResultsJson: '{"aggregateStatus":"UNSAFE","runs":[]}\n',
         createdAt: "2026-08-02T00:00:00.000Z",
+        semantics: {
+          projectionVersion: "logical-lifecycle-0.1",
+          finishedToolNames: ["lookup_orders"],
+          contractStatus: "fail",
+        },
       });
       await writeFile(path.join(tmp, "evidence.html"), pkg["evidence.html"], "utf-8");
       await writeFile(path.join(tmp, "evidence.json"), pkg["evidence.json"], "utf-8");
@@ -28,6 +33,7 @@ describe("evidence CI package (6.10-8)", () => {
 
       const verified = await verifyEvidenceDirectory(tmp);
       expect(verified.ok).toBe(true);
+      expect(pkg.manifest.semantics?.finishedToolNames).toEqual(["lookup_orders"]);
       expect(pkg.manifest.files.map((f) => f.path).sort()).toEqual([
         "check-results.json",
         "evidence.html",

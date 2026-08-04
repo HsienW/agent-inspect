@@ -1001,6 +1001,7 @@ export function createCliProgram(): Command {
         "ai-sdk",
         "openai-agents",
         "langchain",
+        "langgraph",
         "custom",
       ]),
     )
@@ -1024,6 +1025,7 @@ export function createCliProgram(): Command {
         "ai-sdk",
         "openai-agents",
         "langchain",
+        "langgraph",
         "custom",
       ]),
     )

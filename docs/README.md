@@ -21,6 +21,9 @@ Local-first TypeScript AI agent toolkit: **debug, regression-test, and safely sh
 | Doc | For |
 | --- | --- |
 | [FIRST-TRACE-IN-5-MINUTES.md](./FIRST-TRACE-IN-5-MINUTES.md) | Fastest path from install to share-safe bundle |
+| [EVIDENCE-FIRST-ACCEPTANCE.md](./EVIDENCE-FIRST-ACCEPTANCE.md) | v6.14 flagship Evidence loop contract |
+| [NO-EGRESS-POLICY.md](./NO-EGRESS-POLICY.md) | AgentInspect-surface no-egress policy |
+| [TRACE-FACTS.md](./TRACE-FACTS.md) | Experimental TraceFacts / logical projection |
 | [POSITIONING-AND-PORTFOLIO.md](./POSITIONING-AND-PORTFOLIO.md) | Canonical identity + Tier A/B/C portfolio |
 | [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) | MCP coding-agent debug loop (Preview) |
 | [GOLDEN-PATH.md](./GOLDEN-PATH.md) | What is automated vs pilot-pending |

@@ -30,6 +30,8 @@ export interface EvidenceCiPackageInput {
   checkResultsJson: string;
   createdAt?: string;
   summaryText?: string;
+  /** Optional TraceFacts/parity summary embedded in evidence.json (6.14+). */
+  semantics?: EvidenceManifest["semantics"];
 }
 
 export interface EvidenceCiPackageFiles {
@@ -110,6 +112,7 @@ export function buildEvidenceCiPackage(input: EvidenceCiPackageInput): EvidenceC
     files: packaged,
     createdAt,
     note: EVIDENCE_ASSESSMENT_NOTE,
+    ...(input.semantics !== undefined ? { semantics: input.semantics } : {}),
   });
 
   return {

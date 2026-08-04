@@ -8,7 +8,12 @@ import { version as packageVersion } from "../../../package.json";
 
 export type DoctorStatus = "pass" | "warn" | "fail" | "skipped";
 
-export type InitFramework = "ai-sdk" | "openai-agents" | "langchain" | "custom";
+export type InitFramework =
+  | "ai-sdk"
+  | "openai-agents"
+  | "langchain"
+  | "langgraph"
+  | "custom";
 
 export interface DoctorCheckResult {
   id: string;
@@ -31,6 +36,7 @@ const OPTIONAL_PACKAGES: Record<InitFramework, string[]> = {
   "ai-sdk": ["@agent-inspect/ai-sdk"],
   "openai-agents": ["@agent-inspect/openai-agents"],
   langchain: ["@agent-inspect/langchain"],
+  langgraph: ["@agent-inspect/langchain"],
 };
 
 function nodeVersionCheck(): DoctorCheckResult {
