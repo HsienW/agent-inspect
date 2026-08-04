@@ -20,6 +20,8 @@ export type {
   StructureOrphanRuleOptions,
   StructureParallelWidthRuleOptions,
   StructureRelationshipRuleOptions,
+  LogicalProjectionDiagnostic,
+  LogicalTraceEvent,
   TraceCheckContext,
   TraceCheckDiagnostic,
   TraceCheckDiagnosticCode,
@@ -77,5 +79,7 @@ export {
   createToolUsageRule,
   defineTraceContract,
   evaluateTraceContract,
+  projectLogicalEvents,
+  resolveCanonicalToolName,
   runTraceChecks,
 } from "../checks/index.js";

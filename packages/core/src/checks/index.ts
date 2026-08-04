@@ -10,6 +10,15 @@ import {
   outcomesMatchingStatus,
   type ObservedOutcomeStatus,
 } from "../outcomes/index.js";
+import {
+  projectLogicalEvents,
+  resolveCanonicalToolName,
+  type LogicalProjectionDiagnostic,
+  type LogicalTraceEvent,
+} from "./logical-events.js";
+
+export type { LogicalProjectionDiagnostic, LogicalTraceEvent } from "./logical-events.js";
+export { projectLogicalEvents, resolveCanonicalToolName } from "./logical-events.js";
 
 /**
  * Experimental trace-check finding severity.
@@ -191,7 +200,22 @@ export interface TraceCheckInput {
 export interface TraceCheckFacts {
   format: string;
   runs: readonly InspectRunTree[];
+  /**
+   * Raw persisted rows (public experimental contract; unchanged meaning).
+   */
   events: readonly PersistedInspectEvent[];
+  /**
+   * Lifecycle-paired projection for built-in semantic/structure rules.
+   *
+   * @experimental Additive in 6.12.2; formal TraceFacts land in 6.13.
+   */
+  logicalEvents: readonly LogicalTraceEvent[];
+  /**
+   * Non-fatal projection notes (ambiguous pairs, remapped parents, etc.).
+   *
+   * @experimental
+   */
+  logicalProjectionDiagnostics: readonly LogicalProjectionDiagnostic[];
   readerWarnings: readonly TraceReadWarning[];
   unsupportedFields: readonly string[];
   sourceFiles: readonly string[];
@@ -611,7 +635,11 @@ const DEFAULT_RAW_CONTENT_KEYS = [
 ];
 
 /** Parent path segments that hold token/usage metrics, not prompts. */
-const DEFAULT_SAFE_RAW_CONTENT_PATH_PREFIXES = ["tokenUsage", "usage"] as const;
+const DEFAULT_SAFE_RAW_CONTENT_PATH_PREFIXES = [
+  "tokenUsage",
+  "usage",
+  "tokens",
+] as const;
 
 const SAFE_USAGE_LEAF_KEYS = new Set([
   "input",
@@ -715,10 +743,13 @@ function buildFacts(input: TraceCheckInput, selectedRun?: InspectRunTree): Trace
     }
   }
 
+  const projection = projectLogicalEvents(scopedEvents);
   return {
     format: input.read.format,
     runs: Object.freeze([...input.read.runs]),
     events: Object.freeze([...scopedEvents]),
+    logicalEvents: projection.logicalEvents,
+    logicalProjectionDiagnostics: projection.diagnostics,
     readerWarnings: Object.freeze([...input.read.warnings]),
     unsupportedFields: Object.freeze([...input.read.unsupportedFields]),
     sourceFiles: Object.freeze([...input.read.sourceFiles]),
@@ -963,10 +994,17 @@ function failFinding(
 }
 
 function toolName(event: PersistedInspectEvent): string {
-  return (
-    stringAttr(event, ["toolName", "tool"]) ??
-    stripPrefix(event.name, ["tool:", "function:", "mcp-tools:"])
-  );
+  return resolveCanonicalToolName(event);
+}
+
+/**
+ * Events for built-in semantic/structure rules (logical projection when present).
+ * Safety rules continue to walk raw `context.events`.
+ */
+function semanticEvents(
+  context: TraceCheckContext,
+): readonly PersistedInspectEvent[] {
+  return context.logicalEvents ?? context.events;
 }
 
 function llmModel(event: PersistedInspectEvent): string | undefined {
@@ -989,7 +1027,7 @@ function retryCount(event: PersistedInspectEvent): number | undefined {
 }
 
 function finishedEvents(context: TraceCheckContext, kind?: PersistedInspectEvent["kind"]): PersistedInspectEvent[] {
-  return context.events.filter(
+  return semanticEvents(context).filter(
     (event) =>
       (kind === undefined || event.kind === kind) &&
       event.status !== "running",
@@ -1198,15 +1236,11 @@ function signalName(
 }
 
 function guardrailEvents(context: TraceCheckContext): PersistedInspectEvent[] {
-  return finishedEvents().filter((event) => {
+  return finishedEvents(context).filter((event) => {
     const name = event.name.toLowerCase();
     if (name.startsWith("guardrail:") || name.includes(".guardrail.")) return true;
     return stringAttr(event, ["guardrailName", "guardrail", "guardrailId"]) !== undefined;
   });
-
-  function finishedEvents(): PersistedInspectEvent[] {
-    return context.events.filter((event) => event.status !== "running");
-  }
 }
 
 function retryValue(event: PersistedInspectEvent): number {
@@ -1231,7 +1265,7 @@ function treeShape(nodes: readonly InspectNode[]): string[] {
 }
 
 function statusShape(context: TraceCheckContext): string[] {
-  return context.events
+  return semanticEvents(context)
     .map((event) => `${event.kind}:${event.name}:${event.status ?? "unknown"}`)
     .sort((a, b) => a.localeCompare(b));
 }
@@ -1262,7 +1296,7 @@ function llmShape(context: TraceCheckContext): string[] {
 }
 
 function errorShape(context: TraceCheckContext): string[] {
-  return context.events
+  return semanticEvents(context)
     .filter((event) => event.status === "error" || event.error !== undefined)
     .map((event) =>
       [
@@ -1294,7 +1328,7 @@ function firstEvidenceForKind(
   kind: PersistedInspectEvent["kind"],
   path: string,
 ): TraceCheckEvidence[] {
-  const event = context.events.find((candidate) => candidate.kind === kind);
+  const event = semanticEvents(context).find((candidate) => candidate.kind === kind);
   return event ? [eventEvidence(event, path)] : runEvidence(context.selectedRun);
 }
 
@@ -1335,7 +1369,7 @@ export function createRunStatusRule(options: RunStatusRuleOptions = {}): TraceCh
         );
       }
       if (!allowIncomplete) {
-        const running = context.events.filter((event) => event.status === "running");
+        const running = semanticEvents(context).filter((event) => event.status === "running");
         if (running.length > 0) {
           findings.push(
             failFinding(
@@ -1389,7 +1423,7 @@ export function createMaxStepDurationRule(options: MaxStepDurationRuleOptions): 
     category: "run",
     defaultSeverity: "error",
     evaluate(context) {
-      const over = context.events.filter((event) => {
+      const over = semanticEvents(context).filter((event) => {
         const duration = eventDurationMs(event);
         return duration !== undefined && duration > options.maxDurationMs;
       });
@@ -1424,7 +1458,7 @@ export function createStallDetectionRule(
     defaultSeverity: "warning",
     evaluate(context) {
       const findings: TraceCheckFinding[] = [];
-      const running = context.events.filter((event) => event.status === "running");
+      const running = semanticEvents(context).filter((event) => event.status === "running");
       if (running.length > 0) {
         findings.push(
           failFinding(
@@ -1437,7 +1471,7 @@ export function createStallDetectionRule(
         );
       }
       if (requireEndedAt) {
-        const incomplete = context.events.filter(
+        const incomplete = semanticEvents(context).filter(
           (event) =>
             event.startedAt !== undefined &&
             event.endedAt === undefined &&
@@ -1482,7 +1516,7 @@ export function createRequireCompletedRule(): TraceCheckRule {
           ),
         );
       }
-      const running = context.events.filter((event) => event.status === "running");
+      const running = semanticEvents(context).filter((event) => event.status === "running");
       if (running.length > 0) {
         findings.push(
           failFinding(
@@ -1511,7 +1545,7 @@ export function createRunEventCountRule(options: RunEventCountRuleOptions): Trac
     category: "run",
     defaultSeverity: "error",
     evaluate(context) {
-      const count = context.events.filter(
+      const count = semanticEvents(context).filter(
         (event) => options.kind === undefined || event.kind === options.kind,
       ).length;
       const findings: TraceCheckFinding[] = [];
@@ -1819,7 +1853,7 @@ export function createStructureIncompleteRule(
     evaluate(context) {
       const findings: TraceCheckFinding[] = [];
       if (!options.allowRunning) {
-        const running = context.events.filter((event) => event.status === "running");
+        const running = semanticEvents(context).filter((event) => event.status === "running");
         if (running.length > 0) {
           findings.push(
             failFinding(
@@ -1834,7 +1868,7 @@ export function createStructureIncompleteRule(
       }
 
       if (options.requireEndedAtForStarted) {
-        const missingEndedAt = context.events.filter(
+        const missingEndedAt = semanticEvents(context).filter(
           (event) =>
             event.startedAt !== undefined &&
             event.endedAt === undefined &&
@@ -1873,8 +1907,8 @@ export function createStructureOrphanRule(
     category: "structure",
     defaultSeverity: "error",
     evaluate(context) {
-      const byId = eventMap(context.events);
-      const orphans = context.events.filter((event) => {
+      const byId = eventMap(semanticEvents(context));
+      const orphans = semanticEvents(context).filter((event) => {
         if (!event.parentId || byId.has(event.parentId)) return false;
         return !(allowMarkedUnresolved && parentMarkedUnresolved(event));
       });
@@ -1904,11 +1938,11 @@ export function createStructureCycleRule(): TraceCheckRule {
     category: "structure",
     defaultSeverity: "error",
     evaluate(context) {
-      const byId = eventMap(context.events);
+      const byId = eventMap(semanticEvents(context));
       const seenCycles = new Set<string>();
       const findings: TraceCheckFinding[] = [];
 
-      for (const event of [...context.events].sort((a, b) => a.eventId.localeCompare(b.eventId))) {
+      for (const event of [...semanticEvents(context)].sort((a, b) => a.eventId.localeCompare(b.eventId))) {
         const path: PersistedInspectEvent[] = [];
         const seenAt = new Map<string, number>();
         let current: PersistedInspectEvent | undefined = event;
@@ -1957,11 +1991,11 @@ export function createStructureRelationshipRule(
     category: "structure",
     defaultSeverity: "error",
     evaluate(context) {
-      const byId = eventMap(context.events);
+      const byId = eventMap(semanticEvents(context));
       const findings: TraceCheckFinding[] = [];
       const minConfidence = options.minConfidence;
 
-      for (const event of context.events) {
+      for (const event of semanticEvents(context)) {
         if (
           minConfidence &&
           CONFIDENCE_RANK[event.confidence] < CONFIDENCE_RANK[minConfidence]
@@ -2050,7 +2084,7 @@ export function createStructureParallelWidthRule(
     defaultSeverity: "error",
     evaluate(context) {
       const findings: TraceCheckFinding[] = [];
-      const byId = eventMap(context.events);
+      const byId = eventMap(semanticEvents(context));
 
       if (options.maxChildren !== undefined) {
         for (const [parentId, children] of context.childrenByParentId.entries()) {
@@ -2079,7 +2113,7 @@ export function createStructureParallelWidthRule(
       }
 
       if (options.maxConcurrent !== undefined) {
-        const intervals = context.events
+        const intervals = semanticEvents(context)
           .map((event) => ({ event, start: eventStartMs(event), end: eventEndMs(event) }))
           .filter(
             (item): item is { event: PersistedInspectEvent; start: number; end: number } =>

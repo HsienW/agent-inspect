@@ -126,7 +126,9 @@ function contractToRules(contract: TraceContract): TraceCheckRule[] {
           );
         }
         if (!allowIncomplete) {
-          const running = context.events.filter((event) => event.status === "running");
+          const running = (context.logicalEvents ?? context.events).filter(
+            (event) => event.status === "running",
+          );
           if (running.length > 0) {
             findings.push(
               contractFailFinding(

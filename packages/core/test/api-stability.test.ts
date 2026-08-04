@@ -113,6 +113,8 @@ describe("core API stability (v2.0 root contract)", () => {
     expect(typeof exporters.exportRunTree).toBe("function");
     expect(typeof exporters.buildRunReport).toBe("function");
     expect(typeof checks.runTraceChecks).toBe("function");
+    expect(typeof checks.projectLogicalEvents).toBe("function");
+    expect(typeof checks.resolveCanonicalToolName).toBe("function");
     expect(typeof reporters.createTraceArtifactManifest).toBe("function");
     expect(typeof reporters.createReporterArtifactPath).toBe("function");
     expect(typeof workspace.createWorkspace).toBe("function");
