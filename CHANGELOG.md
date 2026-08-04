@@ -14,11 +14,9 @@
 
 ## Unreleased
 
-### Patch (6.12.3) / Minor (6.13.0) candidates
+### Minor (6.14.0 candidate)
 
-- Cross-surface semantic parity: `summarizeSemanticParity`, MCP adapter diagnostics parity payload, scaffolding-root parent diagnostics, TraceContract `requiredTools`/`forbiddenTools` aliases.
-- Experimental `TraceFacts` (`buildTraceFacts`) with tool/LLM/outcome indexes over logicalEvents.
-- Experimental Vitest/Jest matchers: `toPassTraceContract`, `toHaveRequiredTool`.
+- Evidence-first CI / no-egress LC: Evidence `semantics` TraceFacts summary, MCP `get_trace_facts`, `init --framework langgraph`, langgraph-gate-evidence recipe, acceptance + no-egress docs.
 
 ## 6.12.1
 
