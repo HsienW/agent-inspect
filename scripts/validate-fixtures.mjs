@@ -43,6 +43,7 @@ const REQUIRED = {
     "fixtures/langgraph/dynamic-tool-name.jsonl",
     "fixtures/langgraph/parallel-children.jsonl",
     "fixtures/langgraph/error-run.jsonl",
+    "fixtures/langgraph/pilot-shaped-bridged-tool.jsonl",
   ],
   tracesV02: [
     "fixtures/traces-v0.2/manual-basic.jsonl",
