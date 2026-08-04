@@ -8,10 +8,6 @@
 
 ## Unreleased
 
-### Patch (6.12.2 candidate)
-
-- Logical lifecycle projection for built-in checks/TraceContract: additive experimental `logicalEvents` on check facts; raw `events` unchanged. Pairs v0.1 run/step start+complete; normalizes stepId parents; canonical tool identity (including nested `metadata.toolName`); treats `metadata.tokens.*` as safe usage metrics. Eval/gate/Evidence/MCP inherit via `runTraceChecks`. Anonymized pilot-shaped fixture + packed check→gate→bundle→verify E2E.
-
 ## 6.12.1
 
 ### Patch Changes
