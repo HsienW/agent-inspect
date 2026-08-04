@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.14.0
+
+### Minor Changes
+
+- 52a3e23: Evidence-first CI and no-egress launch candidate: optional Evidence `semantics` TraceFacts summary on CI packages, MCP `get_trace_facts`, `init --framework langgraph`, langgraph-gate-evidence recipe, and no-egress/acceptance docs. No schema break; no new packages; no default network.
+
 ## 6.13.0
 
 ### Minor Changes
