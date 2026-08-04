@@ -67,7 +67,7 @@ try {
   const bin = path.join(installDir, "node_modules", ".bin", "agent-inspect");
   if (!existsSync(bin)) fail("CLI binary missing after install");
 
-  const traceDir = path.join(installDir, ".agent-inspect", "runs");
+  const traceDir = path.join(installDir, ".agent-inspect");
   mkdirSync(traceDir, { recursive: true });
   const runFile = path.join(traceDir, "pilot_anon_bridged_tool.jsonl");
   copyFileSync(fixtureSrc, runFile);
@@ -95,13 +95,21 @@ try {
 
   const gate = spawnBin(
     bin,
-    ["gate", "--dir", ".agent-inspect", "--json"],
+    [
+      "gate",
+      "--dir",
+      ".agent-inspect",
+      "--max-error-rate",
+      "0",
+      "--json",
+    ],
     { cwd: installDir },
   );
   if (gate.status !== 0) {
     fail("gate failed", gate.stderr || gate.stdout);
   }
 
+  const bundleOut = path.join(installDir, "semantic-bundle-out");
   const bundle = spawnBin(
     bin,
     [
@@ -112,6 +120,8 @@ try {
       "--profile",
       "share",
       "--allow-unsafe",
+      "--out",
+      bundleOut,
     ],
     { cwd: installDir },
   );
@@ -119,17 +129,11 @@ try {
     fail("bundle failed", bundle.stderr || bundle.stdout);
   }
 
-  const bundlesRoot = path.join(installDir, ".agent-inspect", "bundles");
-  const bundleDirs = existsSync(bundlesRoot)
-    ? readdirSync(bundlesRoot).map((name) => path.join(bundlesRoot, name))
-    : [];
-  const bundleDir =
-    bundleDirs.find((dir) => dir.includes("pilot_anon")) ?? bundleDirs[0];
-  if (!bundleDir || !existsSync(bundleDir)) {
+  if (!existsSync(bundleOut)) {
     fail("bundle directory missing", bundle.stdout);
   }
 
-  const verify = spawnBin(bin, ["bundle", "verify", bundleDir], {
+  const verify = spawnBin(bin, ["bundle", "verify", bundleOut], {
     cwd: installDir,
   });
   if (verify.status !== 0) {
