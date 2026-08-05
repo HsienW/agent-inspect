@@ -93,12 +93,22 @@ for (const rel of scanFiles) {
   }
 }
 
-// Strict bans on product.ts / site.ts only until README/docs chunks land
-const strictSurfaces = ["apps/website/lib/product.ts", "apps/website/lib/site.ts"];
+// Strict bans on active public marketing / product surfaces
+const strictSurfaces = [
+  "apps/website/lib/product.ts",
+  "apps/website/lib/site.ts",
+  "apps/website/components/marketing/FAQ.tsx",
+  "apps/website/public/llms.txt",
+  "docs/README.md",
+  "ROADMAP.md",
+];
 const earlyBans = [
   /technical launch candidate/i,
   /external pilot evidence pending/i,
   /stable launch candidate/i,
+  /v7 not scheduled/i,
+  /matchers are not shipped/i,
+  /TraceContract matchers not shipped/i,
 ];
 for (const rel of strictSurfaces) {
   const abs = path.join(root, rel);
@@ -108,6 +118,20 @@ for (const rel of strictSurfaces) {
     if (ban.test(text)) {
       failures.push(`${rel}: banned phrase ${ban}`);
     }
+  }
+}
+
+// README banned phrases (status section)
+{
+  const text = readFileSync(path.join(root, "README.md"), "utf8");
+  for (const ban of [
+    /technical launch candidate/i,
+    /stable launch candidate/i,
+    /external pilot evidence pending/i,
+    /v7 not scheduled/i,
+    /TraceContract matchers not shipped/i,
+  ]) {
+    if (ban.test(text)) failures.push(`README.md: banned phrase ${ban}`);
   }
 }
 
