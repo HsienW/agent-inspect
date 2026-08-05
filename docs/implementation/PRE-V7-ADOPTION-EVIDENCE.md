@@ -4,7 +4,7 @@ Ledger for retained real-world use before any v7 decision. **Do not fabricate en
 
 **Active checkpoint:** [release-trains/V6.14-ADOPTION-CHECKPOINT.md](./release-trains/V6.14-ADOPTION-CHECKPOINT.md) (armed after `6.14.0`)
 **Prior checkpoint:** [release-trains/V6.12-ADOPTION-CHECKPOINT.md](./release-trains/V6.12-ADOPTION-CHECKPOINT.md) — superseded, not completed
-**Published baseline:** `agent-inspect@6.14.0` (18 fixed packages)
+**Published baseline:** `agent-inspect@6.14.1` (18 fixed packages)
 **v6.14.x calendar:** 2026-08-04 → 2026-09-29
 **Pilot kit:** [../PRE-V7-PILOT-KIT.md](../PRE-V7-PILOT-KIT.md)
 **Outreach checklist (placeholders only):** [ADOPTION-OUTREACH-CHECKLIST.md](./ADOPTION-OUTREACH-CHECKLIST.md) — do not fabricate responses.

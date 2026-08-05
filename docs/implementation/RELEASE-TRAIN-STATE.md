@@ -5,30 +5,25 @@
 > **Canonical roadmap:** [AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md](./AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md)
 
 ```yaml
-baselineVersion: "6.14.0"
-publishedVersion: "6.14.0"
-currentTrain: "v6.14.1-public-positioning-and-ai-discoverability"
+baselineVersion: "6.14.1"
+publishedVersion: "6.14.1"
+currentTrain: "v6.14.x-active-maintenance"
 trainStatus: "active"
-executionMode: "autonomous-release-train"
-namedTrain: "agentinspect-v6.14.1-public-positioning-ai-discoverability"
+executionMode: "maintenance"
+namedTrain: null
 branch: "main"
-currentChunk: "6.14.1-5-website-homepage"
-lastConfirmedCommit: "8d2bb5a"
-lastValidationLevel: "implementation"
-nextAction: "Expand website docs (6.14.1-6)"
+currentChunk: "production-feedback-and-validation"
+lastConfirmedCommit: "f44b1fb"
+lastValidationLevel: "release"
+nextAction: "Bugs/docs/security/compatibility only; collect real external evidence; no feature expansion; no v7"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md"
-activePlan: "docs/implementation/release-trains/V6.14.1-PUBLIC-POSITIONING-EXECUTION-PLAN.md"
+activePlan: "docs/implementation/release-trains/V6.14.X-STABILITY-AND-ADOPTION-POLICY.md"
 completedChunks:
-  - "6.14.1-0-public-surface-audit"
-  - "6.14.1-1-canonical-messaging"
-  - "6.14.1-2-root-readme"
-  - "6.14.1-3-user-guides"
-  - "6.14.1-4-package-readmes"
+  - "6.14.1-0 through 6.14.1-13 (public positioning + publish)"
 remainingTrains:
-  - "v6.14.1 public positioning (active)"
-  - "v6.14.x active maintenance (after publish)"
+  - "v6.14.x active maintenance (active)"
 blockedTrains:
   - "v7.0.0 (conditional — assessment only; not scheduled)"
-updatedAt: "2026-08-04"
+updatedAt: "2026-08-05"
 ```
