@@ -29,11 +29,11 @@ const faqs = [
   },
   {
     q: "What is the coding-agent loop?",
-    a: "Use `agent-inspect mcp configure --client cursor` (dry-run by default) and `@agent-inspect/mcp-server` over a local trace dir. Flagship read-only tools include get_first_causal_failure and create_share_checked_evidence. Preview maturity—see CODING-AGENT-LOOP.md.",
+    a: "Use `agent-inspect mcp configure --client cursor` (dry-run by default) and `@agent-inspect/mcp-server` over a local trace dir. Flagship read-only tools include get_trace_facts, get_first_causal_failure, and create_share_checked_evidence. Preview maturity—see CODING-AGENT-LOOP.md.",
   },
   {
-    q: "Why is v7 not scheduled?",
-    a: "v7 is conditional on real external adoption evidence (design partners and pilot teams). Completing code is not enough.",
+    q: "Do Vitest/Jest TraceContract matchers exist?",
+    a: "Yes, as Experimental exports: toPassTraceContract and toHaveRequiredTool via agentInspectVitestMatchers / agentInspectJestMatchers. Reporters remain the primary CI artifact path.",
   },
   {
     q: "Where are the full docs?",

@@ -8,8 +8,10 @@ import { Footer } from "@/components/marketing/Footer";
 import { Hero } from "@/components/marketing/Hero";
 import { NotAPlatform } from "@/components/marketing/NotAPlatform";
 import { OpenSourceTrust } from "@/components/marketing/OpenSourceTrust";
+import { Pillars } from "@/components/marketing/Pillars";
 import { ProblemSection } from "@/components/marketing/ProblemSection";
 import { ProductLoop } from "@/components/marketing/ProductLoop";
+import { ProofStrip } from "@/components/marketing/ProofStrip";
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 import { UseCases } from "@/components/marketing/UseCases";
 
@@ -19,14 +21,16 @@ export default function HomePage() {
       <SiteHeader />
       <main>
         <Hero />
-        <ProblemSection />
+        <ProofStrip />
+        <Pillars />
         <FiveMinutePath />
         <CodeExamples />
         <ProductLoop />
         <FeatureGrid />
         <UseCases />
-        <ComparisonTable />
+        <ProblemSection />
         <NotAPlatform />
+        <ComparisonTable />
         <OpenSourceTrust />
         <FAQ />
         <FinalCTA />

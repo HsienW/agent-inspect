@@ -19,6 +19,7 @@ export function Hero() {
             {product.headline}
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-8 text-muted">{product.subheadline}</p>
+          <p className="mt-3 text-base font-medium text-ink">{product.outcome}</p>
           <p className="mt-3 text-sm text-muted">{product.trustLine}</p>
           <pre className="mt-5 max-w-xl overflow-x-auto rounded-xl border border-border bg-elevated/80 px-4 py-3 font-mono text-xs leading-5 text-muted">
             {product.heroFlow}
@@ -47,9 +48,9 @@ export function Hero() {
           <div className="mt-8 flex flex-wrap gap-2">
             {[
               `v${product.version}`,
+              "TraceFacts",
               "Evidence v2",
               "MCP Preview",
-              "Open source",
               "MIT",
             ].map((item) => (
               <Badge key={item}>{item}</Badge>
