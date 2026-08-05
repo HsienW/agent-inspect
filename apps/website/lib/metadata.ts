@@ -1,12 +1,11 @@
-import type { Metadata } from "next";
-
+import { product } from "./product";
 import { site } from "./site";
 
 export function createMetadata(overrides?: {
   title?: string;
   description?: string;
   path?: string;
-}): Metadata {
+}): import("next").Metadata {
   const title = overrides?.title ?? site.title;
   const description = overrides?.description ?? site.description;
   const path = overrides?.path ?? "/";
@@ -35,7 +34,7 @@ export function createMetadata(overrides?: {
           url: "/og.svg",
           width: 1200,
           height: 630,
-          alt: "agent-inspect — local-first AI agent tracing",
+          alt: product.headline,
         },
       ],
     },
@@ -54,19 +53,37 @@ export function createMetadata(overrides?: {
 
 export const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "agent-inspect",
-  applicationCategory: "DeveloperApplication",
-  operatingSystem: "Node.js",
-  license: "https://opensource.org/licenses/MIT",
-  description: site.description,
-  url: site.url,
-  downloadUrl: site.npm,
-  codeRepository: site.github,
-  programmingLanguage: "TypeScript",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: site.name,
+      url: site.url,
+      description: site.description,
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "agent-inspect",
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "Node.js",
+      softwareVersion: product.version,
+      license: "https://opensource.org/licenses/MIT",
+      description: site.description,
+      url: site.url,
+      downloadUrl: site.npm,
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      name: "agent-inspect",
+      codeRepository: site.github,
+      programmingLanguage: "TypeScript",
+      runtimePlatform: "Node.js >= 20",
+      license: "https://opensource.org/licenses/MIT",
+      url: site.github,
+    },
+  ],
 };
