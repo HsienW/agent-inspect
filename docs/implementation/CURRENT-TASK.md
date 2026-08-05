@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-v6.14.1-public-positioning-ai-discoverability
 currentTrain: v6.14.1-public-positioning-and-ai-discoverability
 trainStatus: active
-currentChunk: 6.14.1-1-canonical-messaging
-nextAction: Commit 6.14.1-1 then rebuild root README (6.14.1-2)
+currentChunk: 6.14.1-3-user-guides
+nextAction: Commit guides then refresh 18 package READMEs (6.14.1-4)
 canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md
 activePlan: docs/implementation/release-trains/V6.14.1-PUBLIC-POSITIONING-EXECUTION-PLAN.md
 ```

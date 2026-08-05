@@ -1,6 +1,6 @@
-# Golden path (stable launch candidate)
+# Golden path
 
-The **6.12.0** stable launch candidate path. Be precise about what is automated today.
+The recommended local evidence path for the current **6.14** release line.
 
 ## Automated packed path (CI)
 
@@ -10,31 +10,31 @@ From a packed `agent-inspect` install (`scripts/packed-quickstart-e2e.mjs` via `
 init --yes → demo → list → verify-safe <runId> --dir .agent-inspect
 ```
 
-This proves install, scaffold, one local run, and safety verification.
+Semantic loop smoke (`scripts/packed-semantic-loop-e2e.mjs`) exercises check → gate → bundle → verify on a pilot-shaped fixture.
 
-## Recommended developer path (manual)
+## Recommended developer path
 
 ```text
-init → demo → list → view/report → check → bundle --profile share → verify-safe
+init → demo → list → view/report → check → bundle --profile share → verify-safe → bundle verify
+```
+
+LangGraph-oriented path:
+
+```text
+init --framework langgraph → capture → TraceContract / gate → Evidence v2 → optional MCP get_trace_facts
 ```
 
 Use required positional targets (`<run-id>` or file path). See the root README five-minute path.
 
-## Technical-but-not-fully-automated
+## Optional extensions
 
-`scripts/golden-path-e2e.mjs` covers a subset (init → inspect → verify-safe → report). It does **not** yet automate the full roadmap chain:
+- Suites / cohorts / CI gates — [SUITES-COHORTS-GATES.md](./SUITES-COHORTS-GATES.md)
+- Experimental Vitest/Jest matchers — [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md)
+- Coding-agent MCP loop — [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md)
+- Customer-owned Studio — [SELF-HOSTING.md](./SELF-HOSTING.md)
 
-```text
-broken → contract fail → suite → CI gate → fix → diff/cohort → Studio review
-```
+## Honest boundaries
 
-## External pilot step
-
-Three external teams + design-partner Studio trial remain **pending**. Do not mark launch adoption complete without rows in [implementation/PRE-V7-ADOPTION-EVIDENCE.md](./implementation/PRE-V7-ADOPTION-EVIDENCE.md). Pilot kit: [PRE-V7-PILOT-KIT.md](./PRE-V7-PILOT-KIT.md).
-
-## Pending product gaps (honest)
-
-- TraceContract matchers / full contract depth
-- Studio HTML productization for some pages
-- Cross-platform consumer matrix evidence
-- External Collector/Phoenix verification
+- Full broken→fix→Studio productization is not a single automated script.
+- External partner retention attestation is tracked internally; do not invent adoption rows.
+- Redaction is best-effort, not compliance certification.

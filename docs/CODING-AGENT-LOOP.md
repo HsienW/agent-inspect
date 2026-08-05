@@ -1,11 +1,10 @@
 # Coding-agent debug loop (MCP)
 
-**Status:** experimental contract for AgentInspect **6.11+**  
-**Authority:** Stability and Focus roadmap §12 · [V6.11.0-EXECUTION-PLAN.md](./implementation/release-trains/V6.11.0-EXECUTION-PLAN.md)
+**Support level:** Preview (`@agent-inspect/mcp-server`)
 
-This document defines the **local coding-agent debug loop**: a read-only MCP server that lets a coding assistant inspect TypeScript agent runs without an OpenTelemetry backend, collector, or account.
+The **local coding-agent debug loop** is a read-only MCP server that lets a coding assistant inspect TypeScript agent runs — including TraceFacts via `get_trace_facts` — without an OpenTelemetry backend, collector, or account.
 
-Related: [MCP.md](./MCP.md) · [READ-ONLY-MCP-SERVER.md](./proposals/READ-ONLY-MCP-SERVER.md) · [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md) · [SAFETY-POLICY.md](./SAFETY-POLICY.md)
+Related: [MCP.md](./MCP.md) · [TRACE-FACTS.md](./TRACE-FACTS.md) · [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md) · [NO-EGRESS-POLICY.md](./NO-EGRESS-POLICY.md)
 
 ## Product boundary
 
@@ -19,7 +18,7 @@ Related: [MCP.md](./MCP.md) · [READ-ONLY-MCP-SERVER.md](./proposals/READ-ONLY-M
 
 AgentInspect remains **read-only**. The coding assistant applies fixes; this server only inspects local traces and emits share-checked artifacts.
 
-## Executable entrypoint (6.11-1)
+## Executable entrypoint
 
 Preferred invocation (no wrapper script):
 
@@ -35,7 +34,7 @@ npx @agent-inspect/mcp-server --dir .agent-inspect
 | Redaction | `AGENT_INSPECT_MCP_REDACTION_PROFILE` — `share` (default), `strict`, `local` |
 | Network | None by default |
 
-## Client configuration (6.11-6)
+## Client configuration
 
 ```bash
 agent-inspect mcp configure --client cursor
@@ -52,9 +51,9 @@ Behavior:
 - no network; no credentials
 - clear trace-directory scope; easy removal
 
-## Protocol (6.11-2)
+## Protocol
 
-**Decision (6.11-2):** Harden the hand-written stdio JSON-RPC layer rather than pull `@modelcontextprotocol/sdk` (HTTP/Express stack) or jump to MCP SDK v2 until the coding-agent client matrix is validated. Protocol version remains **`2024-11-05`**. Full SDK adoption stays optional and mcp-server-only when practical.
+**Decision:** Harden the hand-written stdio JSON-RPC layer rather than pull `@modelcontextprotocol/sdk` (HTTP/Express stack) or jump to MCP SDK v2 until the coding-agent client matrix is validated. Protocol version remains **`2024-11-05`**. Full SDK adoption stays optional and mcp-server-only when practical.
 
 Must support:
 
@@ -66,7 +65,7 @@ Must support:
 
 Existing consumers remain compatible or receive migration guidance.
 
-## Flagship tool surface (6.11-3…5)
+## Flagship tool surface
 
 Canonical **names** for the coding-agent loop (additive; legacy names may remain as aliases during transition):
 
@@ -79,6 +78,7 @@ Canonical **names** for the coding-agent loop (additive; legacy names may remain
 | `get_first_causal_failure` | Deterministic first causal failure | `find_first_error` (stricter engine) |
 | `get_slowest_path` | Slow path summary | `find_slowest_path` |
 | `get_contract_failures` | Contract / check failures | `run_checks` |
+| `get_trace_facts` | TraceFacts / semantic parity summary | additive |
 | `get_failed_observations` | Failed observed outcomes | `find_failed_observation` |
 | `compare_runs` | Structural diff | `compare_runs` |
 | `create_share_checked_evidence` | Evidence v2 / share gate | `create_share_safe_bundle` |
@@ -97,7 +97,7 @@ Every tool result must be:
 
 Assessment for share gates follows [SAFETY-POLICY.md](./SAFETY-POLICY.md): **artifact** assessment gates writes; source status remains informational.
 
-## First causal failure (6.11-4)
+## First causal failure
 
 Conservative ordering (stop at first match; return evidence ids + rationale):
 
@@ -126,7 +126,7 @@ run the agent
 
 Client instruction templates: [coding-agent-instructions/](./coding-agent-instructions/).
 
-## Flagship recipe (6.11-8)
+## Flagship recipe
 
 ```text
 examples/starters/coding-agent-debug-loop/
@@ -143,7 +143,7 @@ broken LangGraph-like run
 → portable evidence
 ```
 
-## Privacy and conformance (6.11-9)
+## Privacy and conformance
 
 Follow current MCP security principles: explicit user control, read-only tools, sanitized outputs, bounded payloads, clear local scope, no hidden prompt sampling, no tool execution against the target app, no unredacted evidence by default.
 

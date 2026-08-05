@@ -24,7 +24,7 @@ When operators run AgentInspect in a **no-egress** environment:
 
 ## CLI note
 
-A dedicated `verify-safe --policy no-egress` / `doctor --policy no-egress` flag may land as an additive convenience. Until then, treat this document + NETWORK-BEHAVIOR as the contract: **AgentInspect does not open outbound product telemetry sockets**.
+Treat this document + [NETWORK-BEHAVIOR.md](./NETWORK-BEHAVIOR.md) as the contract: **AgentInspect does not open outbound product telemetry sockets** by default. Dedicated `--policy no-egress` flags are optional future convenience — absence of the flag does not weaken the default no-egress product behavior.
 
 ## Non-claims
 

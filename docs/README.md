@@ -2,36 +2,34 @@
 
 Local-first TypeScript AI agent toolkit: **debug, regression-test, and safely share** agent behavior on your machine.
 
-**Current release:** [agent-inspect@6.12.1](https://www.npmjs.com/package/agent-inspect) (eighteen linked packages). Stable launch candidate; eight-week adoption checkpoint in progress; external pilot evidence pending. Schema **1.0**. Node.js **≥ 20**. **v7 not scheduled.**
+**Current release:** [agent-inspect@6.14.0](https://www.npmjs.com/package/agent-inspect) (eighteen linked packages) · schema **1.0** · Node.js **≥ 20** · **MIT** · **actively maintained**.
 
-**Website:** [https://agentinspect.vercel.app/](https://agentinspect.vercel.app/)  
-**Docs site:** [https://agentinspect.vercel.app/docs/](https://agentinspect.vercel.app/docs/)  
+**Website:** [https://agentinspect.vercel.app/](https://agentinspect.vercel.app/)
+**Docs site:** [https://agentinspect.vercel.app/docs/](https://agentinspect.vercel.app/docs/)
 **npm / GitHub entry:** [../README.md](../README.md)
+**Product facts:** [product/PUBLIC-PRODUCT-FACTS.md](./product/PUBLIC-PRODUCT-FACTS.md)
 
-## Three workflows
+## Four pillars
 
-| Workflow | Start |
-| -------- | ----- |
-| **Debug one run** | [FIRST-TRACE-IN-5-MINUTES.md](./FIRST-TRACE-IN-5-MINUTES.md) · [GETTING-STARTED.md](./GETTING-STARTED.md) |
-| **Prevent one regression** | [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md) · [SUITES-COHORTS-GATES.md](./SUITES-COHORTS-GATES.md) |
-| **Share one safe artifact** | [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md) · [BUNDLES.md](./BUNDLES.md) |
+| Pillar | Start |
+| ------ | ----- |
+| **Capture faithfully** | [GETTING-STARTED.md](./GETTING-STARTED.md) · [ADAPTERS.md](./ADAPTERS.md) |
+| **Test behavior deterministically** | [TRACE-FACTS.md](./TRACE-FACTS.md) · [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md) · [SUITES-COHORTS-GATES.md](./SUITES-COHORTS-GATES.md) |
+| **Produce portable evidence** | [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md) · [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md) · [BUNDLES.md](./BUNDLES.md) |
+| **Debug with coding assistants locally** | [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) · [MCP.md](./MCP.md) |
 
-## Start
+## Start here
 
 | Doc | For |
 | --- | --- |
+| [WHY-AGENTINSPECT.md](./WHY-AGENTINSPECT.md) | Product position and when to install |
+| [DECISION-GUIDE.md](./DECISION-GUIDE.md) | Choose capture path, checks, Evidence, MCP |
 | [FIRST-TRACE-IN-5-MINUTES.md](./FIRST-TRACE-IN-5-MINUTES.md) | Fastest path from install to share-safe bundle |
-| [EVIDENCE-FIRST-ACCEPTANCE.md](./EVIDENCE-FIRST-ACCEPTANCE.md) | v6.14 flagship Evidence loop contract |
+| [GOLDEN-PATH.md](./GOLDEN-PATH.md) | Packed + developer golden path |
+| [EVIDENCE-FIRST-ACCEPTANCE.md](./EVIDENCE-FIRST-ACCEPTANCE.md) | Flagship Evidence loop contract |
 | [NO-EGRESS-POLICY.md](./NO-EGRESS-POLICY.md) | AgentInspect-surface no-egress policy |
-| [TRACE-FACTS.md](./TRACE-FACTS.md) | Experimental TraceFacts / logical projection |
-| [POSITIONING-AND-PORTFOLIO.md](./POSITIONING-AND-PORTFOLIO.md) | Canonical identity + Tier A/B/C portfolio |
-| [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) | MCP coding-agent debug loop (Preview) |
-| [GOLDEN-PATH.md](./GOLDEN-PATH.md) | What is automated vs pilot-pending |
-| [GETTING-STARTED.md](./GETTING-STARTED.md) | Observe, manual steps, adapters |
-| [ADOPTION.md](./ADOPTION.md) · [INSTALL-KITS.md](./INSTALL-KITS.md) | Team onboarding |
-| [USE-CASES.md](./USE-CASES.md) | Problem → command → starter |
-| [PRE-V7-PILOT-KIT.md](./PRE-V7-PILOT-KIT.md) | External pilot checklist |
-| [SUPPORT-LEVELS.md](./SUPPORT-LEVELS.md) | Stable / Supported / Beta / Preview |
+| [LANGGRAPH.md](./LANGGRAPH.md) | LangGraph / LangChain onboarding |
+| [SUPPORT-LEVELS.md](./SUPPORT-LEVELS.md) | Stable / Supported / Beta / Preview / Experimental |
 | [NETWORK-BEHAVIOR.md](./NETWORK-BEHAVIOR.md) | Explicit network surfaces |
 
 ## Capture
@@ -43,72 +41,30 @@ Local-first TypeScript AI agent toolkit: **debug, regression-test, and safely sh
 | [LOGS.md](./LOGS.md) · [LOG-TO-TREE-QUICKSTART.md](./LOG-TO-TREE-QUICKSTART.md) · [LOGGING-PLAYBOOK.md](./LOGGING-PLAYBOOK.md) | Log ingest |
 | [STANDARDS.md](./STANDARDS.md) | OpenInference / OTLP |
 
-## Inspect
+## Inspect and test
 
 | Doc | Topic |
 | --- | ----- |
 | [API.md](./API.md) · [CLI.md](./CLI.md) | Programmatic and terminal APIs |
-| [DIFF.md](./DIFF.md) · [EXPORTS.md](./EXPORTS.md) | Compare and export |
-| [SESSIONS-AND-OUTCOMES.md](./SESSIONS-AND-OUTCOMES.md) | Sessions and outcomes |
-| [WORKSPACE.md](./WORKSPACE.md) · [INDEX.md](./INDEX.md) | Workspace and optional index |
-
-## Prevent regressions
-
-| Doc | Topic |
-| --- | ----- |
-| [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md) | Typed TraceContract (Beta) |
+| [TRACE-FACTS.md](./TRACE-FACTS.md) | Logical projection and TraceFacts |
+| [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md) | Deterministic trajectory contracts |
 | [SUITES-COHORTS-GATES.md](./SUITES-COHORTS-GATES.md) | Suites, cohorts, CI gates |
-| [CI-ARTIFACTS.md](./CI-ARTIFACTS.md) | CI / test artifacts |
-| [COMPARE.md](./COMPARE.md) | Positioning vs hosted tools |
+| [CI-ARTIFACTS.md](./CI-ARTIFACTS.md) | CI evidence packages |
 
-## Share safely
-
-| Doc | Topic |
-| --- | ----- |
-| [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md) | Redact / scan / verify-safe |
-| [BUNDLES.md](./BUNDLES.md) | Evidence bundles |
-| [ADAPTER-SDK-PRIVACY.md](./ADAPTER-SDK-PRIVACY.md) · [LIMITATIONS.md](./LIMITATIONS.md) · [KNOWN-ISSUES.md](./KNOWN-ISSUES.md) | Safety and limits |
-
-## Workspace and Studio
+## Evidence, safety, MCP
 
 | Doc | Topic |
 | --- | ----- |
-| [WORKSPACE.md](./WORKSPACE.md) · [SELF-HOSTING.md](./SELF-HOSTING.md) | Workspace and self-host |
-| [`@agent-inspect/studio`](../packages/studio/README.md) | Customer-owned Studio (Beta) |
-| [`@agent-inspect/viewer`](../packages/viewer/README.md) | Localhost viewer |
+| [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md) · [BUNDLES.md](./BUNDLES.md) | Evidence v2 |
+| [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md) | Redaction and share checks |
+| [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) | Local MCP coding-agent loop |
+| [SELF-HOSTING.md](./SELF-HOSTING.md) | Customer-owned Studio |
 
-## MCP and standards
-
-| Doc | Topic |
-| --- | ----- |
-| [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) | Flagship MCP coding-agent loop |
-| [`@agent-inspect/mcp-server`](../packages/mcp-server/README.md) | Read-only MCP server (Preview) |
-| [`@agent-inspect/mcp`](../packages/mcp/README.md) | MCP **client** tracing |
-| [STANDARDS.md](./STANDARDS.md) | OpenInference / OTLP bridge |
-
-## Reference
+## Compare and contribute
 
 | Doc | Topic |
 | --- | ----- |
-| [SCHEMA.md](./SCHEMA.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) | Data model and boundaries |
-| [PERFORMANCE.md](./PERFORMANCE.md) · [SCALE-LIMITS.md](./SCALE-LIMITS.md) · [STREAMING-LIMITATIONS.md](./STREAMING-LIMITATIONS.md) | Scale and streaming |
-| [MIGRATION.md](./MIGRATION.md) | Upgrades |
-| [VSCODE.md](./VSCODE.md) | In-repo VS Code extension |
-
-## Adoption kit
-
-| Doc | Use |
-| --- | --- |
-| [TECHNICAL-GUIDE.md](./TECHNICAL-GUIDE.md) | Full technical overview |
-| [DEMO-SCRIPT.md](./DEMO-SCRIPT.md) | Live 3-minute demo |
-| [SCREENSHOTS.md](./SCREENSHOTS.md) | GIF demos |
-| [DESIGN-PARTNER-GUIDE.md](./DESIGN-PARTNER-GUIDE.md) · [TEAM-WORKFLOWS.md](./TEAM-WORKFLOWS.md) | Team rollout |
-| [PITCH.md](./PITCH.md) · [SHOW-HN-DRAFT.md](./SHOW-HN-DRAFT.md) | Launch copy |
-
-## Elsewhere
-
-- [Website](https://agentinspect.vercel.app/) · [Docs site](https://agentinspect.vercel.app/docs/)
-- [Examples](../examples/README.md) · [Starters](../examples/starters/README.md) · [Recipes](../examples/recipes/README.md)
-- [Roadmap](../ROADMAP.md) · [Security](../SECURITY.md)
-- [Archive](./archive/README.md) — historical docs
-- [Implementation](./implementation/README.md) — maintainer trains (internal)
+| [COMPARE.md](./COMPARE.md) · [POSITIONING-AND-PORTFOLIO.md](./POSITIONING-AND-PORTFOLIO.md) | Positioning |
+| [LIMITATIONS.md](./LIMITATIONS.md) · [KNOWN-ISSUES.md](./KNOWN-ISSUES.md) | Honest boundaries |
+| [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributing |
+| [../ROADMAP.md](../ROADMAP.md) · [../CHANGELOG.md](../CHANGELOG.md) | Public roadmap and changelog |

@@ -9,17 +9,27 @@ Typed trajectory expectations over local AgentInspect traces via `defineTraceCon
 Contracts compile to deterministic check rules for common cases:
 
 - run status / completion / max duration
-- tool required / forbidden / allowed / maxCalls / order
+- tool required / forbidden / allowed / maxCalls / order (`requiredTools` / `forbiddenTools` aliases)
 - LLM maxCalls / maxTotalTokens / allowedModels
 - evidence-bearing findings on failures
+- evaluation over **logical** TraceFacts (raw events remain available)
 
-See [API.md](./API.md) and `packages/core/src/checks/contract.ts`.
+### Experimental Vitest / Jest matchers (shipped)
+
+| Package | Export | Matchers |
+| ------- | ------ | -------- |
+| `@agent-inspect/vitest` | `agentInspectVitestMatchers` | `toPassTraceContract`, `toHaveRequiredTool` |
+| `@agent-inspect/jest` | `agentInspectJestMatchers` | `toPassTraceContract`, `toHaveRequiredTool` |
+
+These are **Experimental** — API names may evolve. There is no `expectTrace(...).toSatisfyTraceContract` helper.
+
+See [API.md](./API.md), [TRACE-FACTS.md](./TRACE-FACTS.md), and `packages/core/src/checks/contract.ts`.
 
 ## What is not shipped (yet)
 
 Do **not** document these as available:
 
-- Vitest / Jest `expectTrace(...).toSatisfyTraceContract` matchers
+- `expectTrace(...).toSatisfyTraceContract` (different API shape than the shipped matchers)
 - Full workflow handoff / approval / MCP protocol contract rules
 - Per-tool argument schema / regex validators on the contract surface
 - Every structure rule (orphan/cycle/depth) exposed on the contract API (many exist as standalone check rules)

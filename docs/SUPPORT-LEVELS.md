@@ -1,6 +1,6 @@
 # Support levels
 
-Canonical maturity labels for AgentInspect public packages and major surfaces (6.12.x fixed release line).
+Canonical maturity labels for AgentInspect public packages and major surfaces (6.14.x fixed release line).
 
 ## Definitions
 
@@ -32,7 +32,7 @@ Canonical maturity labels for AgentInspect public packages and major surfaces (6
 | Studio HTTP / GitHub ingest | Preview |
 | `@agent-inspect/mcp-server` | Preview |
 | Standards round-trip / Collector–Phoenix external proof | Preview |
-| Vitest/Jest TraceContract matchers | **Not shipped** |
+| Vitest/Jest TraceContract matchers (`toPassTraceContract`, `toHaveRequiredTool`) | Experimental |
 
 Part of the fixed AgentInspect release line — see the npm badge for the current version.
 

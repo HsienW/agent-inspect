@@ -1,6 +1,6 @@
-# Evidence-first acceptance contract (v6.14)
+# Evidence-first acceptance contract
 
-**Status:** Engineering contract for the flagship loop. External retention gates may still block **npm 6.14.0** publication — see [implementation/reviews/V6.14.0-EXTERNAL-EVIDENCE-STOP-GATE.md](./implementation/reviews/V6.14.0-EXTERNAL-EVIDENCE-STOP-GATE.md).
+**Status:** Shipped flagship loop contract for the **6.14** line (`agent-inspect@6.14.0`+). Internal adoption measurement continues separately and is not a public publication blocker for this surface.
 
 ## Flagship loop
 
