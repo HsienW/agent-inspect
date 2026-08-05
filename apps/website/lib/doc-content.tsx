@@ -18,9 +18,24 @@ export function renderDocContent(slug: string): ReactNode {
     case "concepts/evidence-loop":
       return <EvidenceLoopContent />;
     case "contracts":
+    case "trace-contracts":
       return <ContractsContent />;
+    case "test-matchers":
+      return <TestMatchersContent />;
+    case "trace-facts":
+      return <TraceFactsContent />;
     case "suites-and-gates":
       return <SuitesGatesContent />;
+    case "evidence-v2":
+      return <EvidenceV2Content />;
+    case "coding-agent-loop":
+      return <CodingAgentLoopContent />;
+    case "no-egress":
+      return <NoEgressContent />;
+    case "decision-guide":
+      return <DecisionGuideContent />;
+    case "integrations/langgraph":
+      return <LangGraphContent />;
     case "workspace":
       return <WorkspaceContent />;
     case "studio":
@@ -591,10 +606,149 @@ function ContractsContent() {
       <h2 id="overview">TraceContract (Beta)</h2>
       <p>
         Typed trajectory expectations via <code>defineTraceContract</code> /
-        <code>evaluateTraceContract</code>. Vitest/Jest matchers are not shipped.
+        <code>evaluateTraceContract</code>, evaluated over logical TraceFacts.
       </p>
       <p>
-        <a href={githubDoc("TRACE-CONTRACTS.md")}>Full guide on GitHub</a>
+        Experimental Vitest/Jest matchers are shipped:{" "}
+        <code>toPassTraceContract</code> and <code>toHaveRequiredTool</code> via{" "}
+        <code>agentInspectVitestMatchers</code> / <code>agentInspectJestMatchers</code>.
+      </p>
+      <p>
+        <a href={githubDoc("TRACE-CONTRACTS.md")}>Full guide on GitHub</a> ·{" "}
+        <a href="/docs/test-matchers">Test matchers</a> ·{" "}
+        <a href="/docs/trace-facts">TraceFacts</a>
+      </p>
+    </>
+  );
+}
+
+function TestMatchersContent() {
+  return (
+    <>
+      <h2 id="overview">Experimental test matchers</h2>
+      <p>
+        <code>@agent-inspect/vitest</code> and <code>@agent-inspect/jest</code> export
+        experimental matchers <code>toPassTraceContract</code> and{" "}
+        <code>toHaveRequiredTool</code>. Reporters remain the primary failure-artifact path.
+      </p>
+      <DocsCodeBlock
+        language="ts"
+        code={`import { expect } from "vitest";
+import { agentInspectVitestMatchers } from "@agent-inspect/vitest";
+
+expect.extend(agentInspectVitestMatchers);
+expect(read).toPassTraceContract(contract);
+expect(read).toHaveRequiredTool("lookup_orders");`}
+      />
+      <p>
+        <a href={githubDoc("TRACE-CONTRACTS.md")}>Trace contracts on GitHub</a>
+      </p>
+    </>
+  );
+}
+
+function TraceFactsContent() {
+  return (
+    <>
+      <h2 id="overview">TraceFacts (experimental)</h2>
+      <p>
+        <code>buildTraceFacts</code> and <code>summarizeSemanticParity</code> provide a
+        local semantic foundation over the logical lifecycle projection while preserving
+        raw JSONL events.
+      </p>
+      <p>
+        <a href={githubDoc("TRACE-FACTS.md")}>Full guide on GitHub</a>
+      </p>
+    </>
+  );
+}
+
+function EvidenceV2Content() {
+  return (
+    <>
+      <h2 id="overview">Evidence v2</h2>
+      <p>
+        Offline HTML/JSON/ZIP evidence packages with SHA-256 integrity verification and
+        optional TraceFacts semantics summaries for CI.
+      </p>
+      <DocsCodeBlock
+        language="bash"
+        code={`npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share
+npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>`}
+      />
+      <p>
+        <a href={githubDoc("EVIDENCE-FORMAT.md")}>Evidence format</a> ·{" "}
+        <a href={githubDoc("EVIDENCE-FIRST-ACCEPTANCE.md")}>Acceptance contract</a>
+      </p>
+    </>
+  );
+}
+
+function CodingAgentLoopContent() {
+  return (
+    <>
+      <h2 id="overview">Coding-agent MCP loop (Preview)</h2>
+      <p>
+        Read-only local MCP over the same TraceFacts used by CLI checks. Includes{" "}
+        <code>get_trace_facts</code>, first-causal-failure, and share-checked evidence tools.
+      </p>
+      <DocsCodeBlock
+        language="bash"
+        code={`npx agent-inspect mcp configure --client cursor
+npx @agent-inspect/mcp-server --dir .agent-inspect`}
+      />
+      <p>
+        <a href={githubDoc("CODING-AGENT-LOOP.md")}>Full guide on GitHub</a>
+      </p>
+    </>
+  );
+}
+
+function NoEgressContent() {
+  return (
+    <>
+      <h2 id="overview">No-egress policy</h2>
+      <p>
+        AgentInspect surfaces perform no default network I/O. Local MCP uses stdio; Evidence
+        and verify-safe operate on local paths. This is not an application-wide compliance
+        certification.
+      </p>
+      <p>
+        <a href={githubDoc("NO-EGRESS-POLICY.md")}>Policy on GitHub</a> ·{" "}
+        <a href="/docs/network-behavior">Network behavior</a>
+      </p>
+    </>
+  );
+}
+
+function DecisionGuideContent() {
+  return (
+    <>
+      <h2 id="overview">Decision guide</h2>
+      <p>
+        Choose capture path, TraceContract/gates, Evidence packaging, and MCP review with the
+        smallest surface that matches your stack.
+      </p>
+      <p>
+        <a href={githubDoc("DECISION-GUIDE.md")}>Full decision guide on GitHub</a> ·{" "}
+        <a href={githubDoc("WHY-AGENTINSPECT.md")}>Why AgentInspect</a>
+      </p>
+    </>
+  );
+}
+
+function LangGraphContent() {
+  return (
+    <>
+      <h2 id="overview">LangGraph</h2>
+      <p>
+        Use <code>@agent-inspect/langchain</code> callbacks and{" "}
+        <code>npx agent-inspect init --framework langgraph</code> for local capture, then
+        TraceContract / Evidence / MCP.
+      </p>
+      <p>
+        <a href={githubDoc("LANGGRAPH.md")}>LangGraph guide</a> ·{" "}
+        <a href="/docs/integrations/langchain">LangChain integration</a>
       </p>
     </>
   );
