@@ -3,7 +3,7 @@
   "version": "6.14.0",
   "license": "MIT",
   "type": "module",
-  "description": "Optional OpenAI Agents JS tracing processor integration for AgentInspect local traces",
+  "description": "OpenAI Agents JS processor integration for AgentInspect local traces and TraceContract checks",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rajudandigam/agent-inspect.git",
@@ -45,5 +45,11 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "openai-agents",
+    "agent-inspect",
+    "typescript",
+    "tracing"
+  ]
 }

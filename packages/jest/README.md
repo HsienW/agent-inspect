@@ -1,9 +1,9 @@
 # @agent-inspect/jest
 
-Jest reporter — local trace artifacts on failed tests.
+Jest reporter for local AgentInspect failure artifacts, plus **experimental** TraceContract matchers.
 
 
-**Support level:** Supported — see [SUPPORT-LEVELS.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SUPPORT-LEVELS.md).
+**Support level:** Supported (reporter) · Experimental (matchers) — see [SUPPORT-LEVELS.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SUPPORT-LEVELS.md).
 
 ## When to use
 
@@ -79,6 +79,7 @@ expect.extend({
 
 - `createAgentInspectJestReporter` / `AgentInspectJestReporter`
 - `withAgentInspectJestTrace` — explicit association helper (no automatic capture)
+- `agentInspectJestMatchers` — Experimental (`toPassTraceContract`, `toHaveRequiredTool`)
 
 ## CLI
 
@@ -86,8 +87,21 @@ expect.extend({
 
 ## Limitations
 
-- This package is a **reporter** (failure artifacts). It does **not** ship Jest TraceContract matchers.
-- Use `agent-inspect check` / TraceContract APIs for trajectory assertions.
+- Primary surface is a **reporter** (failure artifacts) plus **experimental** matchers.
+- Experimental matchers:
+
+```js
+const { expect } = require("@jest/globals");
+const { agentInspectJestMatchers } = require("@agent-inspect/jest");
+
+expect.extend(agentInspectJestMatchers);
+
+expect(read).toPassTraceContract(contract);
+expect(read).toHaveRequiredTool("lookup_orders");
+```
+
+- There is no `expectTrace(...).toSatisfyTraceContract` helper.
+- Use `agent-inspect check` / TraceContract APIs for deep CI gates when matchers are insufficient.
 
 ## Docs
 

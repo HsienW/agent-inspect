@@ -40,5 +40,10 @@
   "peerDependencies": {},
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "circuit-breaker",
+    "agent-inspect",
+    "typescript"
+  ]
 }

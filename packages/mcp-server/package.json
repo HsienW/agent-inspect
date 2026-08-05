@@ -3,7 +3,7 @@
   "version": "6.14.0",
   "license": "MIT",
   "type": "module",
-  "description": "Read-only MCP server tools for local AgentInspect traces",
+  "description": "Read-only MCP server for local AgentInspect TraceFacts, causal failure, and Evidence tools",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rajudandigam/agent-inspect.git",
@@ -48,5 +48,13 @@
   "peerDependencies": {},
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "mcp",
+    "agent-inspect",
+    "tracefacts",
+    "coding-agent",
+    "local-first",
+    "typescript"
+  ]
 }

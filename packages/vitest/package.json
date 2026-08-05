@@ -3,7 +3,7 @@
   "version": "6.14.0",
   "license": "MIT",
   "type": "module",
-  "description": "Optional Vitest reporter for AgentInspect local trace artifacts",
+  "description": "Vitest reporter and experimental TraceContract matchers for AgentInspect local evidence",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rajudandigam/agent-inspect.git",
@@ -48,5 +48,13 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "vitest",
+    "agent-inspect",
+    "tracecontract",
+    "trajectory-testing",
+    "typescript",
+    "ai-agents"
+  ]
 }

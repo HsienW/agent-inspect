@@ -43,5 +43,10 @@
   "peerDependencies": {},
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "guardrails",
+    "agent-inspect",
+    "typescript"
+  ]
 }

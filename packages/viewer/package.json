@@ -43,5 +43,11 @@
   "peerDependencies": {},
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "viewer",
+    "agent-inspect",
+    "local-first",
+    "typescript"
+  ]
 }

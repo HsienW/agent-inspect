@@ -4,7 +4,7 @@
   "license": "MIT",
   "type": "module",
   "private": false,
-  "description": "LangChain.js callback adapter for AgentInspect (in-memory or persisted JSONL execution events)",
+  "description": "LangChain.js / LangGraph callback adapter for AgentInspect local execution trees and Evidence workflows",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rajudandigam/agent-inspect.git",
@@ -50,5 +50,13 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "langchain",
+    "langgraph",
+    "agent-inspect",
+    "typescript",
+    "ai-agents",
+    "tracing"
+  ]
 }

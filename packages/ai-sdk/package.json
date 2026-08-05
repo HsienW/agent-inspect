@@ -3,7 +3,7 @@
   "version": "6.14.0",
   "license": "MIT",
   "type": "module",
-  "description": "Optional Vercel AI SDK telemetry integration for AgentInspect local traces",
+  "description": "Vercel AI SDK telemetry integration for AgentInspect local traces and trajectory tests",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rajudandigam/agent-inspect.git",
@@ -48,5 +48,12 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "ai-sdk",
+    "vercel-ai",
+    "agent-inspect",
+    "typescript",
+    "tracing"
+  ]
 }

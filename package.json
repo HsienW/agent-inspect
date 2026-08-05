@@ -3,7 +3,7 @@
   "version": "6.14.0",
   "license": "MIT",
   "type": "module",
-  "description": "Debug, regression-test, and safely share TypeScript AI-agent behavior locally — no account, no default upload, metadata-only by default",
+  "description": "Local evidence debugger and trajectory-test toolkit for TypeScript AI agents — execution trees, TraceContract checks, Evidence v2, and read-only MCP",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rajudandigam/agent-inspect.git"
@@ -188,12 +188,20 @@
   "keywords": [
     "ai",
     "agents",
-    "debugging",
     "typescript",
+    "debugging",
+    "trajectory-testing",
+    "langgraph",
+    "langchain",
+    "tracecontract",
+    "tracefacts",
+    "evidence",
+    "mcp",
     "llm",
     "devtools",
     "jsonl",
-    "cli"
+    "cli",
+    "local-first"
   ],
   "publishConfig": {
     "access": "public"

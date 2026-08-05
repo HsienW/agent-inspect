@@ -1,14 +1,15 @@
 # @agent-inspect/vitest
 
-Vitest reporter — failed tests emit local trace artifacts; passing tests stay quiet.
+Vitest reporter for local AgentInspect failure artifacts, plus **experimental** TraceContract matchers.
 
 
-**Support level:** Supported — see [SUPPORT-LEVELS.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SUPPORT-LEVELS.md).
+**Support level:** Supported (reporter) · Experimental (matchers) — see [SUPPORT-LEVELS.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SUPPORT-LEVELS.md).
 
 ## When to use
 
 - Vitest suites that run instrumented agents
-- You want PR artifacts on failure without changing test assertions
+- PR artifacts on failure without changing assertion libraries
+- Experimental trajectory assertions via `toPassTraceContract` / `toHaveRequiredTool`
 
 ## When not to use
 
@@ -23,7 +24,7 @@ npm install agent-inspect @agent-inspect/vitest vitest
 
 **Peer:** `vitest@^2.1.0`
 
-## Example
+## Reporter example
 
 ```ts
 // vitest.config.ts
@@ -37,6 +38,20 @@ export default defineConfig({
 });
 ```
 
+## Experimental matchers
+
+```ts
+import { expect } from "vitest";
+import { agentInspectVitestMatchers } from "@agent-inspect/vitest";
+
+expect.extend(agentInspectVitestMatchers);
+
+expect(read).toPassTraceContract(contract);
+expect(read).toHaveRequiredTool("lookup_orders");
+```
+
+There is no `expectTrace(...).toSatisfyTraceContract` helper — use the matchers above.
+
 ## Privacy
 
 - Writes traces locally on failure only (by default)
@@ -44,7 +59,8 @@ export default defineConfig({
 
 ## API
 
-Default export: Vitest reporter factory.
+- Default export: Vitest reporter factory
+- `agentInspectVitestMatchers` — Experimental
 
 ## CLI
 
@@ -52,19 +68,19 @@ After failure: `npx agent-inspect report <run-id>`
 
 ## Limitations
 
-- This package is a **reporter** (failure artifacts). It does **not** ship Vitest TraceContract matchers such as `expectTrace(...).toSatisfyTraceContract`.
-- Use `agent-inspect check` / TraceContract APIs for trajectory assertions.
+- Matchers are **Experimental** and may evolve in minors
+- Prefer CLI / TraceContract APIs for deep CI gates when matchers are insufficient
 
 ## Docs
 
 - [CI artifacts](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CI-ARTIFACTS.md)
 - [TRACE-CONTRACTS.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/TRACE-CONTRACTS.md)
+- [TRACE-FACTS.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/TRACE-FACTS.md)
 
 ## Troubleshooting
 
 - **No artifact:** Ensure trace was written during test and reporter `traceDir` matches
 - **Original errors preserved:** Reporter does not swallow Vitest failures
-
 
 ## Version
 

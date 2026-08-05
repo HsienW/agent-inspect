@@ -42,5 +42,11 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "mcp",
+    "agent-inspect",
+    "client",
+    "typescript"
+  ]
 }

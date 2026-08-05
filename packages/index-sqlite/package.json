@@ -49,5 +49,11 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "sqlite",
+    "agent-inspect",
+    "index",
+    "typescript"
+  ]
 }

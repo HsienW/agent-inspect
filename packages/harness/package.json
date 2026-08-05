@@ -42,5 +42,11 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "harness",
+    "agent-inspect",
+    "fixtures",
+    "typescript"
+  ]
 }

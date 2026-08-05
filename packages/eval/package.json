@@ -44,5 +44,11 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "eval",
+    "agent-inspect",
+    "tracecontract",
+    "typescript"
+  ]
 }

@@ -43,5 +43,10 @@
   "peerDependencies": {},
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "adapter",
+    "agent-inspect",
+    "typescript"
+  ]
 }

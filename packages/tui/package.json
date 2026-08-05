@@ -48,5 +48,11 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "tui",
+    "agent-inspect",
+    "terminal",
+    "typescript"
+  ]
 }

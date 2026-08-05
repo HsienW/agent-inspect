@@ -39,5 +39,11 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "redaction",
+    "agent-inspect",
+    "privacy",
+    "typescript"
+  ]
 }

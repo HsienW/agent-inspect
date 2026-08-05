@@ -9,6 +9,7 @@ LangChain callback handler → local AgentInspect traces.
 
 - LangChain or LangGraph apps using `@langchain/core` callbacks
 - You want `persist: true` local JSONL without a hosted backend
+- Evidence-first CI / TraceContract gates over LangGraph runs (`init --framework langgraph`)
 
 ## When not to use
 
