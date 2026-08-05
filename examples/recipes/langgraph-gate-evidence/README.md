@@ -2,10 +2,10 @@
 
 ## What this demonstrates
 
-No-key LangGraph-shaped flagship loop using the anonymized bridged-tool fixture:
+Four-pillar flagship loop on a no-key LangGraph-shaped fixture:
 
 ```text
-check (required tool) → gate → CI Evidence package (evidence.json with TraceFacts semantics)
+capture/fixture → TraceFacts/check (required tool) → gate → Evidence v2 (semantics) → optional MCP get_trace_facts
 ```
 
 No provider API keys. No network from AgentInspect.
