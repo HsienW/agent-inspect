@@ -8,11 +8,19 @@
 <h1 align="center">agent-inspect</h1>
 
 <p align="center">
-  <strong>The local evidence debugger for TypeScript agents—faithful execution trees, deterministic regression checks, share-checked evidence, and coding-agent access without a collector or account.</strong>
+  <strong>Debug and regression-test TypeScript AI agents from local evidence.</strong>
 </p>
 
 <p align="center">
-  <sub>No account · no default upload · metadata-only by default · optional customer-owned Studio</sub>
+  AgentInspect captures framework-faithful execution trees, evaluates them with deterministic TraceFacts and TraceContract rules, creates integrity-verifiable Evidence v2, and lets coding assistants inspect the same local facts over read-only MCP—without a collector, account, or default upload.
+</p>
+
+<p align="center">
+  <em>See what your agent did. Prove the fix. Keep the evidence.</em>
+</p>
+
+<p align="center">
+  <sub>No account · no collector · no default upload · metadata-only by default</sub>
 </p>
 
 <p align="center">
@@ -33,7 +41,14 @@
 npm install agent-inspect
 ```
 
-## Hero flow
+## Four pillars
+
+| Pillar | What you get |
+| ------ | ------------ |
+| **Capture faithfully** | Framework-aware execution trees and local JSONL you own |
+| **Test behavior deterministically** | TraceFacts, TraceContract, checks, suites, gates, and experimental Vitest/Jest matchers |
+| **Produce portable evidence** | Offline Evidence v2 with integrity verification and share-policy disclosure |
+| **Debug with coding assistants locally** | Read-only MCP over the same TraceFacts — no collector required |
 
 ```text
 1. Capture one real run
@@ -42,18 +57,6 @@ npm install agent-inspect
 4. Lock the fix with a contract
 5. Attach the share-checked evidence
 ```
-
-## Three workflows
-
-| Workflow | What you do |
-| -------- | ----------- |
-| **Debug one run** | Capture/import → tree / timeline / report → first causal failure |
-| **Prevent one regression** | TraceContract / `check` → suite / cohort → CI gate |
-| **Share one safe artifact** | Redact → `verify-safe` → offline bundle → optional Studio review |
-
-**Coding-agent loop (optional):** local read-only [`@agent-inspect/mcp-server`](https://www.npmjs.com/package/@agent-inspect/mcp-server) — see [CODING-AGENT-LOOP.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CODING-AGENT-LOOP.md).
-
-**Review as a team (optional):** workspace + optional SQLite index → customer-owned [Studio Beta](https://github.com/rajudandigam/agent-inspect/tree/main/packages/studio) (no AgentInspect-hosted cloud). Portfolio tiers: [POSITIONING-AND-PORTFOLIO.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/POSITIONING-AND-PORTFOLIO.md).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/rajudandigam/agent-inspect/main/docs/assets/readme-product-loop.svg?sanitize=true" alt="Capture or import → understand → enforce → verify and bundle → review locally or in customer-owned Studio" width="900">
@@ -66,6 +69,7 @@ Commands below match the packed quickstart. Replace `<run-id>` with a value from
 ```bash
 npm install agent-inspect
 npx agent-inspect init --yes
+# or: npx agent-inspect init --framework langgraph --yes
 node examples/agent-inspect-demo.mjs
 npx agent-inspect list --dir .agent-inspect
 ```
@@ -81,23 +85,22 @@ npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>
 npx agent-inspect mcp configure --client cursor
 ```
 
-`init` scaffolds config and a demo script; the **demo** writes the trace. Guide: [First trace in 5 minutes](https://agentinspect.vercel.app/docs/getting-started/) · [repo](https://github.com/rajudandigam/agent-inspect/blob/main/docs/FIRST-TRACE-IN-5-MINUTES.md) · [Golden path](https://github.com/rajudandigam/agent-inspect/blob/main/docs/GOLDEN-PATH.md) · [Coding-agent loop](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CODING-AGENT-LOOP.md)
+Guides: [First trace in 5 minutes](https://agentinspect.vercel.app/docs/getting-started/) · [Golden path](https://github.com/rajudandigam/agent-inspect/blob/main/docs/GOLDEN-PATH.md) · [Coding-agent loop](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CODING-AGENT-LOOP.md)
 
 ## Why AgentInspect
 
-**Unique position:** a local **evidence debugger** for TypeScript agents—not a hosted APM, eval host, or prompt registry. Complements LangSmith/Langfuse/Phoenix; owns the laptop → PR loop.
+**Category:** the local evidence debugger and trajectory-test toolkit for TypeScript AI agents — not a hosted APM, eval host, or prompt registry. Complements LangSmith/Langfuse/Phoenix; owns the laptop → PR loop.
 
-**Proven mechanisms (shipped):**
+**Proof (public-safe):** Validated against production-shaped NestJS/LangGraph integrations. Fixture-backed across official adapters and packed consumer workflows.
 
 | Mechanism | What you get |
 | --------- | ------------ |
 | Faithful execution trees | Nested steps, tools, LLMs, status, duration on disk |
-| First causal failure | Conservative ordered engine for what failed first |
+| TraceFacts / logical projection | Canonical tool identity and semantic parity without inventing hierarchy |
 | Deterministic checks / TraceContract (Beta) | Trajectory expectations without an LLM judge |
-| Share-checked Evidence v2 | `bundle` + `bundle verify` offline artifacts |
-| Read-only MCP coding-agent loop (Preview) | `mcp configure` + `@agent-inspect/mcp-server` over local traces |
-
-No fabricated adoption counts. External pilot evidence is still pending—see [Pilot kit](https://github.com/rajudandigam/agent-inspect/blob/main/docs/PRE-V7-PILOT-KIT.md).
+| Experimental Vitest/Jest matchers | `toPassTraceContract` · `toHaveRequiredTool` |
+| Share-checked Evidence v2 | `bundle` + `bundle verify` with optional TraceFacts semantics |
+| Read-only MCP coding-agent loop (Preview) | `get_trace_facts` and related tools over local traces |
 
 ## Choose your capture path
 
@@ -106,29 +109,27 @@ No fabricated adoption counts. External pilot evidence is still pending—see [P
 | **Manual / observe** | Custom nesting or object methods | [Getting started](https://github.com/rajudandigam/agent-inspect/blob/main/docs/GETTING-STARTED.md) |
 | **AI SDK** | Vercel AI SDK `generateText` / `streamText` | [`@agent-inspect/ai-sdk`](https://www.npmjs.com/package/@agent-inspect/ai-sdk) |
 | **OpenAI Agents** | OpenAI Agents JS | [`@agent-inspect/openai-agents`](https://www.npmjs.com/package/@agent-inspect/openai-agents) |
-| **LangChain** | Callbacks / LangGraph-via-LangChain | [`@agent-inspect/langchain`](https://www.npmjs.com/package/@agent-inspect/langchain) |
+| **LangChain / LangGraph** | Callbacks / LangGraph | [`@agent-inspect/langchain`](https://www.npmjs.com/package/@agent-inspect/langchain) · `init --framework langgraph` |
 | **Structured logs** | Logs already emitted | [Log-to-tree](https://github.com/rajudandigam/agent-inspect/blob/main/docs/LOG-TO-TREE-QUICKSTART.md) |
 | **Harness** | Fixture runner for real projects | [`@agent-inspect/harness`](https://www.npmjs.com/package/@agent-inspect/harness) |
-| **CI reporters** | Failed-test artifacts | [`vitest`](https://www.npmjs.com/package/@agent-inspect/vitest) · [`jest`](https://www.npmjs.com/package/@agent-inspect/jest) |
+| **CI reporters + matchers** | Failed-test artifacts and contracts | [`vitest`](https://www.npmjs.com/package/@agent-inspect/vitest) · [`jest`](https://www.npmjs.com/package/@agent-inspect/jest) |
 | **Standards files** | OpenInference / OTLP JSON | [Standards](https://github.com/rajudandigam/agent-inspect/blob/main/docs/STANDARDS.md) |
 
-Blessed starters (no API keys): [examples/starters](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters)
+Blessed starters (no API keys): [examples/starters](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters) · LangGraph gate/evidence recipe: [langgraph-gate-evidence](https://github.com/rajudandigam/agent-inspect/tree/main/examples/recipes/langgraph-gate-evidence)
 
 ## What you can do after capture
 
-**Understand** — `what` / `view` / tree · timeline · report · diff · sessions / activity  
+**Understand** — `what` / `view` / tree · timeline · report · diff · `buildTraceFacts`
 
-**Prevent regressions** — deterministic checks · typed TraceContract (Beta) · suites · cohorts · CI gates · Vitest/Jest reporters (artifact reporters today; TraceContract matchers not shipped)  
+**Prevent regressions** — deterministic checks · TraceContract (Beta) · suites · cohorts · CI gates · Vitest/Jest reporters · experimental matchers (`toPassTraceContract`, `toHaveRequiredTool`)
 
-**Share safely** — redaction profiles · `scan` · `verify-safe` · offline bundles · CI artifacts  
+**Share safely** — redaction profiles · `scan` · `verify-safe` · Evidence v2 bundles · CI artifacts
 
-**Scale locally** — workspace · optional SQLite index (Beta) · observed outcomes · viewer / TUI / VS Code  
+**Debug with coding assistants** — `@agent-inspect/mcp-server` · `get_trace_facts` · first-causal-failure
 
-**Review as a team** — customer-owned Studio Beta · explicit file / GitHub / HTTP ingest (disabled by default) · no maintainer cloud  
+**Scale locally** — workspace · optional SQLite index (Beta) · viewer / TUI / VS Code · customer-owned Studio (Beta)
 
-**Interoperate** — read-only MCP server (Preview) · OpenInference-compatible / OTLP GenAI-aligned mapping with known-loss reporting  
-
-Support labels: [SUPPORT-LEVELS.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SUPPORT-LEVELS.md) · Network: [NETWORK-BEHAVIOR.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/NETWORK-BEHAVIOR.md)
+Support labels: [SUPPORT-LEVELS.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SUPPORT-LEVELS.md) · Network: [NETWORK-BEHAVIOR.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/NETWORK-BEHAVIOR.md) · No-egress: [NO-EGRESS-POLICY.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/NO-EGRESS-POLICY.md)
 
 ## Real-world scenarios
 
@@ -136,13 +137,10 @@ Support labels: [SUPPORT-LEVELS.md](https://github.com/rajudandigam/agent-inspec
 | -------- | ----- |
 | Wrong tool / intentional failure | [broken-agent-debugging](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters/broken-agent-debugging) |
 | Coding-agent MCP debug loop | [coding-agent-debug-loop](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters/coding-agent-debug-loop) · [CODING-AGENT-LOOP](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CODING-AGENT-LOOP.md) |
-| CI trajectory gate + redact | [ci-eval-redact](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters/ci-eval-redact) · [CI artifacts](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CI-ARTIFACTS.md) |
+| CI trajectory gate + Evidence | [ci-eval-redact](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters/ci-eval-redact) · [langgraph-gate-evidence](https://github.com/rajudandigam/agent-inspect/tree/main/examples/recipes/langgraph-gate-evidence) |
 | Safe incident handoff | [Safe sharing](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SAFE-TRACE-SHARING.md) |
 | Multi-agent / session retry | [Sessions & outcomes](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SESSIONS-AND-OUTCOMES.md) |
 | Customer-owned team review | [Self-hosting](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SELF-HOSTING.md) · Studio (optional) |
-| Design partner trial | [Pilot kit](https://github.com/rajudandigam/agent-inspect/blob/main/docs/PRE-V7-PILOT-KIT.md) |
-
-All blessed starters (no API keys): [examples/starters](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters)
 
 ## Safety and network behavior
 
@@ -159,9 +157,11 @@ Details: [Safe sharing](https://github.com/rajudandigam/agent-inspect/blob/main/
 
 ## Project status
 
-**Current release:** **6.14.0** (eighteen linked npm packages). Stable launch candidate; eight-week adoption checkpoint in progress; external pilot evidence pending. Persisted schema **1.0**. Node.js **≥ 20**. **v7 not scheduled.**
+**Current release:** **6.14.0** · schema **1.0** · Node.js **≥ 20** · **MIT** · **actively maintained** (eighteen linked npm packages).
 
-[Roadmap](ROADMAP.md) · [Pilot kit](https://github.com/rajudandigam/agent-inspect/blob/main/docs/PRE-V7-PILOT-KIT.md) · [Changelog](CHANGELOG.md)
+The 6.14 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution.
+
+[Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md) · [Public product facts](https://github.com/rajudandigam/agent-inspect/blob/main/docs/product/PUBLIC-PRODUCT-FACTS.md)
 
 ## What AgentInspect is not
 
@@ -169,7 +169,8 @@ Details: [Safe sharing](https://github.com/rajudandigam/agent-inspect/blob/main/
 - Production APM replacement
 - Eval dataset platform or LLM-as-judge by default
 - Prompt registry, pricing engine, or replay engine
-- Universal standards exporter or completed external adoption proof
+- Universal standards exporter
+- Compliance certification
 
 See [Compare](https://github.com/rajudandigam/agent-inspect/blob/main/docs/COMPARE.md).
 
@@ -194,7 +195,7 @@ Canonical tiers: [POSITIONING-AND-PORTFOLIO.md](https://github.com/rajudandigam/
 | ------- | ------- |
 | [`@agent-inspect/ai-sdk`](https://www.npmjs.com/package/@agent-inspect/ai-sdk) | AI SDK telemetry |
 | [`@agent-inspect/openai-agents`](https://www.npmjs.com/package/@agent-inspect/openai-agents) | OpenAI Agents processor |
-| [`@agent-inspect/langchain`](https://www.npmjs.com/package/@agent-inspect/langchain) | LangChain callbacks |
+| [`@agent-inspect/langchain`](https://www.npmjs.com/package/@agent-inspect/langchain) | LangChain / LangGraph callbacks |
 
 ### Tier B — Testing / evaluation
 
@@ -202,8 +203,8 @@ Canonical tiers: [POSITIONING-AND-PORTFOLIO.md](https://github.com/rajudandigam/
 | ------- | ------- |
 | [`@agent-inspect/harness`](https://www.npmjs.com/package/@agent-inspect/harness) | Fixture runner |
 | [`@agent-inspect/eval`](https://www.npmjs.com/package/@agent-inspect/eval) | Local eval heuristics |
-| [`@agent-inspect/vitest`](https://www.npmjs.com/package/@agent-inspect/vitest) | Vitest reporter |
-| [`@agent-inspect/jest`](https://www.npmjs.com/package/@agent-inspect/jest) | Jest reporter |
+| [`@agent-inspect/vitest`](https://www.npmjs.com/package/@agent-inspect/vitest) | Vitest reporter + experimental matchers |
+| [`@agent-inspect/jest`](https://www.npmjs.com/package/@agent-inspect/jest) | Jest reporter + experimental matchers |
 
 ### Tier C — Optional supporting (Safety)
 
@@ -244,7 +245,8 @@ Canonical tiers: [POSITIONING-AND-PORTFOLIO.md](https://github.com/rajudandigam/
 | | Website | Repo |
 | - | ------- | ---- |
 | Getting started | [docs](https://agentinspect.vercel.app/docs/getting-started/) | [FIRST-TRACE](https://github.com/rajudandigam/agent-inspect/blob/main/docs/FIRST-TRACE-IN-5-MINUTES.md) |
-| Contracts / suites / gates | — | [TRACE-CONTRACTS](https://github.com/rajudandigam/agent-inspect/blob/main/docs/TRACE-CONTRACTS.md) · [SUITES-COHORTS-GATES](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SUITES-COHORTS-GATES.md) |
+| TraceFacts / contracts | — | [TRACE-FACTS](https://github.com/rajudandigam/agent-inspect/blob/main/docs/TRACE-FACTS.md) · [TRACE-CONTRACTS](https://github.com/rajudandigam/agent-inspect/blob/main/docs/TRACE-CONTRACTS.md) |
+| Evidence / MCP / no-egress | — | [EVIDENCE-FORMAT](https://github.com/rajudandigam/agent-inspect/blob/main/docs/EVIDENCE-FORMAT.md) · [CODING-AGENT-LOOP](https://github.com/rajudandigam/agent-inspect/blob/main/docs/CODING-AGENT-LOOP.md) · [NO-EGRESS-POLICY](https://github.com/rajudandigam/agent-inspect/blob/main/docs/NO-EGRESS-POLICY.md) |
 | Safe sharing | [safe-sharing](https://agentinspect.vercel.app/docs/safe-sharing/) | [SAFE-TRACE-SHARING](https://github.com/rajudandigam/agent-inspect/blob/main/docs/SAFE-TRACE-SHARING.md) |
 | API / CLI | — | [API](docs/API.md) · [CLI](docs/CLI.md) (packed with npm) |
 | Full index | — | [docs/README.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/README.md) |
