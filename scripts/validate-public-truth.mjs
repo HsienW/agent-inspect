@@ -17,6 +17,27 @@ if (fixed.length !== 18) {
   failures.push(`expected 18 fixed packages, found ${fixed.length}`);
 }
 
+const factsPath = path.join(root, "docs/product/PUBLIC-PRODUCT-FACTS.json");
+if (!existsSync(factsPath)) {
+  failures.push("docs/product/PUBLIC-PRODUCT-FACTS.json is required");
+} else {
+  const facts = JSON.parse(readFileSync(factsPath, "utf8"));
+  if (facts.version !== version) {
+    failures.push(
+      `PUBLIC-PRODUCT-FACTS.json version ${facts.version} must match root ${version}`,
+    );
+  }
+  if (facts.publicPackageCount !== 18) {
+    failures.push("PUBLIC-PRODUCT-FACTS.json publicPackageCount must be 18");
+  }
+  if (!facts.statusLine?.includes(version)) {
+    failures.push(`PUBLIC-PRODUCT-FACTS.json statusLine must mention ${version}`);
+  }
+  if (!Array.isArray(facts.bannedPublicPhrases) || facts.bannedPublicPhrases.length < 5) {
+    failures.push("PUBLIC-PRODUCT-FACTS.json must list bannedPublicPhrases");
+  }
+}
+
 const productPath = path.join(root, "apps/website/lib/product.ts");
 if (existsSync(productPath)) {
   const product = readFileSync(productPath, "utf8");
@@ -26,13 +47,23 @@ if (existsSync(productPath)) {
   if (!product.includes("publicPackageCount: 18")) {
     failures.push("apps/website/lib/product.ts publicPackageCount must be 18");
   }
+  if (/technical launch candidate/i.test(product)) {
+    failures.push("apps/website/lib/product.ts must not use technical launch candidate");
+  }
+  if (/external pilot evidence pending/i.test(product)) {
+    failures.push("apps/website/lib/product.ts must not use external pilot evidence pending");
+  }
+  if (!product.includes("Actively maintained")) {
+    failures.push("apps/website/lib/product.ts releaseStatus should say Actively maintained");
+  }
 }
 
 const readme = readFileSync(path.join(root, "README.md"), "utf8");
 if (!readme.includes(`**${version}**`) && !readme.includes(`Current release:** **${version}**`)) {
-  // allow either form
-  if (!new RegExp(`Current release:\\*\\* \\*\\*${version.replace(/\./g, "\\.")}`).test(readme) &&
-      !readme.includes(`**${version}**`)) {
+  if (
+    !new RegExp(`Current release:\\*\\* \\*\\*${version.replace(/\./g, "\\.")}`).test(readme) &&
+    !readme.includes(`**${version}**`)
+  ) {
     failures.push(`README should mention current release ${version}`);
   }
 }
@@ -45,6 +76,7 @@ const scanFiles = [
   "docs/marketing/WEBSITE-COPY.md",
   "apps/website/lib/site.ts",
   "apps/website/lib/product.ts",
+  "docs/product/PUBLIC-PRODUCT-FACTS.md",
 ];
 for (const rel of scanFiles) {
   const abs = path.join(root, rel);
@@ -53,8 +85,29 @@ for (const rel of scanFiles) {
   if (/aligned with .*v3\.5/i.test(text) || /as of v3\.5/i.test(text)) {
     failures.push(`${rel}: stale v3.5.x alignment claim`);
   }
-  if (/\bCurrent release:\*\* \*\*6\.4\.0\b/.test(text) || /Current release on npm:\*\* \*\*3\.5/.test(text)) {
+  if (
+    /\bCurrent release:\*\* \*\*6\.4\.0\b/.test(text) ||
+    /Current release on npm:\*\* \*\*3\.5/.test(text)
+  ) {
     failures.push(`${rel}: stale current-release claim`);
+  }
+}
+
+// Strict bans on product.ts / site.ts only until README/docs chunks land
+const strictSurfaces = ["apps/website/lib/product.ts", "apps/website/lib/site.ts"];
+const earlyBans = [
+  /technical launch candidate/i,
+  /external pilot evidence pending/i,
+  /stable launch candidate/i,
+];
+for (const rel of strictSurfaces) {
+  const abs = path.join(root, rel);
+  if (!existsSync(abs)) continue;
+  const text = readFileSync(abs, "utf8");
+  for (const ban of earlyBans) {
+    if (ban.test(text)) {
+      failures.push(`${rel}: banned phrase ${ban}`);
+    }
   }
 }
 

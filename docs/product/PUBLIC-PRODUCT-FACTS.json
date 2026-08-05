@@ -1,0 +1,69 @@
+{
+  "name": "agent-inspect",
+  "version": "6.14.0",
+  "schemaVersion": "1.0",
+  "node": ">=20",
+  "license": "MIT",
+  "publicPackageCount": 18,
+  "category": "The local evidence debugger and trajectory-test toolkit for TypeScript AI agents",
+  "headline": "Debug and regression-test TypeScript AI agents from local evidence",
+  "supportingSentence": "AgentInspect captures framework-faithful execution trees, evaluates them with deterministic TraceFacts and TraceContract rules, creates integrity-verifiable Evidence v2, and lets coding assistants inspect the same local facts over read-only MCP—without a collector, account, or default upload.",
+  "outcome": "See what your agent did. Prove the fix. Keep the evidence.",
+  "statusLine": "Current release: 6.14.0 · schema 1.0 · Node.js 20+ · MIT · actively maintained",
+  "releaseStatus": "Actively maintained · schema 1.0 · Node.js 20+ · MIT",
+  "maintenanceLine": "The 6.14 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution.",
+  "trustLine": "No account · no collector · no default upload · metadata-only by default",
+  "proof": [
+    "Validated against production-shaped NestJS/LangGraph integrations.",
+    "Fixture-backed across official adapters and packed consumer workflows."
+  ],
+  "pillars": [
+    {
+      "id": "capture",
+      "title": "Capture faithfully",
+      "summary": "Framework-aware execution trees and local JSONL you own."
+    },
+    {
+      "id": "test",
+      "title": "Test behavior deterministically",
+      "summary": "TraceFacts, TraceContract, checks, suites, cohorts, CI gates, and test matchers."
+    },
+    {
+      "id": "evidence",
+      "title": "Produce portable evidence",
+      "summary": "Offline Evidence v2 with integrity verification and share-policy disclosure."
+    },
+    {
+      "id": "mcp",
+      "title": "Debug with coding assistants locally",
+      "summary": "Read-only MCP over the same TraceFacts, without a collector or hosted trace database."
+    }
+  ],
+  "matchers": {
+    "status": "experimental",
+    "vitest": ["toPassTraceContract", "toHaveRequiredTool"],
+    "jest": ["toPassTraceContract", "toHaveRequiredTool"]
+  },
+  "bannedPublicPhrases": [
+    "technical launch candidate",
+    "launch candidate only",
+    "stable launch candidate",
+    "adoption freeze",
+    "feature freeze",
+    "waiting for adoption",
+    "waiting for pilot",
+    "external pilot evidence pending",
+    "blocked on external evidence",
+    "blocked on adoption",
+    "v7 not scheduled",
+    "TraceContract matchers not shipped",
+    "Vitest/Jest matchers are not shipped",
+    "matchers are not shipped"
+  ],
+  "npmShortDescription": "Local evidence debugger and trajectory-test toolkit for TypeScript AI agents — execution trees, TraceContract checks, Evidence v2, and read-only MCP.",
+  "urls": {
+    "github": "https://github.com/rajudandigam/agent-inspect",
+    "npm": "https://www.npmjs.com/package/agent-inspect",
+    "website": "https://agentinspect.vercel.app"
+  }
+}

@@ -1,17 +1,48 @@
 /**
  * Public product metadata for the marketing site.
- * Keep in sync with root package.json + .changeset fixed group + docs/SUPPORT-LEVELS.md.
+ * Keep in sync with docs/product/PUBLIC-PRODUCT-FACTS.json and root package.json.
  */
 export const product = {
   version: "6.14.0",
   publicPackageCount: 18,
-  releaseStatus: "Technical launch candidate · external pilot evidence pending",
+  releaseStatus: "Actively maintained · schema 1.0 · Node.js 20+ · MIT",
   v7Scheduled: false,
   trustLine:
-    "No account · no default upload · metadata-only by default · optional customer-owned Studio",
-  headline: "The local evidence debugger for TypeScript agents",
+    "No account · no collector · no default upload · metadata-only by default",
+  headline: "Debug and regression-test TypeScript AI agents from local evidence",
   subheadline:
-    "Faithful execution trees, deterministic regression checks, share-checked evidence, and coding-agent access—without a collector or account.",
+    "AgentInspect captures framework-faithful execution trees, evaluates them with deterministic TraceFacts and TraceContract rules, creates integrity-verifiable Evidence v2, and lets coding assistants inspect the same local facts over read-only MCP—without a collector, account, or default upload.",
+  outcome: "See what your agent did. Prove the fix. Keep the evidence.",
+  category: "The local evidence debugger and trajectory-test toolkit for TypeScript AI agents",
+  proof: [
+    "Validated against production-shaped NestJS/LangGraph integrations.",
+    "Fixture-backed across official adapters and packed consumer workflows.",
+  ] as const,
+  pillars: [
+    {
+      id: "capture",
+      title: "Capture faithfully",
+      summary: "Framework-aware execution trees and local JSONL you own.",
+    },
+    {
+      id: "test",
+      title: "Test behavior deterministically",
+      summary:
+        "TraceFacts, TraceContract, checks, suites, cohorts, CI gates, and test matchers.",
+    },
+    {
+      id: "evidence",
+      title: "Produce portable evidence",
+      summary:
+        "Offline Evidence v2 with integrity verification and share-policy disclosure.",
+    },
+    {
+      id: "mcp",
+      title: "Debug with coding assistants locally",
+      summary:
+        "Read-only MCP over the same TraceFacts, without a collector or hosted trace database.",
+    },
+  ] as const,
   heroFlow: `1. Capture one real run
 2. Find the causal failure
 3. Ask your coding agent to inspect it

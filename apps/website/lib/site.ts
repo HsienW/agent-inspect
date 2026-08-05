@@ -1,20 +1,21 @@
 export const site = {
   name: "agent-inspect",
-  title: "agent-inspect — The local evidence debugger for TypeScript agents",
+  title:
+    "agent-inspect — Debug and regression-test TypeScript AI agents from local evidence",
   description:
-    "Faithful execution trees, first-causal-failure, deterministic TraceContract checks, share-checked Evidence v2, and a read-only coding-agent MCP loop—without a collector or account.",
+    "Local evidence debugger and trajectory-test toolkit for TypeScript AI agents — framework-faithful execution trees, TraceFacts, TraceContract, Evidence v2, and read-only MCP without a collector or default upload.",
   keywords: [
     "TypeScript AI agents",
     "AI agent trajectory testing",
     "TypeScript agent debugging",
-    "first causal failure",
-    "AI agent CI gates",
-    "trace contracts",
-    "share-checked evidence",
+    "TraceFacts",
+    "TraceContract",
     "Evidence v2",
+    "LangGraph",
     "MCP coding-agent debug loop",
-    "OpenInference TypeScript",
     "local-first observability",
+    "AI agent CI gates",
+    "share-checked evidence",
   ],
   url: "https://agentinspect.vercel.app",
   github: "https://github.com/rajudandigam/agent-inspect",
