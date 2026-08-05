@@ -157,7 +157,7 @@ Details: [Safe sharing](https://github.com/rajudandigam/agent-inspect/blob/main/
 
 ## Project status
 
-**Current release:** **6.14.0** · schema **1.0** · Node.js **≥ 20** · **MIT** · **actively maintained** (eighteen linked npm packages).
+**Current release:** **6.14.1** · schema **1.0** · Node.js **≥ 20** · **MIT** · **actively maintained** (eighteen linked npm packages).
 
 The 6.14 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution.
 

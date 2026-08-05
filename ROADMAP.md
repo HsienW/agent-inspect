@@ -12,9 +12,9 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ## Current — 6.14.x active maintenance
 
-**Current release on npm:** **6.14.0** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
+**Current release on npm:** **6.14.1** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
 
-The 6.14 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution. Public positioning / discoverability patch work targets **6.14.1**.
+The 6.14 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution. Public positioning / discoverability patch work Published patch **6.14.1**.
 
 | Release | Theme | Status |
 | ------- | ----- | ------ |

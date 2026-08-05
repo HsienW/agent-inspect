@@ -1,5 +1,13 @@
 # @agent-inspect/studio
 
+## 6.14.1
+
+### Patch Changes
+
+- 44f80dd: Public positioning and AI discoverability patch: align README/docs/website/package metadata with shipped 6.14 TraceFacts, Evidence, MCP, and experimental matchers; add llms/AI manifests, Agent Skill, and public-truth validators. Docs and presentation only — no schema/runtime change.
+- Updated dependencies [44f80dd]
+  - agent-inspect@6.14.1
+
 ## 6.14.0
 
 ### Patch Changes

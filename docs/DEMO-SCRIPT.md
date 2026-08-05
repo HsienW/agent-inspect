@@ -1,7 +1,7 @@
 # Live demo script (~4 minutes)
 
 **Audience:** TypeScript developers debugging AI agents.
-**Prereqs:** Node 20+. Consumers: `npm install agent-inspect@6.14.0`. Monorepo: `pnpm build` at repo root.
+**Prereqs:** Node 20+. Consumers: `npm install agent-inspect@6.14.1`. Monorepo: `pnpm build` at repo root.
 **Website:** [https://agentinspect.vercel.app/](https://agentinspect.vercel.app/)
 
 **Blessed demo starters:**
@@ -87,7 +87,7 @@ npx agent-inspect diff .agent-inspect/<broken-run>.jsonl .agent-inspect/<fixed-r
 ## Alternative opener (zero clone)
 
 ```bash
-npm install agent-inspect@6.14.0
+npm install agent-inspect@6.14.1
 npx agent-inspect init --yes
 node examples/agent-inspect-demo.mjs
 npx agent-inspect list --dir .agent-inspect
