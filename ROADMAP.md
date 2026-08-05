@@ -1,8 +1,8 @@
 # Roadmap
 
-AgentInspect is the **local evidence debugger** for TypeScript agents: capture a framework-faithful execution tree, inspect it yourself or through your coding assistant, prevent the same trajectory regression, and produce a redacted portable evidence artifact—without a collector, account, or default upload.
+AgentInspect is the **local evidence debugger and trajectory-test toolkit** for TypeScript AI agents: capture a framework-faithful execution tree, evaluate it with TraceFacts and TraceContract, produce share-checked Evidence v2, and optionally inspect the same local facts over read-only MCP—without a collector, account, or default upload.
 
-**Product loop:** faithful local capture → causal debugging → deterministic trajectory checks → share-checked portable evidence → local read-only coding-agent access.
+**Product loop:** faithful local capture → TraceFacts → deterministic trajectory checks → share-checked portable evidence → local read-only coding-agent access.
 
 This public roadmap describes direction — not a delivery guarantee. See [docs/LIMITATIONS.md](docs/LIMITATIONS.md), [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md), and [docs/SUPPORT-LEVELS.md](docs/SUPPORT-LEVELS.md).
 
@@ -10,47 +10,36 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ---
 
-## Current — canonical stability and evidence (from 6.12.1)
+## Current — 6.14.x active maintenance
 
-**Current release on npm:** **6.12.1** (eighteen fixed-group public packages). Persisted schema **1.0**. See [CHANGELOG.md](CHANGELOG.md#6121).
+**Current release on npm:** **6.14.0** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
 
-**6.12.0** was the consolidation LC; **6.12.1** was presentation. Active work is the **canonical stability and evidence** program: logical TraceFacts foundation, semantic parity, then Evidence-first CI — not calendar wait. Prior eight-week adoption checkpoint is **superseded** (not completed). No new public package before the conditional v7 decision.
+The 6.14 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution. Public positioning / discoverability patch work targets **6.14.1**.
 
 | Release | Theme | Status |
 | ------- | ----- | ------ |
 | **6.7.4**–**6.12.1** | Prior Stability and Focus program | Published |
-| **6.12.2** | Real-pilot semantic blocker patch | **Active** |
-| **6.12.3** | Cross-surface semantic parity | Planned |
-| **6.13.0** | TraceFacts + TraceContract stabilization | Planned |
-| **6.13.1** | Reserved corrective patch | Conditional |
-| **6.14.0** | Evidence-first CI / no-egress LC | Planned |
-| **6.14.x** | Stability and adoption | Planned |
-| **v7** | Conditional decision only | Not scheduled |
+| **6.12.2** | Logical lifecycle projection for checks | Published |
+| **6.12.3** / **6.13.0** | TraceFacts, semantic parity, experimental matchers | Published |
+| **6.14.0** | Evidence-first CI / no-egress LC surfaces | Published |
+| **6.14.x** | Active maintenance + documentation truth | Active |
+| **v7** | Conditional major — assessment only | Not a public marketing focus |
 
 Train state: [docs/implementation/RELEASE-TRAIN-STATE.md](docs/implementation/RELEASE-TRAIN-STATE.md).
 Canonical maintainer roadmap: [docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md](docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md).
 
-External validation gates remain mandatory where the roadmap requires them — results are never fabricated.
+Adoption measurement continues internally and is never fabricated on public surfaces.
 
 ---
 
-## Later — conditional v7
+## Later — conditional major
 
-v7 remains gated on retained adoption evidence after the **v6.14.x** stability period and an explicit maintainer readiness assessment. See [docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md](docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md).
+Any future major remains gated on retained real-world evidence and an explicit maintainer readiness assessment. See [docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md](docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md).
 
-Do not treat exploratory ideas as committed delivery. Do not implement v7 until a named train is authorized.
+Candidate themes (not committed): package-tier rationalization only if justified, deeper standards interop, and continued evidence-loop depth — never breadth for its own sake.
 
 ---
 
-## Explicit non-goals
+## Feedback
 
-- Maintainer-hosted SaaS / multi-tenant dashboard
-- Production APM replacement
-- Default vendor telemetry upload
-- Automatic universal framework monkey-patching
-- Default replay / cassette execution
-- Cost analytics engine
-- Raw chain-of-thought capture
-- New public packages before the v7 decision (`@agent-inspect/judge`, `@agent-inspect/context`, `@agent-inspect/browser`, etc.)
-
-AgentInspect **complements** LangSmith, Langfuse, Braintrust, Phoenix/OpenInference, OpenTelemetry, and similar platforms. It does not replace their production or eval workflows.
+Issues and discussions welcome. Redact traces before posting.

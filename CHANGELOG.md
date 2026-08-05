@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Patch
+
+- (pending 6.14.1) Public positioning, documentation truth, and AI discoverability refresh.
+
 ## 6.14.0
 
 ### Minor Changes
@@ -17,12 +23,6 @@
 ### Patch Changes
 
 - a3c0daa: Logical lifecycle projection for built-in checks and TraceContract: additive experimental `logicalEvents` (raw `events` unchanged), v0.1 start/complete pairing, stepId parent normalization, nested tool identity, and `metadata.tokens.*` safe metrics. Eval/gate/Evidence/MCP inherit via `runTraceChecks`. Includes anonymized pilot-shaped fixture and packed check→gate→bundle→verify E2E. No schema break; no new packages; no default network.
-
-## Unreleased
-
-### Minor (6.14.0 candidate)
-
-- Evidence-first CI / no-egress LC: Evidence `semantics` TraceFacts summary, MCP `get_trace_facts`, `init --framework langgraph`, langgraph-gate-evidence recipe, acceptance + no-egress docs.
 
 ## 6.12.1
 
