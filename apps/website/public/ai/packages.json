@@ -1,0 +1,78 @@
+{
+  "version": "6.14.0",
+  "fixedGroupCount": 18,
+  "packages": [
+    {
+      "name": "agent-inspect",
+      "role": "core+cli"
+    },
+    {
+      "name": "@agent-inspect/langchain",
+      "role": "langchain-langgraph"
+    },
+    {
+      "name": "@agent-inspect/ai-sdk",
+      "role": "ai-sdk"
+    },
+    {
+      "name": "@agent-inspect/openai-agents",
+      "role": "openai-agents"
+    },
+    {
+      "name": "@agent-inspect/vitest",
+      "role": "vitest-reporter-matchers"
+    },
+    {
+      "name": "@agent-inspect/jest",
+      "role": "jest-reporter-matchers"
+    },
+    {
+      "name": "@agent-inspect/mcp-server",
+      "role": "mcp-readonly"
+    },
+    {
+      "name": "@agent-inspect/redact",
+      "role": "redaction"
+    },
+    {
+      "name": "@agent-inspect/eval",
+      "role": "eval"
+    },
+    {
+      "name": "@agent-inspect/harness",
+      "role": "harness"
+    },
+    {
+      "name": "@agent-inspect/tui",
+      "role": "tui"
+    },
+    {
+      "name": "@agent-inspect/viewer",
+      "role": "viewer"
+    },
+    {
+      "name": "@agent-inspect/studio",
+      "role": "studio"
+    },
+    {
+      "name": "@agent-inspect/guardrails",
+      "role": "guardrails"
+    },
+    {
+      "name": "@agent-inspect/circuit",
+      "role": "circuit"
+    },
+    {
+      "name": "@agent-inspect/mcp",
+      "role": "mcp-client"
+    },
+    {
+      "name": "@agent-inspect/adapter-sdk",
+      "role": "adapter-sdk"
+    },
+    {
+      "name": "@agent-inspect/index-sqlite",
+      "role": "index-sqlite"
+    }
+  ]
+}

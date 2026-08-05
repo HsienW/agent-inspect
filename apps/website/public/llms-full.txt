@@ -1,0 +1,545 @@
+# AgentInspect — llms-full
+
+Curated public guides. Version 6.14.0.
+
+
+
+---
+
+# Source: docs/WHY-AGENTINSPECT.md
+
+# Why AgentInspect
+
+**Category:** The local evidence debugger and trajectory-test toolkit for TypeScript AI agents.
+
+**Headline:** Debug and regression-test TypeScript AI agents from local evidence.
+
+**Outcome:** See what your agent did. Prove the fix. Keep the evidence.
+
+## When to install
+
+Install AgentInspect when you need to:
+
+1. Capture a **framework-faithful** local execution tree (JSONL you own).
+2. Assert **deterministic** trajectory expectations (TraceFacts / TraceContract) without an LLM judge.
+3. Produce **portable Evidence v2** for a PR or incident handoff.
+4. Let a **coding assistant** inspect the same local facts over read-only MCP.
+
+## When not to install
+
+- You need hosted multi-tenant APM or a maintainer-operated dashboard.
+- You need LLM-as-judge eval hosting or a prompt registry as the primary product.
+- You need compliance certification (SOC2/HIPAA) from the library itself.
+
+AgentInspect complements platforms like LangSmith, Langfuse, and Phoenix; it owns the laptop → PR evidence loop.
+
+## Four pillars
+
+1. **Capture faithfully** — Framework-aware trees and local JSONL.
+2. **Test behavior deterministically** — TraceFacts, TraceContract, checks, suites, gates, matchers.
+3. **Produce portable evidence** — Offline Evidence v2 with integrity verification.
+4. **Debug with coding assistants locally** — Read-only MCP over the same TraceFacts.
+
+## Proof language (public-safe)
+
+Validated against production-shaped NestJS/LangGraph integrations. Fixture-backed across official adapters and packed consumer workflows.
+
+See [product/PUBLIC-PRODUCT-FACTS.md](./product/PUBLIC-PRODUCT-FACTS.md) and [DECISION-GUIDE.md](./DECISION-GUIDE.md).
+
+
+---
+
+# Source: docs/DECISION-GUIDE.md
+
+# Decision guide
+
+Choose the smallest AgentInspect path that matches your stack and goal.
+
+## 1. Capture
+
+| If you use… | Start with |
+| ----------- | ---------- |
+| Custom TypeScript agent | `inspectRun` / `step` / `observe` — [GETTING-STARTED.md](./GETTING-STARTED.md) |
+| Vercel AI SDK | [`@agent-inspect/ai-sdk`](https://www.npmjs.com/package/@agent-inspect/ai-sdk) |
+| OpenAI Agents JS | [`@agent-inspect/openai-agents`](https://www.npmjs.com/package/@agent-inspect/openai-agents) |
+| LangChain / LangGraph | [`@agent-inspect/langchain`](https://www.npmjs.com/package/@agent-inspect/langchain) · [LANGGRAPH.md](./LANGGRAPH.md) · `npx agent-inspect init --framework langgraph` |
+| Existing structured logs | [LOG-TO-TREE-QUICKSTART.md](./LOG-TO-TREE-QUICKSTART.md) |
+| OpenInference / OTLP JSON files | [STANDARDS.md](./STANDARDS.md) |
+
+## 2. Understand a run
+
+```bash
+npx agent-inspect list --dir .agent-inspect
+npx agent-inspect report <run-id> --dir .agent-inspect
+npx agent-inspect what <run-id> --dir .agent-inspect
+```
+
+Programmatic TraceFacts: [TRACE-FACTS.md](./TRACE-FACTS.md).
+
+## 3. Prevent a regression
+
+| Need | Use |
+| ---- | --- |
+| One-off CLI checks | `npx agent-inspect check <run-id>` |
+| Typed trajectory rules | TraceContract — [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md) |
+| CI thresholds | Suites / gates — [SUITES-COHORTS-GATES.md](./SUITES-COHORTS-GATES.md) |
+| Vitest / Jest | Reporters + experimental `toPassTraceContract` / `toHaveRequiredTool` |
+
+## 4. Share evidence
+
+```bash
+npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share
+npx agent-inspect verify-safe <run-id> --dir .agent-inspect
+npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>
+```
+
+See [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md) and [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md).
+
+## 5. Debug with a coding assistant
+
+```bash
+npx agent-inspect mcp configure --client cursor
+npx @agent-inspect/mcp-server --dir .agent-inspect
+```
+
+Use `get_trace_facts` and related read-only tools. See [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md).
+
+## 6. Stay local / no-egress
+
+Follow [NO-EGRESS-POLICY.md](./NO-EGRESS-POLICY.md) and [NETWORK-BEHAVIOR.md](./NETWORK-BEHAVIOR.md). Core AgentInspect does not open outbound product telemetry sockets by default.
+
+
+---
+
+# Source: docs/TRACE-FACTS.md
+
+# TraceFacts (experimental)
+
+AgentInspect **TraceFacts** are a local, read-only semantic foundation built on the 6.12.2 logical lifecycle projection.
+
+```ts
+import { buildTraceFacts, evaluateTraceContract, defineTraceContract } from "agent-inspect/checks";
+
+const facts = buildTraceFacts(read.events);
+facts.toolsByName.get("lookup_orders");
+facts.summary.runningLogicalCount;
+
+evaluateTraceContract({ read }, defineTraceContract({
+  tools: { requiredTools: ["lookup_orders"] },
+}));
+```
+
+## Compatibility
+
+- Raw `TraceCheckFacts.events` remain raw persisted rows.
+- Built-in checks use `logicalEvents`.
+- `buildTraceFacts` / `summarizeSemanticParity` are additive experimental APIs on `agent-inspect/checks`.
+- Vitest/Jest: `agentInspectVitestMatchers` / `agentInspectJestMatchers` (`toPassTraceContract`, `toHaveRequiredTool`).
+
+No schema 1.0 change. No default network.
+
+
+---
+
+# Source: docs/TRACE-CONTRACTS.md
+
+# Trace contracts
+
+**Support level:** Beta  
+
+Typed trajectory expectations over local AgentInspect traces via `defineTraceContract` / `evaluateTraceContract` (`agent-inspect/checks`).
+
+## What is shipped
+
+Contracts compile to deterministic check rules for common cases:
+
+- run status / completion / max duration
+- tool required / forbidden / allowed / maxCalls / order (`requiredTools` / `forbiddenTools` aliases)
+- LLM maxCalls / maxTotalTokens / allowedModels
+- evidence-bearing findings on failures
+- evaluation over **logical** TraceFacts (raw events remain available)
+
+### Experimental Vitest / Jest matchers (shipped)
+
+| Package | Export | Matchers |
+| ------- | ------ | -------- |
+| `@agent-inspect/vitest` | `agentInspectVitestMatchers` | `toPassTraceContract`, `toHaveRequiredTool` |
+| `@agent-inspect/jest` | `agentInspectJestMatchers` | `toPassTraceContract`, `toHaveRequiredTool` |
+
+These are **Experimental** — API names may evolve. There is no `expectTrace(...).toSatisfyTraceContract` helper.
+
+See [API.md](./API.md), [TRACE-FACTS.md](./TRACE-FACTS.md), and `packages/core/src/checks/contract.ts`.
+
+## What is not shipped (yet)
+
+Do **not** document these as available:
+
+- `expectTrace(...).toSatisfyTraceContract` (different API shape than the shipped matchers)
+- Full workflow handoff / approval / MCP protocol contract rules
+- Per-tool argument schema / regex validators on the contract surface
+- Every structure rule (orphan/cycle/depth) exposed on the contract API (many exist as standalone check rules)
+
+## CLI relationship
+
+```bash
+npx agent-inspect check <run-id> --dir .agent-inspect
+```
+
+Suites and gates can consume check results; see [SUITES-COHORTS-GATES.md](./SUITES-COHORTS-GATES.md).
+
+## Limitations
+
+- Experimental/Beta API — may evolve in minors
+- Contract tests are smoke-level; prefer check-engine tests for deep rule coverage
+- Always review findings before treating a green check as product proof
+
+
+---
+
+# Source: docs/EVIDENCE-FIRST-ACCEPTANCE.md
+
+# Evidence-first acceptance contract
+
+**Status:** Shipped flagship loop contract for the **6.14** line (`agent-inspect@6.14.0`+). Internal adoption measurement continues separately and is not a public publication blocker for this surface.
+
+## Flagship loop
+
+```text
+framework-native capture
+→ faithful local tree (logicalEvents / TraceFacts)
+→ TraceContract failure (deterministic)
+→ Evidence v2 package in CI (evidence.html + evidence.json)
+→ coding assistant reads TraceFacts over local MCP
+→ fix
+→ contract passes
+→ broken/fixed Evidence on the PR (user-owned upload)
+```
+
+## Must be true
+
+| Requirement | Meaning |
+|-------------|---------|
+| Local-first | No default network upload from AgentInspect |
+| Share-safe by default for share profiles | Redaction + verify-safe before share Evidence |
+| Deterministic contracts | Same TraceFacts/check engine as CLI |
+| Offline Evidence | Self-contained HTML/JSON; XSS-safe escaping |
+| Honest status | Assessment note is best-effort, not compliance certification |
+
+## Explicit non-claims
+
+- Not a compliance certification (SOC2/HIPAA/etc.)
+- Not hosted APM / SaaS telemetry
+- Not a guarantee that every framework graph is complete without adapters
+- Anonymized fixtures ≠ design-partner attestation
+
+## Related
+
+- [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md)
+- [TRACE-FACTS.md](./TRACE-FACTS.md)
+- [NO-EGRESS-POLICY.md](./NO-EGRESS-POLICY.md)
+- [NETWORK-BEHAVIOR.md](./NETWORK-BEHAVIOR.md)
+
+
+---
+
+# Source: docs/CODING-AGENT-LOOP.md
+
+# Coding-agent debug loop (MCP)
+
+**Support level:** Preview (`@agent-inspect/mcp-server`)
+
+The **local coding-agent debug loop** is a read-only MCP server that lets a coding assistant inspect TypeScript agent runs — including TraceFacts via `get_trace_facts` — without an OpenTelemetry backend, collector, or account.
+
+Related: [MCP.md](./MCP.md) · [TRACE-FACTS.md](./TRACE-FACTS.md) · [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md) · [NO-EGRESS-POLICY.md](./NO-EGRESS-POLICY.md)
+
+## Product boundary
+
+| In scope | Out of scope |
+|----------|--------------|
+| Local stdio MCP over a configured trace directory | Hosted MCP relay / remote fetch |
+| Read-only tools with share redaction by default | Modifying application code or traces |
+| Deterministic causal-failure + contract evidence | Model-generated diagnosis presented as fact |
+| Client config generators (dry-run default) | Credentials, API keys, or default upload |
+| Share-checked evidence creation via existing gates | Executing target-app tools through MCP |
+
+AgentInspect remains **read-only**. The coding assistant applies fixes; this server only inspects local traces and emits share-checked artifacts.
+
+## Executable entrypoint
+
+Preferred invocation (no wrapper script):
+
+```bash
+npx @agent-inspect/mcp-server --dir .agent-inspect
+```
+
+| Rule | Detail |
+|------|--------|
+| Package | Existing `@agent-inspect/mcp-server` only — **no new package** |
+| Transport | **stdio** for the flagship path (HTTP not required) |
+| Default dir | `.agent-inspect` when `--dir` / `AGENT_INSPECT_TRACE_DIR` omitted |
+| Redaction | `AGENT_INSPECT_MCP_REDACTION_PROFILE` — `share` (default), `strict`, `local` |
+| Network | None by default |
+
+## Client configuration
+
+```bash
+agent-inspect mcp configure --client cursor
+agent-inspect mcp configure --client claude-code
+agent-inspect mcp configure --client codex
+agent-inspect mcp configure --client gemini
+```
+
+Behavior:
+
+- dry-run by default when editing user-level configuration
+- project-local option
+- explicit confirmation before writing
+- no network; no credentials
+- clear trace-directory scope; easy removal
+
+## Protocol
+
+**Decision:** Harden the hand-written stdio JSON-RPC layer rather than pull `@modelcontextprotocol/sdk` (HTTP/Express stack) or jump to MCP SDK v2 until the coding-agent client matrix is validated. Protocol version remains **`2024-11-05`**. Full SDK adoption stays optional and mcp-server-only when practical.
+
+Must support:
+
+- protocol negotiation / `2024-11-05`
+- `initialize`, `ping`, `tools/list`, `tools/call`
+- `notifications/cancelled` (abort in-flight tool calls)
+- bounded request frames + bounded tool errors
+- resources/prompts only when read-only (not required for flagship stdio path)
+
+Existing consumers remain compatible or receive migration guidance.
+
+## Flagship tool surface
+
+Canonical **names** for the coding-agent loop (additive; legacy names may remain as aliases during transition):
+
+| Flagship tool | Role | Legacy / related (today) |
+|---------------|------|---------------------------|
+| `list_recent_runs` | Recent runs in scope | `list_traces` |
+| `list_recent_failures` | Failed runs only | filter on `list_traces` / checks |
+| `get_run_summary` | Bounded run summary | `summarize_failed_run`, `read_trace` |
+| `get_execution_tree` | Tree projection | `read_trace` |
+| `get_first_causal_failure` | Deterministic first causal failure | `find_first_error` (stricter engine) |
+| `get_slowest_path` | Slow path summary | `find_slowest_path` |
+| `get_contract_failures` | Contract / check failures | `run_checks` |
+| `get_trace_facts` | TraceFacts / semantic parity summary | additive |
+| `get_failed_observations` | Failed observed outcomes | `find_failed_observation` |
+| `compare_runs` | Structural diff | `compare_runs` |
+| `create_share_checked_evidence` | Evidence v2 / share gate | `create_share_safe_bundle` |
+| `get_adapter_diagnostics` | Adapter/source diagnostics | (new / additive) |
+
+### Output contract
+
+Every tool result must be:
+
+- **redacted** (share profile by default)
+- **bounded** (event counts, string lengths, payload size)
+- **deterministic** for the same inputs
+- **source-linked** (run ids / event ids — not raw local paths by default)
+- **explicit about uncertainty**
+- free of known fixture secrets in conformance corpus
+
+Assessment for share gates follows [SAFETY-POLICY.md](./SAFETY-POLICY.md): **artifact** assessment gates writes; source status remains informational.
+
+## First causal failure
+
+Conservative ordering (stop at first match; return evidence ids + rationale):
+
+1. Explicit failed/error event
+2. Failed observed outcome
+3. Contract failure linked to an event
+4. Nearest failed ancestor/child relationship
+5. **No** inference from timing correlation alone
+
+Do not present model-generated diagnosis as fact.
+
+## Coding-agent workflow
+
+```text
+run the agent
+→ find latest failed trace
+→ inspect first causal failure
+→ inspect tool path
+→ compare against last success
+→ read contract failure
+→ suggest code fix (assistant)
+→ rerun the app/test
+→ confirm contract passes
+→ create share-checked evidence
+```
+
+Client instruction templates: [coding-agent-instructions/](./coding-agent-instructions/).
+
+## Flagship recipe
+
+```text
+examples/starters/coding-agent-debug-loop/
+```
+
+No provider key for the default fixture. Demonstrate:
+
+```text
+broken LangGraph-like run
+→ MCP inspection
+→ deterministic contract failure
+→ code/fixture fix
+→ passing rerun
+→ portable evidence
+```
+
+## Privacy and conformance
+
+Follow current MCP security principles: explicit user control, read-only tools, sanitized outputs, bounded payloads, clear local scope, no hidden prompt sampling, no tool execution against the target app, no unredacted evidence by default.
+
+Conformance corpus must cover: `initialize`, `tools/list`, `tools/call`, cancellation, malformed request, unknown tool, oversized result, sensitive trace, missing trace, protocol version negotiation.
+
+## Compatibility
+
+| Surface | Rule |
+|---------|------|
+| Trace schema | Unchanged (`0.1` / `0.2` / `1.0` readable) |
+| Evidence format | Independent; use Evidence v2 for share-checked packages |
+| Root/core deps | No new root/core runtime dependency without approval |
+| `@agent-inspect/mcp` | Client telemetry — unchanged |
+| Existing MCP tools | Keep working or alias; document renames |
+
+## Acceptance (release gate)
+
+- Configure Cursor or Claude Code in under five minutes on a clean project
+- No collector/backend required
+- MCP outputs contain no known fixture secrets
+- Coding assistant can identify deterministic failure evidence
+- Server cannot modify code or execute target tools
+- Debug-loop fixture passes end to end
+- Existing MCP consumers remain compatible or have migration guidance
+
+
+---
+
+# Source: docs/NO-EGRESS-POLICY.md
+
+# No-egress policy (AgentInspect surfaces)
+
+**Scope:** AgentInspect configuration, CLI, MCP stdio server, Evidence packages, and reporters **only**. This is **not** an application-wide compliance or zero-trust certification.
+
+## Policy intent
+
+When operators run AgentInspect in a **no-egress** environment:
+
+1. AgentInspect performs **no default network I/O**.
+2. Local MCP uses **stdio** only (no remote MCP transport as a built-in default).
+3. Exporters write **local files/strings** only — no automatic upload.
+4. Evidence / bundle / verify-safe operate on **local paths**.
+5. Framework adapters stay **metadata-first** where documented; raw prompt/output capture is not the default.
+
+## Operator checklist
+
+| Check | How |
+|-------|-----|
+| No registry publish from agent process | Do not call `npm publish` from agent hooks |
+| MCP local | `agent-inspect mcp` / `@agent-inspect/mcp-server` stdio |
+| Evidence offline | `bundle` / CI artifacts → user-owned `actions/upload-artifact` if needed |
+| Redaction for share | `--profile share` / `strict` before external attachment |
+| Doctor / network docs | See [NETWORK-BEHAVIOR.md](./NETWORK-BEHAVIOR.md) |
+
+## CLI note
+
+Treat this document + [NETWORK-BEHAVIOR.md](./NETWORK-BEHAVIOR.md) as the contract: **AgentInspect does not open outbound product telemetry sockets** by default. Dedicated `--policy no-egress` flags are optional future convenience — absence of the flag does not weaken the default no-egress product behavior.
+
+## Non-claims
+
+- Does not prove the host app has no egress
+- Does not replace org network controls or DLP
+- Does not certify compliance frameworks
+
+## Trial ledger
+
+Partial trials: [adoption-evidence/NO-EGRESS-EVIDENCE-TRIAL.md](./adoption-evidence/NO-EGRESS-EVIDENCE-TRIAL.md)
+
+
+---
+
+# Source: docs/LANGGRAPH.md
+
+# LangGraph with AgentInspect
+
+Capture LangGraph / LangChain runs as local AgentInspect traces, evaluate them with TraceFacts and TraceContract, and produce Evidence v2 — without a collector or default upload.
+
+## Install
+
+```bash
+npm install agent-inspect @agent-inspect/langchain
+npx agent-inspect init --framework langgraph --yes
+```
+
+Or wire the LangChain callback path manually via [`@agent-inspect/langchain`](https://www.npmjs.com/package/@agent-inspect/langchain).
+
+## No-key gate + Evidence recipe
+
+Repository recipe (no API keys): [examples/recipes/langgraph-gate-evidence](../examples/recipes/langgraph-gate-evidence).
+
+Typical loop:
+
+```text
+capture → check / TraceContract → gate → bundle --profile share → bundle verify
+```
+
+## Semantics to expect
+
+- Raw JSONL events remain on disk.
+- Built-in checks and TraceContract use the **logical** lifecycle projection (`logicalEvents` / TraceFacts).
+- Canonical tool identity resolves bridged tool names (including nested `metadata.toolName` where applicable).
+
+Details: [TRACE-FACTS.md](./TRACE-FACTS.md) · [LANGGRAPH-FIDELITY.md](./LANGGRAPH-FIDELITY.md) · [ADAPTERS.md](./ADAPTERS.md).
+
+## Related NestJS path
+
+For NestJS + LangGraph-style local evidence, see [NESTJS.md](./NESTJS.md) and the public-safe case study under [case-studies/](./case-studies/) when present.
+
+
+---
+
+# Source: docs/GOLDEN-PATH.md
+
+# Golden path
+
+The recommended local evidence path for the current **6.14** release line.
+
+## Automated packed path (CI)
+
+From a packed `agent-inspect` install (`scripts/packed-quickstart-e2e.mjs` via `pnpm pack:smoke`):
+
+```text
+init --yes → demo → list → verify-safe <runId> --dir .agent-inspect
+```
+
+Semantic loop smoke (`scripts/packed-semantic-loop-e2e.mjs`) exercises check → gate → bundle → verify on a pilot-shaped fixture.
+
+## Recommended developer path
+
+```text
+init → demo → list → view/report → check → bundle --profile share → verify-safe → bundle verify
+```
+
+LangGraph-oriented path:
+
+```text
+init --framework langgraph → capture → TraceContract / gate → Evidence v2 → optional MCP get_trace_facts
+```
+
+Use required positional targets (`<run-id>` or file path). See the root README five-minute path.
+
+## Optional extensions
+
+- Suites / cohorts / CI gates — [SUITES-COHORTS-GATES.md](./SUITES-COHORTS-GATES.md)
+- Experimental Vitest/Jest matchers — [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md)
+- Coding-agent MCP loop — [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md)
+- Customer-owned Studio — [SELF-HOSTING.md](./SELF-HOSTING.md)
+
+## Honest boundaries
+
+- Full broken→fix→Studio productization is not a single automated script.
+- External partner retention attestation is tracked internally; do not invent adoption rows.
+- Redaction is best-effort, not compliance certification.

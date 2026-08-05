@@ -1,30 +1,62 @@
 # AgentInspect
 
-> The local evidence debugger for TypeScript agents—faithful execution trees, deterministic regression checks, share-checked evidence, and coding-agent access without a collector or account.
+> Debug and regression-test TypeScript AI agents from local evidence
 
-- Site: https://agentinspect.vercel.app/
+AgentInspect captures framework-faithful execution trees, evaluates them with deterministic TraceFacts and TraceContract rules, creates integrity-verifiable Evidence v2, and lets coding assistants inspect the same local facts over read-only MCP—without a collector, account, or default upload.
+
+- Category: The local evidence debugger and trajectory-test toolkit for TypeScript AI agents
+- Outcome: See what your agent did. Prove the fix. Keep the evidence.
+- Status: Current release: 6.14.0 · schema 1.0 · Node.js 20+ · MIT · actively maintained
+- Site: https://agentinspect.vercel.app
 - Docs: https://agentinspect.vercel.app/docs/
 - GitHub: https://github.com/rajudandigam/agent-inspect
 - npm: https://www.npmjs.com/package/agent-inspect
+- Machine facts: https://agentinspect.vercel.app/ai/product.json
+- Skill: https://github.com/rajudandigam/agent-inspect/blob/main/.agents/skills/agent-inspect/SKILL.md
 
-## Hero flow
+## When to use
 
-1. Capture one real run
-2. Find the causal failure
-3. Ask your coding agent to inspect it
-4. Lock the fix with a contract
-5. Attach the share-checked evidence
+- Debug a TypeScript AI agent run from local JSONL evidence
+- Regression-test trajectories with TraceFacts / TraceContract (no LLM judge)
+- Produce integrity-verifiable Evidence v2 for a PR or incident
+- Let a coding assistant inspect the same local facts over read-only MCP
 
-## Product
+## When not to use
 
-Local trajectory evidence: execution trees, first-causal-failure, TraceContract checks, suites/gates, Evidence v2 bundles (`bundle` / `bundle verify`), read-only MCP Preview coding-agent loop. No account, no default upload, metadata-only by default. Optional customer-owned Studio Beta is Tier C—not the flagship story.
+- Hosted multi-tenant APM / maintainer dashboard
+- LLM-as-judge eval hosting as the primary product
+- Compliance certification from the library itself
+
+## Four pillars
+
+1. **Capture faithfully** — Framework-aware execution trees and local JSONL you own.
+2. **Test behavior deterministically** — TraceFacts, TraceContract, checks, suites, cohorts, CI gates, and test matchers.
+3. **Produce portable evidence** — Offline Evidence v2 with integrity verification and share-policy disclosure.
+4. **Debug with coding assistants locally** — Read-only MCP over the same TraceFacts, without a collector or hosted trace database.
+
+## Packages
+
+- `agent-inspect` — core + CLI
+- `@agent-inspect/langchain` — LangChain / LangGraph
+- `@agent-inspect/ai-sdk` — Vercel AI SDK
+- `@agent-inspect/openai-agents` — OpenAI Agents JS
+- `@agent-inspect/vitest` / `@agent-inspect/jest` — reporters + experimental matchers
+- `@agent-inspect/mcp-server` — read-only MCP (`get_trace_facts`)
+- `@agent-inspect/redact` — deterministic redaction
 
 ## Key docs
 
-- https://github.com/rajudandigam/agent-inspect/blob/main/docs/FIRST-TRACE-IN-5-MINUTES.md
-- https://github.com/rajudandigam/agent-inspect/blob/main/docs/POSITIONING-AND-PORTFOLIO.md
-- https://github.com/rajudandigam/agent-inspect/blob/main/docs/CODING-AGENT-LOOP.md
-- https://github.com/rajudandigam/agent-inspect/blob/main/docs/SUPPORT-LEVELS.md
-- https://github.com/rajudandigam/agent-inspect/blob/main/docs/NETWORK-BEHAVIOR.md
-- https://github.com/rajudandigam/agent-inspect/blob/main/docs/TRACE-CONTRACTS.md
-- https://github.com/rajudandigam/agent-inspect/blob/main/docs/GOLDEN-PATH.md
+- https://agentinspect.vercel.app/docs/getting-started
+- https://agentinspect.vercel.app/docs/trace-facts
+- https://agentinspect.vercel.app/docs/contracts
+- https://agentinspect.vercel.app/docs/evidence-v2
+- https://agentinspect.vercel.app/docs/coding-agent-loop
+- https://agentinspect.vercel.app/docs/integrations/langgraph
+- https://github.com/rajudandigam/agent-inspect/blob/main/docs/WHY-AGENTINSPECT.md
+- https://github.com/rajudandigam/agent-inspect/blob/main/docs/DECISION-GUIDE.md
+- https://github.com/rajudandigam/agent-inspect/blob/main/docs/NO-EGRESS-POLICY.md
+
+## Safety
+
+No account · no collector · no default upload · metadata-only by default
+Metadata-only by default. No hidden upload. Redaction is best-effort, not certification.

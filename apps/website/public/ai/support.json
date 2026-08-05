@@ -1,0 +1,16 @@
+{
+  "levelsDoc": "docs/SUPPORT-LEVELS.md",
+  "matchers": {
+    "status": "experimental",
+    "vitest": [
+      "toPassTraceContract",
+      "toHaveRequiredTool"
+    ],
+    "jest": [
+      "toPassTraceContract",
+      "toHaveRequiredTool"
+    ]
+  },
+  "mcpServer": "Preview",
+  "traceContract": "Beta"
+}

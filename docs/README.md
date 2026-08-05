@@ -31,6 +31,8 @@ Local-first TypeScript AI agent toolkit: **debug, regression-test, and safely sh
 | [LANGGRAPH.md](./LANGGRAPH.md) | LangGraph / LangChain onboarding |
 | [SUPPORT-LEVELS.md](./SUPPORT-LEVELS.md) | Stable / Supported / Beta / Preview / Experimental |
 | [NETWORK-BEHAVIOR.md](./NETWORK-BEHAVIOR.md) | Explicit network surfaces |
+| [AI-CODING-ASSISTANT-GUIDE.md](./AI-CODING-ASSISTANT-GUIDE.md) | How coding models should select AgentInspect |
+| [case-studies/nestjs-langgraph-local-evidence.md](./case-studies/nestjs-langgraph-local-evidence.md) | Public-safe anonymized integration story |
 
 ## Capture
 

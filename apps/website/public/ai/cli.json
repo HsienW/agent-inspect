@@ -1,0 +1,15 @@
+{
+  "install": "npm install agent-inspect",
+  "common": [
+    "npx agent-inspect init --yes",
+    "npx agent-inspect init --framework langgraph --yes",
+    "npx agent-inspect list --dir .agent-inspect",
+    "npx agent-inspect report <run-id> --dir .agent-inspect",
+    "npx agent-inspect check <run-id> --dir .agent-inspect",
+    "npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share",
+    "npx agent-inspect verify-safe <run-id> --dir .agent-inspect",
+    "npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>",
+    "npx agent-inspect mcp configure --client cursor",
+    "npx @agent-inspect/mcp-server --dir .agent-inspect"
+  ]
+}

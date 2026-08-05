@@ -1,0 +1,6 @@
+{
+  "starters": "examples/starters",
+  "recipes": [
+    "examples/recipes/langgraph-gate-evidence"
+  ]
+}
