@@ -7,22 +7,22 @@
 ```yaml
 baselineVersion: "6.14.0"
 publishedVersion: "6.14.0"
-currentTrain: "v6.14.x-stability-and-adoption"
+currentTrain: "v6.14.1-public-positioning-and-ai-discoverability"
 trainStatus: "active"
 executionMode: "autonomous-release-train"
-namedTrain: "agentinspect-canonical-stability-evidence-v6.12.1-to-v7-decision"
+namedTrain: "agentinspect-v6.14.1-public-positioning-ai-discoverability"
 branch: "main"
-currentChunk: "6.14.x-hold"
-lastConfirmedCommit: "af20959"
-lastValidationLevel: "release"
-nextAction: "Collect real external evidence; bugs/docs/assessment only; no feature expansion; no v7"
+currentChunk: "6.14.1-0-public-surface-audit"
+lastConfirmedCommit: "e66a828"
+lastValidationLevel: "planning"
+nextAction: "Planning commit then 6.14.1-1 canonical product facts"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md"
-completedChunks:
-  - "6.14.0 engineering on main"
-  - "6.14.0 publication (Trusted Publishing)"
+activePlan: "docs/implementation/release-trains/V6.14.1-PUBLIC-POSITIONING-EXECUTION-PLAN.md"
+completedChunks: []
 remainingTrains:
-  - "v6.14.x stability and adoption (active)"
+  - "v6.14.1 public positioning (active)"
+  - "v6.14.x active maintenance (after publish)"
 blockedTrains:
   - "v7.0.0 (conditional — assessment only; not scheduled)"
 updatedAt: "2026-08-04"
