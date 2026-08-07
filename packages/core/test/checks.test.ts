@@ -371,6 +371,24 @@ describe("built-in run, tool, and LLM checks", () => {
     });
   });
 
+  it("treats an empty tool allowlist as no restriction", () => {
+    const tool = persisted("event-a", {
+      kind: "TOOL",
+      name: "tool:search",
+      attributes: { toolName: "search" },
+    });
+    const read = readResult([tool]);
+
+    // allowed: [] must not reject every tool; the required tool is present.
+    const result = runTraceChecks(
+      { read },
+      { rules: [createToolUsageRule({ required: ["search"], allowed: [] })] },
+    );
+
+    expect(result.status).toBe("pass");
+    expect(result.findings).toHaveLength(0);
+  });
+
   it("reports LLM model, provider, finish reason, call count, and token-budget violations", () => {
     const first = persisted("event-a", {
       kind: "LLM",
@@ -425,6 +443,35 @@ describe("built-in run, tool, and LLM checks", () => {
       "LLM provider other-provider is not allowed.",
     ]);
     expect(JSON.stringify(result.findings)).not.toContain("raw prompt should not leak");
+  });
+
+  it("treats empty allowlists as no restriction so a token-only budget passes", () => {
+    const llm = persisted("event-a", {
+      kind: "LLM",
+      name: "llm:generate-answer",
+      attributes: { model: "gpt-4o", provider: "openai", finishReason: "stop" },
+      tokenUsage: { input: 100, output: 50, total: 150 },
+    });
+    const read = readResult([llm]);
+
+    // Mirrors `check --max-total-tokens N` with no --allowed-model: the CLI
+    // passes empty allowlists. These must not reject every model/provider.
+    const result = runTraceChecks(
+      { read },
+      {
+        rules: [
+          createLlmUsageRule({
+            allowedModels: [],
+            allowedProviders: [],
+            finishReasons: [],
+            maxTotalTokens: 1000,
+          }),
+        ],
+      },
+    );
+
+    expect(result.status).toBe("pass");
+    expect(result.findings).toHaveLength(0);
   });
 });
 

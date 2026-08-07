@@ -1640,7 +1640,8 @@ export function createToolUsageRule(options: ToolUsageRuleOptions): TraceCheckRu
       }
 
       const forbidden = new Set(options.forbidden ?? []);
-      const allowed = options.allowed ? new Set(options.allowed) : undefined;
+      // Empty allowlist means "no restriction", not "reject everything".
+      const allowed = options.allowed?.length ? new Set(options.allowed) : undefined;
       for (const event of tools) {
         const name = toolName(event);
         if (forbidden.has(name)) {
@@ -1768,9 +1769,12 @@ export function createLlmUsageRule(options: LlmUsageRuleOptions): TraceCheckRule
     evaluate(context) {
       const llms = finishedEvents(context, "LLM");
       const findings: TraceCheckFinding[] = [];
-      const allowedModels = options.allowedModels ? new Set(options.allowedModels) : undefined;
-      const allowedProviders = options.allowedProviders ? new Set(options.allowedProviders) : undefined;
-      const finishReasons = options.finishReasons ? new Set(options.finishReasons) : undefined;
+      // An empty allowlist means "no restriction", not "reject everything".
+      // Callers (CLI --max-total-tokens with no --allowed-model, config, or
+      // contract) may pass [], and an empty array is truthy, so guard on length.
+      const allowedModels = options.allowedModels?.length ? new Set(options.allowedModels) : undefined;
+      const allowedProviders = options.allowedProviders?.length ? new Set(options.allowedProviders) : undefined;
+      const finishReasons = options.finishReasons?.length ? new Set(options.finishReasons) : undefined;
 
       if (options.maxCalls !== undefined && llms.length > options.maxCalls) {
         findings.push(
@@ -2196,7 +2200,8 @@ function createSignalRule(
       }
 
       const forbidden = new Set(options.forbidden ?? []);
-      const allowed = options.allowed ? new Set(options.allowed) : undefined;
+      // Empty allowlist means "no restriction", not "reject everything".
+      const allowed = options.allowed?.length ? new Set(options.allowed) : undefined;
       for (const event of events) {
         const name = nameForEvent(event);
         if (forbidden.has(name)) {
