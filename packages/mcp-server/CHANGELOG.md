@@ -1,5 +1,14 @@
 # @agent-inspect/mcp-server
 
+## 6.14.2
+
+### Patch Changes
+
+- 4850b62: Swarm relationship and safety precision: fix self-parent capture/ordering, normalize legacy self-edges, cycle-safe trees, and stop treating token-configuration fields as credentials.
+- Updated dependencies [4850b62]
+  - agent-inspect@6.14.2
+  - @agent-inspect/redact@6.14.2
+
 ## 6.14.1
 
 ### Patch Changes
