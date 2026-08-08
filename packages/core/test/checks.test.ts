@@ -492,12 +492,14 @@ describe("built-in structure and safety checks", () => {
       trace: { spanId: "span-child", parentSpanId: "span-other" },
     });
     const orphan = persisted("event-c", { parentId: "missing-parent" });
-    const selfCycle = persisted("event-d", { parentId: "event-d" });
+    // Multi-node cycle (self-parent edges are normalized away by logical projection).
+    const cycleA = persisted("event-d", { parentId: "event-f" });
+    const cycleB = persisted("event-f", { parentId: "event-d" });
     const running = persisted("event-e", { status: "running" });
-    const read = readResult([parent, child, orphan, selfCycle, running]);
+    const read = readResult([parent, child, orphan, cycleA, cycleB, running]);
     const parentNode = node(parent, 0);
     parentNode.children = [node(child, 1), node(orphan, 1)];
-    read.runs[0]!.children = [parentNode, node(selfCycle, 0), node(running, 0)];
+    read.runs[0]!.children = [parentNode, node(cycleA, 0), node(cycleB, 0), node(running, 0)];
 
     const result = runTraceChecks(
       { read },

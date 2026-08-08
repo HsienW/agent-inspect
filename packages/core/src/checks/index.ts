@@ -11,6 +11,10 @@ import {
   type ObservedOutcomeStatus,
 } from "../outcomes/index.js";
 import {
+  DEFAULT_CREDENTIAL_SENSITIVE_KEYS,
+  isCredentialSensitiveKey,
+} from "../safety/sensitive-key.js";
+import {
   projectLogicalEvents,
   resolveCanonicalToolName,
   type LogicalProjectionDiagnostic,
@@ -21,6 +25,12 @@ export type { LogicalProjectionDiagnostic, LogicalTraceEvent } from "./logical-e
 export { projectLogicalEvents, resolveCanonicalToolName } from "./logical-events.js";
 export type { SemanticParitySummary, TraceFacts } from "./trace-facts.js";
 export { buildTraceFacts, summarizeSemanticParity } from "./trace-facts.js";
+export {
+  DEFAULT_CREDENTIAL_SENSITIVE_KEYS,
+  isCredentialSensitiveKey,
+  NON_CREDENTIAL_TOKEN_CONFIG_KEYS,
+  normalizeSensitiveKey,
+} from "../safety/sensitive-key.js";
 
 /**
  * Experimental trace-check finding severity.
@@ -593,16 +603,7 @@ const CONFIDENCE_RANK: Record<AttributionConfidence, number> = {
   explicit: 3,
 };
 
-const DEFAULT_SENSITIVE_KEYS = [
-  "authorization",
-  "cookie",
-  "token",
-  "apikey",
-  "api_key",
-  "password",
-  "secret",
-  "email",
-];
+const DEFAULT_SENSITIVE_KEYS = DEFAULT_CREDENTIAL_SENSITIVE_KEYS;
 
 const DEFAULT_RAW_CONTENT_KEYS = [
   "body",
@@ -1170,9 +1171,7 @@ function hasRedactionMarker(value: string, markers: readonly string[]): boolean 
 }
 
 function isSensitiveKey(key: string | undefined, sensitiveKeys: readonly string[]): boolean {
-  if (!key) return false;
-  const normalized = normalizedKey(key);
-  return sensitiveKeys.some((sensitive) => normalized.includes(normalizedKey(sensitive)));
+  return isCredentialSensitiveKey(key, sensitiveKeys);
 }
 
 function isRawContentKey(key: string | undefined, forbiddenKeys: readonly string[]): boolean {

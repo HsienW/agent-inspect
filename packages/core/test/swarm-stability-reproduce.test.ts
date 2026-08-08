@@ -127,7 +127,7 @@ describe("6.14.2-0 swarm stability defect reproduction", () => {
     expect(checks.findings.some((finding) => finding.ruleId === "structure.cycle")).toBe(false);
   });
 
-  it("N-6: ls_max_tokens / max_tokens / token_count currently trip safety.redaction", () => {
+  it("N-6: ls_max_tokens / max_tokens / token_count are not credential keys (post 6.14.2-5)", () => {
     const fixture = readFileSync(
       path.join(fixturesRoot, "safety/ls-max-tokens-config.jsonl"),
       "utf8",
@@ -136,7 +136,7 @@ describe("6.14.2-0 swarm stability defect reproduction", () => {
     expect(fixture).toContain("max_tokens");
     expect(fixture).toContain("token_count");
 
-    const event = persisted("event-token-config", {
+    const config = persisted("event-token-config", {
       attributes: {
         ls_max_tokens: "undefined",
         max_tokens: 4096,
@@ -144,15 +144,26 @@ describe("6.14.2-0 swarm stability defect reproduction", () => {
         metadata: { tokens: { input: 1000, output: 120 } },
       },
     });
-    const checks = runTraceChecks(
-      { read: readResult([event]) },
+    const secret = persisted("event-real-secret", {
+      attributes: {
+        access_token: "sk-fixtureSecretValue123456",
+      },
+    });
+    const configChecks = runTraceChecks(
+      { read: readResult([config]) },
       { rules: [createSafetyRedactionRule()] },
     );
-    expect(checks.status).toBe("fail");
-    const redaction = checks.findings.filter((finding) => finding.ruleId === "safety.redaction");
-    expect(redaction.length).toBeGreaterThan(0);
-    const paths = redaction.map((finding) => finding.evidence[0]?.path ?? "").join("\n");
-    expect(paths).toMatch(/ls_max_tokens|max_tokens|token_count/i);
-    expect(redaction.every((finding) => finding.category === "credential")).toBe(true);
+    expect(
+      configChecks.findings.filter((finding) => finding.ruleId === "safety.redaction"),
+    ).toHaveLength(0);
+
+    const secretChecks = runTraceChecks(
+      { read: readResult([secret]) },
+      { rules: [createSafetyRedactionRule()] },
+    );
+    expect(secretChecks.status).toBe("fail");
+    expect(
+      secretChecks.findings.some((finding) => finding.ruleId === "safety.redaction"),
+    ).toBe(true);
   });
 });
