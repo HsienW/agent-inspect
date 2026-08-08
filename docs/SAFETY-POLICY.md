@@ -69,6 +69,7 @@ Never emit the matched secret/PII value in CLI/MCP/Studio output.
 ## Precision principles (6.9-2+)
 
 - Prefer **semantic paths** over bare key names (e.g. `tokenUsage.input` is not a prompt).
+- **Token configuration fields** (`ls_max_tokens`, `max_tokens`, `token_count`, …) are **not** credentials by key alone (6.14.2+). Real secret values (`Bearer …`, `sk-…`, JWTs, …) still fail via value detectors.
 - Credit-card candidates require digit length, Luhn, boundaries, and must not be UUID / trace IDs / counts / timestamps.
 - Email detection must not treat `@` in paths, scoped packages, or source maps as addresses.
 - UUIDs are **identifiers**, not financial data.

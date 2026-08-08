@@ -8,6 +8,10 @@
 
 ## Unreleased
 
+### Patch
+
+- Swarm relationship and safety precision (6.14.2): parent resolution before child index registration, self-parent capture/logical defenses, cycle-safe trees, contextual credential-key classification (token config fields such as `ls_max_tokens` are not credentials), and moderate/deep-swarm regression fixtures with packed check→gate→bundle→verify E2E.
+
 ### Documentation
 
 - Activate the v6.14.1 swarm stability roadmap (`6.14.2` → `6.16.0` → conditional v7): baseline audit, release-train plans, and AGENTS/state precedence. No runtime or schema change in this docs activation.

@@ -33,8 +33,9 @@ AgentInspect is **local-first** and **CLI-first**. These behaviors are intention
 - **LangGraph support** is currently a documented boundary through `@agent-inspect/langchain`, not a dedicated package.
 - **LangChain adapter** captures **metadata-oriented** signals by default; it does not replace full framework observability.
 - **LangChain `stream: true`** records chunk counts and timing only — not a full token replay. Per-token JSONL events are not emitted.
+- **Deep swarm / nested RunnableSequence (6.14.2+):** capture resolves parents before registering child indexes and rejects `parentId === stepId`. Legacy traces that still contain self-parent edges are normalized in logical projection (`AI_LOGICAL_SELF_PARENT_REMOVED`) and rendered with visibility-first, cycle-safe trees so nested LLM/tool steps remain visible.
 - **Correlation metadata** (`correlationId`, `requestId`, `decisionId`, `groupId`) is written on `run_started` but **CLI list/view does not filter by correlation fields** yet.
-- **Built-in check/contract semantics (6.12.2+)** use an additive `logicalEvents` projection that pairs v0.1 start/complete rows. Custom rules that only read raw `context.events` still see bridged `running` TOOL starts and separate LOGIC completions—opt into `logicalEvents` for lifecycle-aware matching. Formal `TraceFacts` promotion is planned for 6.13.
+- **Built-in check/contract semantics (6.12.2+)** use an additive `logicalEvents` projection that pairs v0.1 start/complete rows. Custom rules that only read raw `context.events` still see bridged `running` TOOL starts and separate LOGIC completions—opt into `logicalEvents` for lifecycle-aware matching. Formal `TraceFacts` promotion shipped experimentally in 6.13.
 
 ## Structured log parsing
 
