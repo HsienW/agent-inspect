@@ -105,6 +105,10 @@ describe("core API stability (v2.0 root contract)", () => {
     expect(typeof writers.bufferedFileWriter).toBe("function");
     expect(typeof readers.openTrace).toBe("function");
     expect(typeof readers.readTrace).toBe("function");
+    expect(typeof readers.openTraceFile).toBe("function");
+    expect(typeof readers.openTraceDirectory).toBe("function");
+    expect(typeof readers.openTraceText).toBe("function");
+    expect(typeof readers.assertTraceInput).toBe("function");
     expect(typeof persisted.isPersistedInspectEvent).toBe("function");
     expect(typeof persisted.persistedInspectEventsToTraceEvents).toBe("function");
     expect(typeof logs.parseLogsToTrees).toBe("function");

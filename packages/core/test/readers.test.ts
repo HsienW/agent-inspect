@@ -11,6 +11,9 @@ import {
   detectTraceFormat,
   openInferenceJsonReader,
   openTrace,
+  openTraceDirectory,
+  openTraceFile,
+  openTraceText,
   otlpJsonReader,
   readTrace,
   type TraceReader,
@@ -233,6 +236,33 @@ describe("trace reader contract", () => {
     );
 
     expect(result.format).toBe("toy-json");
+  });
+
+  it("openTraceFile/Directory/Text wrap structured TraceInput", async () => {
+    const filePath = path.join(repoRoot, "fixtures/langgraph/plain-root.jsonl");
+    const fromFile = await openTraceFile(filePath);
+    expect(fromFile.events.length).toBeGreaterThan(0);
+    expect(fromFile.sourceFiles.some((f) => f.endsWith("plain-root.jsonl"))).toBe(true);
+
+    const fromText = await openTraceText(await readFile(filePath, "utf8"));
+    expect(fromText.events.length).toBe(fromFile.events.length);
+
+    const dir = await mkdtemp(path.join(os.tmpdir(), "ai-open-trace-dir-"));
+    const copyPath = path.join(dir, "plain-root.jsonl");
+    await writeFile(copyPath, await readFile(filePath));
+    const fromDir = await openTraceDirectory(dir);
+    expect(fromDir.events.length).toBeGreaterThan(0);
+  });
+
+  it("rejects bare path strings without WeakMap errors", async () => {
+    await expect(readTrace("./run.jsonl" as never)).rejects.toMatchObject({
+      name: "TraceReadError",
+      code: "invalid_input",
+      message: expect.stringContaining("AI_TRACE_INPUT_INVALID"),
+    });
+    await expect(openTrace("./run.jsonl" as never)).rejects.toMatchObject({
+      code: "invalid_input",
+    });
   });
 
   it("throws typed errors for unsupported and ambiguous reads", async () => {

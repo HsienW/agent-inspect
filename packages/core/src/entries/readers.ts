@@ -17,9 +17,13 @@ export {
   DEFAULT_TRACE_READERS,
   TraceReadError,
   agentInspectJsonlReader,
+  assertTraceInput,
   detectTraceFormat,
   openInferenceJsonReader,
   openTrace,
+  openTraceDirectory,
+  openTraceFile,
+  openTraceText,
   otlpJsonReader,
   readTrace,
 } from "../readers/index.js";

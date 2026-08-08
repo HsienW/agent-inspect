@@ -1,30 +1,30 @@
 # Programmatic persisted-trace analysis
 
-**Status:** Planned for `6.15.0` (N-5)  
+**Status:** In progress for `6.15.0` (N-5) — `openTraceFile` / `Directory` / `Text` landed in 6.15-4
 **Authority:** [implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md](./implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md) §9.5–9.8
 
-## Current (6.14.1)
-
-```ts
-import { openTrace, readTrace } from "agent-inspect/readers";
-import { buildTraceFacts } from "agent-inspect/checks";
-
-// Requires structured TraceInput — not a bare path string.
-const read = await openTrace(/* TraceInput */);
-const facts = buildTraceFacts(read.events);
-```
-
-There are no `openTraceFile` / `openTraceDirectory` / `openTraceText` helpers. `buildTraceFacts` accepts events only.
-
-## Target (6.15.0, additive)
+## Current
 
 ```ts
 import {
+  openTrace,
   openTraceFile,
   openTraceDirectory,
   openTraceText,
+  readTrace,
 } from "agent-inspect/readers";
+import { buildTraceFacts } from "agent-inspect/checks";
 
+const read = await openTraceFile("./.agent-inspect/run.jsonl");
+// Prefer TraceReadResult overload in 6.15-5:
+const facts = buildTraceFacts(read.events);
+```
+
+Bare path strings passed to `openTrace` / `readTrace` throw `TraceReadError` with code `invalid_input` and message prefix `AI_TRACE_INPUT_INVALID` (no WeakMap key errors).
+
+## Remaining (6.15.5+)
+
+```ts
 import {
   buildTraceFacts,
   defineTraceContract,

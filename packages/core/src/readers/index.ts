@@ -198,7 +198,8 @@ const OTLP_SPAN_KEYS = new Set([
 export type TraceReadErrorCode =
   | "unsupported_format"
   | "ambiguous_format"
-  | "reader_failed";
+  | "reader_failed"
+  | "invalid_input";
 
 export class TraceReadError extends Error {
   readonly code: TraceReadErrorCode;
@@ -214,6 +215,43 @@ export class TraceReadError extends Error {
     this.code = code;
     this.warnings = warnings;
   }
+}
+
+const TRACE_INPUT_INVALID_MESSAGE =
+  'AI_TRACE_INPUT_INVALID: Expected { type: "file", path }, { type: "directory", path }, { type: "string", content }, { type: "buffer", content }, or { type: "stdin" }. For a file path, use openTraceFile(path).';
+
+function isTraceInput(input: unknown): input is TraceInput {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    return false;
+  }
+  const record = input as { type?: unknown; path?: unknown; content?: unknown };
+  switch (record.type) {
+    case "file":
+    case "directory":
+      return typeof record.path === "string";
+    case "string":
+      return typeof record.content === "string";
+    case "buffer":
+      return Buffer.isBuffer(record.content);
+    case "stdin":
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Runtime guard for structured TraceInput. Never throws WeakMap key errors for bare strings.
+ */
+export function assertTraceInput(input: unknown): asserts input is TraceInput {
+  if (isTraceInput(input)) return;
+  throw new TraceReadError("invalid_input", TRACE_INPUT_INVALID_MESSAGE, [
+    {
+      code: "AI_TRACE_INPUT_INVALID",
+      message: TRACE_INPUT_INVALID_MESSAGE,
+      severity: "error",
+    },
+  ]);
 }
 
 function normalizeCandidate(
@@ -1901,6 +1939,7 @@ export async function detectTraceFormat(
   input: TraceInput,
   options: TraceReadOptions = {},
 ): Promise<TraceFormatDetectionResult> {
+  assertTraceInput(input);
   const readers = options.readers ?? DEFAULT_TRACE_READERS;
 
   if (options.format !== undefined) {
@@ -2018,6 +2057,7 @@ export async function readTrace(
   input: TraceInput,
   options: TraceReadOptions = {},
 ): Promise<TraceReadResult> {
+  assertTraceInput(input);
   const readers = options.readers ?? DEFAULT_TRACE_READERS;
   const detection = await detectTraceFormat(input, options);
 
@@ -2075,4 +2115,40 @@ export function openTrace(
   options: TraceReadOptions = {},
 ): Promise<TraceReadResult> {
   return readTrace(input, options);
+}
+
+/**
+ * Open a single local trace file. Prefer this over passing a bare path string to `openTrace`.
+ *
+ * @experimental Additive convenience over `openTrace({ type: "file", path })`.
+ */
+export function openTraceFile(
+  filePath: string,
+  options: TraceReadOptions = {},
+): Promise<TraceReadResult> {
+  return openTrace({ type: "file", path: filePath }, options);
+}
+
+/**
+ * Open all `*.jsonl` files in a local directory (sorted, concatenated).
+ *
+ * @experimental Additive convenience over `openTrace({ type: "directory", path })`.
+ */
+export function openTraceDirectory(
+  dirPath: string,
+  options: TraceReadOptions = {},
+): Promise<TraceReadResult> {
+  return openTrace({ type: "directory", path: dirPath }, options);
+}
+
+/**
+ * Open an in-memory JSONL / supported text payload.
+ *
+ * @experimental Additive convenience over `openTrace({ type: "string", content })`.
+ */
+export function openTraceText(
+  content: string,
+  options: TraceReadOptions = {},
+): Promise<TraceReadResult> {
+  return openTrace({ type: "string", content }, options);
 }
