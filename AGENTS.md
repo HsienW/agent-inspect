@@ -18,11 +18,12 @@ Use this order:
 2. `AGENTS.md`
 3. `docs/implementation/RELEASE-TRAIN-STATE.md`
 4. `docs/implementation/CURRENT-TASK.md`
-5. canonical Stability and Evidence roadmap `docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md`
-6. active release-train plan under `docs/implementation/release-trains/`
+5. canonical Swarm-Stability and Evidence roadmap `docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md`
+6. active release-train plan under `docs/implementation/release-trains/` (v6.14.2–v6.16.x pre-v7)
 7. relevant RFC/proposal/security/evidence docs
 8. public `ROADMAP.md`
 9. historical roadmaps and archive, including:
+   - `docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md` (superseded; historical)
    - `docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md` (superseded program; historical)
    - `docs/implementation/ROADMAP-V6.4-TO-PRE-V7.md` (completed pre-v7 stabilization)
    - `docs/implementation/ROADMAP_V3_5_TO_V7.md` (completed v3.5→v6.4 trains)
@@ -33,7 +34,7 @@ Report material conflicts; never resolve them silently.
 Named autonomous train authorized when `CURRENT-TASK.md` sets `executionMode: "autonomous-release-train"`:
 
 ```text
-agentinspect-canonical-stability-evidence-v6.12.1-to-v7-decision
+agentinspect-swarm-stability-evidence-v6.14.1-to-pre-v7
 ```
 
 ## Start every task

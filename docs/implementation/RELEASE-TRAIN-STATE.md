@@ -2,28 +2,33 @@
 
 > Operational pointer only. Git state, package manifests, tests, npm, tags, GitHub releases, and CI are authoritative.
 >
-> **Canonical roadmap:** [AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md](./AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md)
+> **Canonical roadmap:** [AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md](./AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md)
 
 ```yaml
 baselineVersion: "6.14.1"
 publishedVersion: "6.14.1"
-currentTrain: "v6.14.x-active-maintenance"
+currentTrain: "v6.14.2-swarm-stability"
 trainStatus: "active"
-executionMode: "maintenance"
-namedTrain: null
+executionMode: "autonomous-release-train"
+namedTrain: "agentinspect-swarm-stability-evidence-v6.14.1-to-pre-v7"
 branch: "main"
-currentChunk: "production-feedback-and-validation"
-lastConfirmedCommit: "f44b1fb"
-lastValidationLevel: "release"
-nextAction: "Bugs/docs/security/compatibility only; collect real external evidence; no feature expansion; no v7"
+currentChunk: "6.14.2-0"
+lastConfirmedCommit: "aae9d82"
+lastValidationLevel: "docs"
+nextAction: "6.14.2-0 Reproduce N-4/N-6 from anonymized fixtures"
 pendingManualGate: null
-canonicalRoadmap: "docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md"
-activePlan: "docs/implementation/release-trains/V6.14.X-STABILITY-AND-ADOPTION-POLICY.md"
+canonicalRoadmap: "docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md"
+activePlan: "docs/implementation/release-trains/V6.14.2-EXECUTION-PLAN.md"
 completedChunks:
-  - "6.14.1-0 through 6.14.1-13 (public positioning + publish)"
+  - "phase-0-activate-swarm-stability-roadmap"
 remainingTrains:
-  - "v6.14.x active maintenance (active)"
+  - "v6.14.2 (active)"
+  - "v6.14.3 (repair-or-skip)"
+  - "v6.15.0 fidelity + readers"
+  - "v6.15.1 (repair-or-skip)"
+  - "v6.16.0 evidence CI (external gate)"
+  - "v6.16.x adoption"
 blockedTrains:
   - "v7.0.0 (conditional — assessment only; not scheduled)"
-updatedAt: "2026-08-05"
+updatedAt: "2026-08-07"
 ```

@@ -10,23 +10,25 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ---
 
-## Current — 6.14.x active maintenance
+## Current — swarm stability (`6.14.2` → `6.16.0`)
 
 **Current release on npm:** **6.14.1** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
 
-The 6.14 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution. Public positioning / discoverability patch work Published patch **6.14.1**.
+Active maintainer program: deep-swarm relationship correctness, safety-key precision, LangGraph fidelity classes, persisted-trace APIs, then evidence-first CI — before any conditional v7 assessment.
 
 | Release | Theme | Status |
 | ------- | ----- | ------ |
 | **6.7.4**–**6.12.1** | Prior Stability and Focus program | Published |
 | **6.12.2** | Logical lifecycle projection for checks | Published |
 | **6.12.3** / **6.13.0** | TraceFacts, semantic parity, experimental matchers | Published |
-| **6.14.0** | Evidence-first CI / no-egress LC surfaces | Published |
-| **6.14.x** | Active maintenance + documentation truth | Active |
-| **v7** | Conditional major — assessment only | Not a public marketing focus |
+| **6.14.0** / **6.14.1** | Evidence-first CI + public positioning | Published |
+| **6.14.2** | Swarm self-parent + safety precision | Active |
+| **6.15.0** | Fidelity classes A–E + reader APIs | Planned |
+| **6.16.0** | Evidence-first CI / external pilots | Planned (external gate) |
+| **v7** | Conditional major — assessment only | Not scheduled |
 
 Train state: [docs/implementation/RELEASE-TRAIN-STATE.md](docs/implementation/RELEASE-TRAIN-STATE.md).
-Canonical maintainer roadmap: [docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md](docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md).
+Canonical maintainer roadmap: [docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md](docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md).
 
 Adoption measurement continues internally and is never fabricated on public surfaces.
 

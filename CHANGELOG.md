@@ -8,9 +8,9 @@
 
 ## Unreleased
 
-### Patch
+### Documentation
 
-- (pending 6.14.1) Public positioning, documentation truth, and AI discoverability refresh.
+- Activate the v6.14.1 swarm stability roadmap (`6.14.2` → `6.16.0` → conditional v7): baseline audit, release-train plans, and AGENTS/state precedence. No runtime or schema change in this docs activation.
 
 ## 6.14.0
 

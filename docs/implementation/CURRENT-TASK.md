@@ -1,20 +1,20 @@
 # Current task
 
 ```yaml
-executionMode: maintenance
-namedTrain: null
-currentTrain: v6.14.x-active-maintenance
+executionMode: autonomous-release-train
+namedTrain: agentinspect-swarm-stability-evidence-v6.14.1-to-pre-v7
+currentTrain: v6.14.2-swarm-stability
 trainStatus: active
-currentChunk: production-feedback-and-validation
-nextAction: Bugs/docs/security/compatibility only; collect real external evidence; no feature expansion; no v7
-canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md
-activePlan: docs/implementation/release-trains/V6.14.X-STABILITY-AND-ADOPTION-POLICY.md
+currentChunk: 6.14.2-0
+nextAction: Reproduce N-4/N-6 from anonymized fixtures; then continue ordered 6.14.2 chunks
+canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md
+activePlan: docs/implementation/release-trains/V6.14.2-EXECUTION-PLAN.md
 ```
 
 ## Published baseline
 
-**6.14.1** (18 fixed-group packages; Trusted Publishing 2026-08-05)
+**6.14.1** (18 fixed-group packages; Trusted Publishing)
 
 ## Notes
 
-Public positioning / AI discoverability patch published. Continue 6.14.x active maintenance. Do not fabricate pilots. No v7.
+Phase 0 activation complete. Do not fabricate pilots. No schema break. No local npm publish. N-5 reader APIs wait for 6.15.0.

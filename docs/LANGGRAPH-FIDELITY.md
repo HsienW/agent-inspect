@@ -1,10 +1,11 @@
 # LangGraph / LangChain adapter fidelity contract
 
-**Status:** draft for v6.8.0  
-**Package:** `@agent-inspect/langchain`  
-**Authority:** [AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP](./implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md) §9 · [V6.8.0-EXECUTION-PLAN](./implementation/release-trains/V6.8.0-EXECUTION-PLAN.md)
+**Status:** active contract; fidelity classes A–E formalized in `6.15.0`
+**Package:** `@agent-inspect/langchain`
+**Authority:** [AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7](./implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md) §7 · §9 · [V6.15.0-EXECUTION-PLAN](./implementation/release-trains/V6.15.0-EXECUTION-PLAN.md) · [SWARM-RELATIONSHIP-INVARIANTS](./proposals/SWARM-RELATIONSHIP-INVARIANTS.md)
+**Historical:** v6.8 fidelity foundation; Stability-and-Focus roadmap superseded
 
-This document is the public contract for standalone LangGraph-shaped (and LangChain callback) traces written by `AgentInspectCallback`.
+This document is the public contract for standalone LangGraph-shaped (and LangChain callback) traces written by `AgentInspectCallback`. Deep swarm / multi-agent (class E) support is blocked on N-4 until `6.14.2` and formalized in `6.15.0`.
 
 ## Scope
 
