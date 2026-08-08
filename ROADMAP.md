@@ -10,9 +10,9 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ---
 
-## Current — swarm stability (`6.14.2` → `6.16.0`)
+## Current — swarm stability (`6.15.0` → `6.16.x`)
 
-**Current release on npm:** **6.14.2** (eighteen fixed-group public packages; **6.15.0** in publish). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
+**Current release on npm:** **6.15.0** (eighteen fixed-group public packages; **6.16.0** in publish). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
 
 Active maintainer program: deep-swarm relationship correctness, safety-key precision, LangGraph fidelity classes, persisted-trace APIs, then evidence-first CI — before any conditional v7 assessment.
 
@@ -24,8 +24,10 @@ Active maintainer program: deep-swarm relationship correctness, safety-key preci
 | **6.14.0** / **6.14.1** | Evidence-first CI + public positioning | Published |
 | **6.14.2** | Swarm self-parent + safety precision | Published |
 | **6.14.3** | Reserved corrective patch | Skipped |
-| **6.15.0** | Fidelity classes A–E + reader APIs | Publishing |
-| **6.16.0** | Evidence-first CI / launch candidate | Planned |
+| **6.15.0** | Fidelity classes A–E + reader APIs | Published |
+| **6.15.1** | Reserved corrective patch | Skipped |
+| **6.16.0** | Evidence-first CI / launch candidate | Publishing |
+| **6.16.x** | Eight-week stability / adoption | Next |
 | **v7** | Conditional major — assessment only | Not scheduled |
 
 Train state: [docs/implementation/RELEASE-TRAIN-STATE.md](docs/implementation/RELEASE-TRAIN-STATE.md).

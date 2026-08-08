@@ -22,7 +22,7 @@
 
 ### Minor
 
-- LangGraph fidelity classes A–E and persisted-trace developer APIs (6.15.0): relationship conformance corpus, ambiguous scaffolding diagnostics, `openTraceFile` / `openTraceDirectory` / `openTraceText`, `buildTraceFacts(TraceReadResult)`, `evaluateTraceContractRead`, stable `AI_*` programmatic diagnostics with remediation, ESM/CJS quickstarts, and A–E cross-surface semantic parity. No schema break; no new packages; no default network.
+- Evidence-first CI launch candidate (6.16.0): moderate + deep-swarm golden check→gate→Evidence paths (`scripts/evidence-ci-golden-paths.mjs`), pack:smoke wiring, and local MCP/CI walkthrough docs. No schema break; no new packages; no default network.
 
 ## 6.14.0
 
