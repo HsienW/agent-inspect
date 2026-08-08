@@ -29,6 +29,7 @@ import {
 } from "./invocation-state.js";
 import {
   applyParentResolutionMetadata,
+  applySelfParentCaptureInvariant,
   rejectSelfParentResolution,
   resolveParentRelationship,
   type ParentResolution,
@@ -58,6 +59,7 @@ export interface AdapterPersistenceDiagnostics {
   readonly pendingRelationshipCount: number;
   readonly knownRelationshipCount: number;
   readonly syntheticGroupCount: number;
+  readonly selfParentRejectedCount: number;
   readonly envelopeStarted: boolean;
   readonly finalized: boolean;
   readonly completionGeneration: number;
@@ -113,6 +115,7 @@ export class LangChainTracePersistence {
   /** Count of unresolved semantic-parent children seen per label (this invocation). */
   readonly #semanticParentCounts = new Map<string, number>();
   #lateEventCount = 0;
+  #selfParentRejectedCount = 0;
 
   constructor(options: LangChainTracePersistenceOptions = {}) {
     const inContext = hasActiveContext();
@@ -158,11 +161,30 @@ export class LangChainTracePersistence {
       pendingRelationshipCount: this.#lifecycle.pendingRelationships.length,
       knownRelationshipCount: this.#lifecycle.knownRelationships.size,
       syntheticGroupCount: this.#syntheticByLabel.size,
+      selfParentRejectedCount: this.#selfParentRejectedCount,
       envelopeStarted: this.#lifecycle.envelopeStarted,
       finalized: this.#lifecycle.finalized,
       completionGeneration: this.#lifecycle.completionGeneration,
       hasTerminalError: Boolean(this.#lifecycle.terminalError),
     };
+  }
+
+  #parentIdForPersist(
+    stepId: string,
+    resolution: ParentResolution,
+    metadata: Record<string, unknown>,
+    originalParentRunId?: string,
+  ): string | undefined {
+    const guarded = applySelfParentCaptureInvariant(
+      stepId,
+      resolution.parentStepId,
+      metadata,
+      originalParentRunId ?? resolution.unresolvedParentRunId,
+    );
+    if (guarded.rejected) {
+      this.#selfParentRejectedCount += 1;
+    }
+    return guarded.parentStepId;
   }
 
   /**
@@ -177,6 +199,7 @@ export class LangChainTracePersistence {
         resetInvocationState(this.#lifecycle, this.#runId);
         this.#clearStepIndexes();
         this.#lateEventCount = 0;
+        this.#selfParentRejectedCount = 0;
         return;
       }
     }
@@ -184,12 +207,14 @@ export class LangChainTracePersistence {
     resetInvocationState(this.#lifecycle, this.#runId);
     this.#clearStepIndexes();
     this.#lateEventCount = 0;
+    this.#selfParentRejectedCount = 0;
   }
 
   reset(): void {
     resetInvocationState(this.#lifecycle);
     this.#clearStepIndexes();
     this.#lateEventCount = 0;
+    this.#selfParentRejectedCount = 0;
   }
 
   #clearStepIndexes(): void {
@@ -395,6 +420,12 @@ export class LangChainTracePersistence {
 
       const metadata = toStepMetadata(params.attributes);
       applyParentResolutionMetadata(metadata, resolution);
+      const parentId = this.#parentIdForPersist(
+        stepId,
+        resolution,
+        metadata,
+        params.lcParentRunId,
+      );
 
       const event: TraceEvent = {
         schemaVersion: "0.1",
@@ -402,7 +433,7 @@ export class LangChainTracePersistence {
         timestamp: params.startTime,
         runId: this.#runId,
         stepId,
-        ...(resolution.parentStepId ? { parentId: resolution.parentStepId } : {}),
+        ...(parentId ? { parentId } : {}),
         name: params.name,
         type: kindToStepType(params.kind),
         startTime: params.startTime,
@@ -465,13 +496,19 @@ export class LangChainTracePersistence {
         });
         const metadata = toStepMetadata(params.completionAttributes);
         applyParentResolutionMetadata(metadata, resolution);
+        const parentId = this.#parentIdForPersist(
+          stepId,
+          resolution,
+          metadata,
+          params.lcParentRunId,
+        );
         const started: TraceEvent = {
           schemaVersion: "0.1",
           event: "step_started",
           timestamp: startTime,
           runId: this.#runId,
           stepId,
-          ...(resolution.parentStepId ? { parentId: resolution.parentStepId } : {}),
+          ...(parentId ? { parentId } : {}),
           name: synthName,
           type: kindToStepType(
             (params.completionAttributes.kind as InspectKind | undefined) ?? "LLM",
@@ -557,6 +594,12 @@ export class LangChainTracePersistence {
 
       const metadata = toStepMetadata(params.attributes);
       applyParentResolutionMetadata(metadata, resolution);
+      const parentId = this.#parentIdForPersist(
+        stepId,
+        resolution,
+        metadata,
+        params.lcParentRunId,
+      );
 
       const started: TraceEvent = {
         schemaVersion: "0.1",
@@ -564,7 +607,7 @@ export class LangChainTracePersistence {
         timestamp: params.timestamp,
         runId: this.#runId,
         stepId,
-        ...(resolution.parentStepId ? { parentId: resolution.parentStepId } : {}),
+        ...(parentId ? { parentId } : {}),
         name: params.name,
         type: kindToStepType(params.kind),
         startTime: params.timestamp,

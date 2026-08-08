@@ -205,6 +205,32 @@ export function rejectSelfParentResolution(
   };
 }
 
+export const AI_LANGGRAPH_SELF_PARENT_REJECTED = "AI_LANGGRAPH_SELF_PARENT_REJECTED" as const;
+
+/**
+ * Capture-level invariant: never persist parentId === stepId.
+ * Mutates metadata with bounded diagnostics; never throws.
+ */
+export function applySelfParentCaptureInvariant(
+  stepId: string,
+  parentStepId: string | undefined,
+  metadata: Record<string, unknown>,
+  originalParentRunId?: string,
+): { parentStepId: string | undefined; rejected: boolean } {
+  if (!parentStepId || parentStepId !== stepId) {
+    return { parentStepId, rejected: false };
+  }
+  metadata.parentMapping = "self-parent-rejected";
+  metadata.parentConfidence = "unresolved";
+  metadata.relationshipWarning = "self-parent";
+  metadata.diagnosticCode = AI_LANGGRAPH_SELF_PARENT_REJECTED;
+  if (originalParentRunId && originalParentRunId.trim()) {
+    metadata.originalParentRunId = originalParentRunId.slice(0, 128);
+  }
+  delete metadata.parentCorrelatedVia;
+  return { parentStepId: undefined, rejected: true };
+}
+
 /** Apply resolution fields onto step metadata (mutates). */
 export function applyParentResolutionMetadata(
   metadata: Record<string, unknown>,

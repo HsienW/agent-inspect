@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  AI_LANGGRAPH_SELF_PARENT_REJECTED,
   applyParentResolutionMetadata,
+  applySelfParentCaptureInvariant,
   isSemanticParentLabel,
   rejectSelfParentResolution,
   resolveParentRelationship,
@@ -149,5 +151,26 @@ describe("parent reconciliation", () => {
     expect(rejected.parentStepId).toBeUndefined();
     expect(rejected.parentMapping).toBe("unresolved");
     expect(rejected.unresolvedParentRunId).toBe("parent-lc");
+  });
+
+  it("capture invariant drops self-parent and records bounded diagnostics", () => {
+    const metadata: Record<string, unknown> = {
+      parentMapping: "exact",
+      parentConfidence: "explicit",
+    };
+    const result = applySelfParentCaptureInvariant(
+      "step-a",
+      "step-a",
+      metadata,
+      "lc-parent",
+    );
+    expect(result).toEqual({ parentStepId: undefined, rejected: true });
+    expect(metadata).toMatchObject({
+      parentMapping: "self-parent-rejected",
+      parentConfidence: "unresolved",
+      relationshipWarning: "self-parent",
+      diagnosticCode: AI_LANGGRAPH_SELF_PARENT_REJECTED,
+      originalParentRunId: "lc-parent",
+    });
   });
 });
