@@ -208,6 +208,13 @@ export function rejectSelfParentResolution(
 export const AI_LANGGRAPH_SELF_PARENT_REJECTED = "AI_LANGGRAPH_SELF_PARENT_REJECTED" as const;
 
 /**
+ * Emitted when a parent relationship cannot be uniquely resolved and the step
+ * remains a visible root (conservative scaffolding policy — do not invent edges).
+ */
+export const AI_LANGGRAPH_RELATIONSHIP_AMBIGUOUS =
+  "AI_LANGGRAPH_RELATIONSHIP_AMBIGUOUS" as const;
+
+/**
  * Capture-level invariant: never persist parentId === stepId.
  * Mutates metadata with bounded diagnostics; never throws.
  */
@@ -229,6 +236,24 @@ export function applySelfParentCaptureInvariant(
   }
   delete metadata.parentCorrelatedVia;
   return { parentStepId: undefined, rejected: true };
+}
+
+/**
+ * Mark unresolved/ambiguous scaffolding as a visible root with a stable diagnostic.
+ * Does not invent a parent. Never throws. Skips when a stronger diagnostic already set.
+ */
+export function applyAmbiguousScaffoldingDiagnostic(
+  resolution: ParentResolution,
+  metadata: Record<string, unknown>,
+): boolean {
+  if (resolution.parentStepId) return false;
+  if (resolution.parentMapping !== "unresolved") return false;
+  if (metadata.diagnosticCode === AI_LANGGRAPH_SELF_PARENT_REJECTED) return false;
+  metadata.diagnosticCode = AI_LANGGRAPH_RELATIONSHIP_AMBIGUOUS;
+  if (typeof metadata.relationshipWarning !== "string") {
+    metadata.relationshipWarning = "ambiguous-root";
+  }
+  return true;
 }
 
 /** Apply resolution fields onto step metadata (mutates). */

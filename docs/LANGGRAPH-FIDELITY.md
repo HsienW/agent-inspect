@@ -113,9 +113,11 @@ Class E requires nested LLM and tool visibility, no persisted self-parent, and c
 2. Explicit LangGraph metadata relationship
 3. Unique semantic-name correlation
 4. Synthetic grouping node with `correlated`/`synthetic` confidence
-5. Unresolved and visible
+5. Unresolved and visible — emit `AI_LANGGRAPH_RELATIONSHIP_AMBIGUOUS` (do not force under graph root)
 
 Timestamps are never the sole nesting signal.
+
+Residual scaffolding (`RunnableLambda`, multi-root parsers, etc.) may remain roots when parentage is ambiguous. Correctness and visibility beat cosmetic single-root trees.
 
 ## Synthetic group rules
 

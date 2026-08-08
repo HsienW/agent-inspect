@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  AI_LANGGRAPH_RELATIONSHIP_AMBIGUOUS,
   AI_LANGGRAPH_SELF_PARENT_REJECTED,
+  applyAmbiguousScaffoldingDiagnostic,
   applyParentResolutionMetadata,
   applySelfParentCaptureInvariant,
   isSemanticParentLabel,
@@ -172,5 +174,38 @@ describe("parent reconciliation", () => {
       diagnosticCode: AI_LANGGRAPH_SELF_PARENT_REJECTED,
       originalParentRunId: "lc-parent",
     });
+  });
+
+  it("marks unresolved scaffolding as an ambiguous visible root", () => {
+    const metadata: Record<string, unknown> = {};
+    const resolution = resolveParentRelationship(
+      { parentLcRunId: "LangGraph" },
+      {
+        exactStepByLcRunId: () => undefined,
+        uniqueStepByLangGraphKey: () => undefined,
+        uniqueStepBySemanticLabel: () => undefined,
+      },
+    );
+    applyParentResolutionMetadata(metadata, resolution);
+    expect(applyAmbiguousScaffoldingDiagnostic(resolution, metadata)).toBe(true);
+    expect(metadata.diagnosticCode).toBe(AI_LANGGRAPH_RELATIONSHIP_AMBIGUOUS);
+    expect(metadata.relationshipWarning).toBe("ambiguous-root");
+    expect(metadata.parentMapping).toBe("unresolved");
+  });
+
+  it("does not overwrite self-parent diagnostics with ambiguous scaffolding", () => {
+    const metadata: Record<string, unknown> = {};
+    applySelfParentCaptureInvariant("step-a", "step-a", metadata, "lc");
+    expect(
+      applyAmbiguousScaffoldingDiagnostic(
+        {
+          confidence: "unresolved",
+          parentMapping: "unresolved",
+          unresolvedParentRunId: "lc",
+        },
+        metadata,
+      ),
+    ).toBe(false);
+    expect(metadata.diagnosticCode).toBe(AI_LANGGRAPH_SELF_PARENT_REJECTED);
   });
 });

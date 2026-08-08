@@ -147,6 +147,7 @@ export class AgentInspectCallback extends BaseCallbackHandler {
     knownRelationshipCount: number;
     syntheticGroupCount: number;
     selfParentRejectedCount: number;
+    ambiguousRelationshipCount: number;
     envelopeStarted: boolean;
     finalized: boolean;
     completionGeneration: number;
@@ -162,6 +163,7 @@ export class AgentInspectCallback extends BaseCallbackHandler {
       knownRelationshipCount: 0,
       syntheticGroupCount: 0,
       selfParentRejectedCount: 0,
+      ambiguousRelationshipCount: 0,
       envelopeStarted: false,
       finalized: false,
       completionGeneration: 0,

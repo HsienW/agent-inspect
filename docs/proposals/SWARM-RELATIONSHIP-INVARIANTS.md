@@ -33,6 +33,7 @@ Tests: `packages/core/test/adapter-relationship-invariants.test.ts`
 | Code | Layer |
 |------|-------|
 | `AI_LANGGRAPH_SELF_PARENT_REJECTED` | capture (`@agent-inspect/langchain`) |
+| `AI_LANGGRAPH_RELATIONSHIP_AMBIGUOUS` | capture — unresolved scaffolding kept as visible root |
 | `AI_LOGICAL_SELF_PARENT_REMOVED` | logical projection |
 
 ## Out of scope for this note

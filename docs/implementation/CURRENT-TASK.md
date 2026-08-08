@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-swarm-stability-evidence-v6.14.1-to-pre-v7
 currentTrain: v6.15.0-fidelity-and-readers
 trainStatus: active
-currentChunk: 6.15-3
-nextAction: Residual scaffolding diagnostics (conservative multi-root policy). Stop before publish if external pilots missing.
+currentChunk: 6.15-4
+nextAction: Add openTraceFile / openTraceDirectory / openTraceText reader conveniences (N-5). Stop before publish if external pilots missing.
 canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md
 activePlan: docs/implementation/release-trains/V6.15.0-EXECUTION-PLAN.md
 ```
@@ -17,4 +17,4 @@ activePlan: docs/implementation/release-trains/V6.15.0-EXECUTION-PLAN.md
 
 ## Notes
 
-6.15-2 nested-subgraph + swarm matrix landed. Do not fabricate pilots.
+6.15-3 residual scaffolding diagnostics landed. Do not fabricate pilots.

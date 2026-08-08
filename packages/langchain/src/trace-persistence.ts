@@ -28,6 +28,7 @@ import {
   type AdapterInvocationState,
 } from "./invocation-state.js";
 import {
+  applyAmbiguousScaffoldingDiagnostic,
   applyParentResolutionMetadata,
   applySelfParentCaptureInvariant,
   rejectSelfParentResolution,
@@ -60,6 +61,7 @@ export interface AdapterPersistenceDiagnostics {
   readonly knownRelationshipCount: number;
   readonly syntheticGroupCount: number;
   readonly selfParentRejectedCount: number;
+  readonly ambiguousRelationshipCount: number;
   readonly envelopeStarted: boolean;
   readonly finalized: boolean;
   readonly completionGeneration: number;
@@ -116,6 +118,7 @@ export class LangChainTracePersistence {
   readonly #semanticParentCounts = new Map<string, number>();
   #lateEventCount = 0;
   #selfParentRejectedCount = 0;
+  #ambiguousRelationshipCount = 0;
 
   constructor(options: LangChainTracePersistenceOptions = {}) {
     const inContext = hasActiveContext();
@@ -162,6 +165,7 @@ export class LangChainTracePersistence {
       knownRelationshipCount: this.#lifecycle.knownRelationships.size,
       syntheticGroupCount: this.#syntheticByLabel.size,
       selfParentRejectedCount: this.#selfParentRejectedCount,
+      ambiguousRelationshipCount: this.#ambiguousRelationshipCount,
       envelopeStarted: this.#lifecycle.envelopeStarted,
       finalized: this.#lifecycle.finalized,
       completionGeneration: this.#lifecycle.completionGeneration,
@@ -183,6 +187,8 @@ export class LangChainTracePersistence {
     );
     if (guarded.rejected) {
       this.#selfParentRejectedCount += 1;
+    } else if (applyAmbiguousScaffoldingDiagnostic(resolution, metadata)) {
+      this.#ambiguousRelationshipCount += 1;
     }
     return guarded.parentStepId;
   }
@@ -200,6 +206,7 @@ export class LangChainTracePersistence {
         this.#clearStepIndexes();
         this.#lateEventCount = 0;
         this.#selfParentRejectedCount = 0;
+        this.#ambiguousRelationshipCount = 0;
         return;
       }
     }
@@ -208,6 +215,7 @@ export class LangChainTracePersistence {
     this.#clearStepIndexes();
     this.#lateEventCount = 0;
     this.#selfParentRejectedCount = 0;
+    this.#ambiguousRelationshipCount = 0;
   }
 
   reset(): void {
@@ -215,6 +223,7 @@ export class LangChainTracePersistence {
     this.#clearStepIndexes();
     this.#lateEventCount = 0;
     this.#selfParentRejectedCount = 0;
+    this.#ambiguousRelationshipCount = 0;
   }
 
   #clearStepIndexes(): void {
