@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { isCredentialSensitiveKey } from "./sensitive-key.js";
 
 export type RedactionProfile = "local" | "share" | "strict";
 
@@ -150,8 +151,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+
 function toKey(key: string): string {
   return key.toLowerCase();
+}
+
+function findCompiledKeyRule(
+  key: string,
+  rules: readonly CompiledRule[],
+): CompiledRule | undefined {
+  const exact = toKey(key);
+  const direct = rules.find((candidate) => candidate.key === exact);
+  if (direct) return direct;
+  return rules.find((candidate) => isCredentialSensitiveKey(key, [candidate.key]));
 }
 
 function stableHash(value: string): string {
@@ -556,7 +568,7 @@ export class Redactor {
     }
 
     if (key !== undefined) {
-      const rule = this.#rules.find((candidate) => candidate.key === toKey(key));
+      const rule = findCompiledKeyRule(key, this.#rules);
       if (rule) {
         this.#recordFinding(
           state,

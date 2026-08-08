@@ -28,6 +28,19 @@ describe("@agent-inspect/redact", () => {
     ]);
   });
 
+  it("does not key-redact ls_max_tokens / max_tokens config fields (N-6 parity)", () => {
+    const result = redact({
+      ls_max_tokens: "undefined",
+      max_tokens: 4096,
+      access_token: "secret",
+    });
+    expect(result.value).toEqual({
+      ls_max_tokens: "undefined",
+      max_tokens: 4096,
+      access_token: "[REDACTED]",
+    });
+  });
+
   it("does not mutate nested objects or arrays", () => {
     const input = { nested: { password: "p" }, arr: [{ email: "a@example.com" }] };
     const result = redact(input);
