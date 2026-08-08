@@ -47,6 +47,12 @@ const REQUIRED = {
     "fixtures/langgraph/deep-swarm-self-parent.jsonl",
     "fixtures/langgraph/moderate-structured-output.jsonl",
     "fixtures/langgraph/deep-swarm-nested-ok.jsonl",
+    "fixtures/langgraph/conformance-self-parent.jsonl",
+    "fixtures/langgraph/conformance-two-node-cycle.jsonl",
+    "fixtures/langgraph/conformance-unresolved-external.jsonl",
+    "fixtures/langgraph/conformance-multiple-roots.jsonl",
+    "fixtures/langgraph/conformance-synthetic-group.jsonl",
+    "fixtures/langgraph/conformance-nested-subgraph.jsonl",
   ],
 
   tracesV02: [

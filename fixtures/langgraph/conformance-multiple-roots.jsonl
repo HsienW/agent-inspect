@@ -1,0 +1,8 @@
+{"schemaVersion":"0.1","event":"run_started","timestamp":1720004400000,"runId":"lg_conf_multi_root","name":"conformance-multiple-roots","startTime":1720004400000,"metadata":{"adapter":"langchain","fixture":"conformance-multiple-roots","conformance":"multiple-roots"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1720004400010,"runId":"lg_conf_multi_root","stepId":"root_lambda","name":"chain:RunnableLambda","type":"logic","startTime":1720004400010,"metadata":{"adapter":"langchain","confidence":"explicit"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1720004400020,"runId":"lg_conf_multi_root","stepId":"root_parser","name":"chain:JsonOutputParser","type":"logic","startTime":1720004400020,"metadata":{"adapter":"langchain","confidence":"explicit"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1720004400030,"runId":"lg_conf_multi_root","stepId":"llm_nested","parentId":"root_lambda","name":"llm:ChatOpenAI","type":"llm","startTime":1720004400030,"metadata":{"adapter":"langchain","model":"gpt-4o-mini"}}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1720004400130,"runId":"lg_conf_multi_root","stepId":"llm_nested","status":"success","endTime":1720004400130,"durationMs":100}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1720004400140,"runId":"lg_conf_multi_root","stepId":"root_lambda","status":"success","endTime":1720004400140,"durationMs":130}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1720004400150,"runId":"lg_conf_multi_root","stepId":"root_parser","status":"success","endTime":1720004400150,"durationMs":130}
+{"schemaVersion":"0.1","event":"run_completed","timestamp":1720004400160,"runId":"lg_conf_multi_root","status":"success","endTime":1720004400160,"durationMs":160}

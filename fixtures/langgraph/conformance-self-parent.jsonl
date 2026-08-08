@@ -1,0 +1,6 @@
+{"schemaVersion":"0.1","event":"run_started","timestamp":1720004100000,"runId":"lg_conf_self_parent","name":"conformance-self-parent","startTime":1720004100000,"metadata":{"adapter":"langchain","fixture":"conformance-self-parent","conformance":"self-parent"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1720004100010,"runId":"lg_conf_self_parent","stepId":"step_cycle","parentId":"step_cycle","name":"chain:RunnableSequence","type":"logic","startTime":1720004100010,"metadata":{"adapter":"langchain","relationshipWarning":"self-parent"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1720004100020,"runId":"lg_conf_self_parent","stepId":"step_child","parentId":"step_cycle","name":"tool:lookup","type":"tool","startTime":1720004100020,"metadata":{"adapter":"langchain","toolName":"lookup","runName":"lookup"}}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1720004100120,"runId":"lg_conf_self_parent","stepId":"step_child","status":"success","endTime":1720004100120,"durationMs":100}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1720004100130,"runId":"lg_conf_self_parent","stepId":"step_cycle","status":"success","endTime":1720004100130,"durationMs":120}
+{"schemaVersion":"0.1","event":"run_completed","timestamp":1720004100140,"runId":"lg_conf_self_parent","status":"success","endTime":1720004100140,"durationMs":140}

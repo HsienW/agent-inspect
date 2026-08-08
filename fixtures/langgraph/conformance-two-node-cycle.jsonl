@@ -1,0 +1,6 @@
+{"schemaVersion":"0.1","event":"run_started","timestamp":1720004200000,"runId":"lg_conf_two_node_cycle","name":"conformance-two-node-cycle","startTime":1720004200000,"metadata":{"adapter":"langchain","fixture":"conformance-two-node-cycle","conformance":"two-node-cycle"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1720004200010,"runId":"lg_conf_two_node_cycle","stepId":"step_a","parentId":"step_b","name":"chain:node_a","type":"logic","startTime":1720004200010,"metadata":{"adapter":"langchain"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1720004200020,"runId":"lg_conf_two_node_cycle","stepId":"step_b","parentId":"step_a","name":"chain:node_b","type":"logic","startTime":1720004200020,"metadata":{"adapter":"langchain"}}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1720004200110,"runId":"lg_conf_two_node_cycle","stepId":"step_a","status":"success","endTime":1720004200110,"durationMs":100}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1720004200120,"runId":"lg_conf_two_node_cycle","stepId":"step_b","status":"success","endTime":1720004200120,"durationMs":100}
+{"schemaVersion":"0.1","event":"run_completed","timestamp":1720004200130,"runId":"lg_conf_two_node_cycle","status":"success","endTime":1720004200130,"durationMs":130}
