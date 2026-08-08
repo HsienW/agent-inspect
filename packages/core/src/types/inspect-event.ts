@@ -44,6 +44,15 @@ export interface InspectNode {
   depth: number;
 }
 
+/** Bounded parent/cycle summary for visibility-first tree building (6.14.2+). */
+export interface RelationshipSummary {
+  rootCount: number;
+  selfParentCount: number;
+  cycleCount: number;
+  unresolvedParentCount: number;
+  normalizedEdgeCount: number;
+}
+
 export interface InspectRunTree {
   runId: string;
   name?: string;
@@ -56,6 +65,7 @@ export interface InspectRunTree {
     totalEvents: number;
     confidenceBreakdown: Record<AttributionConfidence, number>;
     kinds: Record<InspectKind, number>;
+    relationshipSummary?: RelationshipSummary;
   };
 }
 

@@ -96,10 +96,42 @@ export function buildTuiTraceModel(events: TraceEvent[]): TuiTraceModel {
 
   const roots: StepBuild[] = [];
   const sortByStarted = (a: StepBuild, b: StepBuild) => a.startedAt - b.startedAt;
+  const parentOf = new Map<string, string>();
+
+  // Visibility-first: skip self-parents; accept edges in start-time order and
+  // drop any edge that would close a cycle so every node stays reachable.
+  const candidates = [...nodes.values()]
+    .filter(
+      (n) =>
+        n.parentId !== undefined &&
+        n.parentId !== n.id &&
+        nodes.has(n.parentId),
+    )
+    .sort(sortByStarted);
+
+  for (const n of candidates) {
+    const parentId = n.parentId!;
+    parentOf.set(n.id, parentId);
+    let cursor: string | undefined = parentId;
+    const seen = new Set<string>([n.id]);
+    let cyclic = false;
+    while (cursor) {
+      if (seen.has(cursor)) {
+        cyclic = true;
+        break;
+      }
+      seen.add(cursor);
+      cursor = parentOf.get(cursor);
+    }
+    if (cyclic) {
+      parentOf.delete(n.id);
+    }
+  }
 
   for (const n of nodes.values()) {
-    if (n.parentId !== undefined && nodes.has(n.parentId)) {
-      nodes.get(n.parentId)!.children.push(n);
+    const parentId = parentOf.get(n.id);
+    if (parentId) {
+      nodes.get(parentId)!.children.push(n);
     } else {
       roots.push(n);
     }

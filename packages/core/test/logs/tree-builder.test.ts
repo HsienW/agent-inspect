@@ -40,5 +40,78 @@ describe("TreeBuilder", () => {
     const trees = b.build([child]);
     expect(trees[0]!.children).toHaveLength(1);
   });
+
+  it("treats self-parent as a visible root (N-4)", () => {
+    const b = new TreeBuilder();
+    const self = e({
+      eventId: "s",
+      runId: "r",
+      parentId: "s",
+      name: "seq",
+      kind: "CHAIN",
+      timestamp: 1,
+      confidence: "explicit",
+      source: { type: "json-log" },
+    });
+    const nested = e({
+      eventId: "n",
+      runId: "r",
+      parentId: "s",
+      name: "llm",
+      kind: "LLM",
+      timestamp: 2,
+      confidence: "explicit",
+      source: { type: "json-log" },
+    });
+    const trees = b.build([self, nested]);
+    expect(trees[0]!.children.map((n) => n.event.eventId).sort()).toEqual(["s"]);
+    expect(trees[0]!.children[0]!.children[0]!.event.eventId).toBe("n");
+    expect(trees[0]!.metadata.relationshipSummary?.selfParentCount).toBe(1);
+  });
+
+  it("breaks cycles and keeps all nodes visible", () => {
+    const b = new TreeBuilder();
+    const a = e({
+      eventId: "a",
+      runId: "r",
+      parentId: "c",
+      name: "a",
+      kind: "LOGIC",
+      timestamp: 1,
+      confidence: "explicit",
+      source: { type: "json-log" },
+    });
+    const bNode = e({
+      eventId: "b",
+      runId: "r",
+      parentId: "a",
+      name: "b",
+      kind: "LOGIC",
+      timestamp: 2,
+      confidence: "heuristic",
+      source: { type: "json-log" },
+    });
+    const c = e({
+      eventId: "c",
+      runId: "r",
+      parentId: "b",
+      name: "c",
+      kind: "LOGIC",
+      timestamp: 3,
+      confidence: "unknown",
+      source: { type: "json-log" },
+    });
+    const trees = b.build([a, bNode, c]);
+    const ids = new Set<string>();
+    const walk = (nodes: typeof trees[0]["children"]) => {
+      for (const n of nodes) {
+        ids.add(n.event.eventId);
+        walk(n.children);
+      }
+    };
+    walk(trees[0]!.children);
+    expect([...ids].sort()).toEqual(["a", "b", "c"]);
+    expect(trees[0]!.metadata.relationshipSummary?.cycleCount).toBeGreaterThan(0);
+  });
 });
 
