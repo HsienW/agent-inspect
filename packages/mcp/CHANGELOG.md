@@ -1,5 +1,16 @@
 # @agent-inspect/mcp
 
+## 6.15.0
+
+### Minor Changes
+
+- e70e3be: LangGraph fidelity classes A–E and persisted-trace developer APIs: relationship conformance, scaffolding diagnostics, openTraceFile/Directory/Text, TraceFacts/TraceContract conveniences, and stable AI\_\* remediation codes. No schema break; no new packages; no default network.
+
+### Patch Changes
+
+- Updated dependencies [e70e3be]
+  - agent-inspect@6.15.0
+
 ## 6.14.2
 
 ### Patch Changes
