@@ -21,24 +21,8 @@ const facts = buildTraceFacts(read);
 
 Bare path strings passed to `openTrace` / `readTrace` throw `TraceReadError` with code `invalid_input` and message prefix `AI_TRACE_INPUT_INVALID` (no WeakMap key errors).
 
-## Remaining (6.15.5+)
+## Remaining (6.15.7+)
 
-```ts
-import {
-  buildTraceFacts,
-  defineTraceContract,
-  evaluateTraceContractRead,
-} from "agent-inspect/checks";
+Stable diagnostic codes / remediation, consumer examples, semantic parity matrix, external pilots, docs, publish readiness.
 
-const read = await openTraceFile("./.agent-inspect/run.jsonl");
-const facts = buildTraceFacts(read);
-
-const contract = defineTraceContract({
-  run: { requireCompleted: true },
-  tools: { required: ["get_navan_rewards"] },
-});
-
-const result = evaluateTraceContractRead(read, contract);
-```
-
-Existing `openTrace` / `readTrace` / events-based `buildTraceFacts` remain. New diagnostics must be additive; published lowercase reader codes stay.
+`evaluateTraceContractRead(read, contract)` is available from `agent-inspect/checks`.

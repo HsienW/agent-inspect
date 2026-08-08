@@ -2,7 +2,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { defineTraceContract, evaluateTraceContract } from "../../src/checks/contract.js";
+import { defineTraceContract, evaluateTraceContract, evaluateTraceContractRead } from "../../src/checks/contract.js";
 import { openTrace } from "../../src/entries/readers.js";
 import type { TraceReadResult } from "../../src/readers/index.js";
 import type { InspectNode, InspectRunTree } from "../../src/types/inspect-event.js";
@@ -109,6 +109,9 @@ describe("trace contract", () => {
       true,
     );
     expect(result.status).toBeDefined();
+    const viaRead = evaluateTraceContractRead(read, contract);
+    expect(viaRead.status).toBe(result.status);
+    expect(viaRead.findings.length).toBe(result.findings.length);
   });
 
   describe("run.allowedStatuses", () => {

@@ -81,6 +81,7 @@ export {
   createToolUsageRule,
   defineTraceContract,
   evaluateTraceContract,
+  evaluateTraceContractRead,
   buildTraceFacts,
   projectLogicalEvents,
   resolveCanonicalToolName,

@@ -16,6 +16,7 @@ import {
   runTraceChecks,
 } from "./index.js";
 import { extractOutcomesFromPersistedEvents } from "../outcomes/index.js";
+import type { TraceReadResult } from "../readers/index.js";
 
 function contractFailFinding(
   ruleId: string,
@@ -271,4 +272,17 @@ export function evaluateTraceContract(
     rules,
     ...(options.runId !== undefined ? { runId: options.runId } : {}),
   });
+}
+
+/**
+ * Convenience: evaluate a contract against a TraceReadResult directly.
+ *
+ * @experimental Additive wrapper over `evaluateTraceContract({ read }, …)`.
+ */
+export function evaluateTraceContractRead(
+  read: TraceReadResult,
+  contract: TraceContract,
+  options: { runId?: string } = {},
+): TraceCheckResult {
+  return evaluateTraceContract({ read }, contract, options);
 }

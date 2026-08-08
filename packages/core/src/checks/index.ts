@@ -2814,6 +2814,7 @@ export function runTraceChecks(
 export {
   defineTraceContract,
   evaluateTraceContract,
+  evaluateTraceContractRead,
   type TraceContract,
   type TraceContractInput,
   type TraceContractLlmRules,
