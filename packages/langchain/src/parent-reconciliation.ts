@@ -41,6 +41,11 @@ export function isSemanticParentLabel(parentLcRunId: string): boolean {
   return parentLcRunId.startsWith("__") && parentLcRunId.endsWith("__");
 }
 
+export interface ParentLookupContext {
+  /** Child step being created — must never be returned as its own parent. */
+  readonly excludeStepId?: string;
+}
+
 export interface ParentLookupTables {
   /** LangChain callback runId → AgentInspect stepId */
   readonly exactStepByLcRunId: (lcRunId: string) => string | undefined;
@@ -54,6 +59,15 @@ export interface ParentLookupTables {
   ) => string | undefined;
   /** Unique step whose semantic label / run name matches. */
   readonly uniqueStepBySemanticLabel: (label: string) => string | undefined;
+}
+
+function excludeSelf(
+  stepId: string | undefined,
+  excludeStepId: string | undefined,
+): string | undefined {
+  if (!stepId) return undefined;
+  if (excludeStepId && stepId === excludeStepId) return undefined;
+  return stepId;
 }
 
 const LANGGRAPH_PARENT_KEYS = [
@@ -81,12 +95,14 @@ export function resolveParentRelationship(
     attributes?: Record<string, unknown>;
   },
   lookup: ParentLookupTables,
+  context: ParentLookupContext = {},
 ): ParentResolution {
   const parentLcRunId = input.parentLcRunId;
+  const excludeStepId = context.excludeStepId;
 
   // 1. Exact parent run ID
   if (parentLcRunId) {
-    const exact = lookup.exactStepByLcRunId(parentLcRunId);
+    const exact = excludeSelf(lookup.exactStepByLcRunId(parentLcRunId), excludeStepId);
     if (exact) {
       return {
         parentStepId: exact,
@@ -107,14 +123,20 @@ export function resolveParentRelationship(
       if (key !== "handoffFrom" && key !== "checkpointNamespace") continue;
       const raw = lg[key];
       if (typeof raw !== "string" || !raw.trim()) continue;
-      const stepId = lookup.uniqueStepByLangGraphKey(key === "handoffFrom" ? "taskId" : key, raw);
+      const stepId = excludeSelf(
+        lookup.uniqueStepByLangGraphKey(key === "handoffFrom" ? "taskId" : key, raw),
+        excludeStepId,
+      );
       // Also try matching handoffFrom against nodeName when taskId misses.
       const matched =
         stepId ??
-        (key === "handoffFrom"
-          ? lookup.uniqueStepByLangGraphKey("nodeName", raw) ??
-            lookup.uniqueStepByLangGraphKey("nodeId", raw)
-          : undefined);
+        excludeSelf(
+          key === "handoffFrom"
+            ? lookup.uniqueStepByLangGraphKey("nodeName", raw) ??
+              lookup.uniqueStepByLangGraphKey("nodeId", raw)
+            : undefined,
+          excludeStepId,
+        );
       if (matched) {
         return {
           parentStepId: matched,
@@ -128,7 +150,10 @@ export function resolveParentRelationship(
 
   // 3. Unique semantic-name correlation (e.g. parentRunId === "__start__")
   if (parentLcRunId && isSemanticParentLabel(parentLcRunId)) {
-    const semantic = lookup.uniqueStepBySemanticLabel(parentLcRunId);
+    const semantic = excludeSelf(
+      lookup.uniqueStepBySemanticLabel(parentLcRunId),
+      excludeStepId,
+    );
     if (semantic) {
       return {
         parentStepId: semantic,
@@ -158,6 +183,25 @@ export function resolveParentRelationship(
   return {
     confidence: "explicit",
     parentMapping: "exact",
+  };
+}
+
+/**
+ * Drop a self-parent edge if resolution incorrectly points at the child.
+ */
+export function rejectSelfParentResolution(
+  resolution: ParentResolution,
+  stepId: string,
+  parentLcRunId: string | undefined,
+): ParentResolution {
+  if (resolution.parentStepId !== stepId) return resolution;
+  return {
+    confidence: "unresolved",
+    parentMapping: "unresolved",
+    unresolvedParentRunId: parentLcRunId ?? resolution.unresolvedParentRunId,
+    ...(resolution.semanticParentLabel
+      ? { semanticParentLabel: resolution.semanticParentLabel }
+      : {}),
   };
 }
 

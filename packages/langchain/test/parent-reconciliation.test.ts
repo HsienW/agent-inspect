@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyParentResolutionMetadata,
   isSemanticParentLabel,
+  rejectSelfParentResolution,
   resolveParentRelationship,
 } from "../src/parent-reconciliation.js";
 
@@ -119,5 +120,34 @@ describe("parent reconciliation", () => {
       semanticParentLabel: "__start__",
       unresolvedParentRunId: "__start__",
     });
+  });
+
+  it("excludes the child stepId from parent lookups (N-4)", () => {
+    const resolution = resolveParentRelationship(
+      { parentLcRunId: "LangGraph" },
+      {
+        exactStepByLcRunId: () => undefined,
+        uniqueStepByLangGraphKey: () => undefined,
+        uniqueStepBySemanticLabel: () => "step-child",
+      },
+      { excludeStepId: "step-child" },
+    );
+    expect(resolution.parentStepId).toBeUndefined();
+    expect(resolution.parentMapping).toBe("unresolved");
+  });
+
+  it("rejects a resolved self-parent edge", () => {
+    const rejected = rejectSelfParentResolution(
+      {
+        parentStepId: "step-self",
+        confidence: "explicit",
+        parentMapping: "exact",
+      },
+      "step-self",
+      "parent-lc",
+    );
+    expect(rejected.parentStepId).toBeUndefined();
+    expect(rejected.parentMapping).toBe("unresolved");
+    expect(rejected.unresolvedParentRunId).toBe("parent-lc");
   });
 });

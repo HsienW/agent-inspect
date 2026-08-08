@@ -29,6 +29,7 @@ import {
 } from "./invocation-state.js";
 import {
   applyParentResolutionMetadata,
+  rejectSelfParentResolution,
   resolveParentRelationship,
   type ParentResolution,
 } from "./parent-reconciliation.js";
@@ -253,8 +254,9 @@ export class LangChainTracePersistence {
   #resolveParent(
     parentLcRunId: string | undefined,
     attributes: Record<string, unknown>,
+    excludeStepId?: string,
   ): ParentResolution {
-    return resolveParentRelationship(
+    const resolution = resolveParentRelationship(
       { parentLcRunId, attributes },
       {
         exactStepByLcRunId: (lcRunId) => this.#lcToStepId.get(lcRunId),
@@ -267,7 +269,11 @@ export class LangChainTracePersistence {
           return hit === null || hit === undefined ? undefined : hit;
         },
       },
+      excludeStepId ? { excludeStepId } : {},
     );
+    return excludeStepId
+      ? rejectSelfParentResolution(resolution, excludeStepId, parentLcRunId)
+      : resolution;
   }
 
   /**
@@ -369,8 +375,12 @@ export class LangChainTracePersistence {
     try {
       this.#prepareForStart();
       const stepId = createStepId();
-      this.#lcToStepId.set(params.lcRunId, stepId);
-      this.#registerStepIndexes(stepId, params.name, params.attributes);
+      // Resolve parent before registering this child in any lookup index (N-4).
+      const resolution = await this.#maybeAttachSyntheticGroup(
+        this.#resolveParent(params.lcParentRunId, params.attributes, stepId),
+        params.startTime,
+      );
+
       beginCallbackRun(this.#lifecycle, {
         lcRunId: params.lcRunId,
         parentLcRunId: params.lcParentRunId,
@@ -383,10 +393,6 @@ export class LangChainTracePersistence {
         await this.#ensureRunStarted(params.startTime, params.attributes);
       }
 
-      const resolution = await this.#maybeAttachSyntheticGroup(
-        this.#resolveParent(params.lcParentRunId, params.attributes),
-        params.startTime,
-      );
       const metadata = toStepMetadata(params.attributes);
       applyParentResolutionMetadata(metadata, resolution);
 
@@ -403,7 +409,11 @@ export class LangChainTracePersistence {
         metadata,
       };
 
+      // Exact run-id map after parent resolve so end events can correlate; semantic /
+      // LangGraph indexes wait until after persist so the child cannot parent itself.
+      this.#lcToStepId.set(params.lcRunId, stepId);
       await this.#write(event);
+      this.#registerStepIndexes(stepId, params.name, params.attributes);
     } catch (err) {
       this.#warn(err);
     }
@@ -435,22 +445,24 @@ export class LangChainTracePersistence {
           return;
         }
         stepId = createStepId();
-        this.#lcToStepId.set(params.lcRunId, stepId);
         const synthName = String(params.completionAttributes.name ?? "llm:llm");
-        this.#registerStepIndexes(stepId, synthName, params.completionAttributes);
+        const startTime = params.endTime - (params.durationMs ?? 0);
+        const resolution = await this.#maybeAttachSyntheticGroup(
+          this.#resolveParent(
+            params.lcParentRunId,
+            params.completionAttributes,
+            stepId,
+          ),
+          startTime,
+        );
         beginCallbackRun(this.#lifecycle, {
           lcRunId: params.lcRunId,
           parentLcRunId: params.lcParentRunId,
-          startedAt: params.endTime - (params.durationMs ?? 0),
+          startedAt: startTime,
           kind:
             (params.completionAttributes.kind as InspectKind | undefined) ?? "LLM",
           stepId,
         });
-        const startTime = params.endTime - (params.durationMs ?? 0);
-        const resolution = await this.#maybeAttachSyntheticGroup(
-          this.#resolveParent(params.lcParentRunId, params.completionAttributes),
-          startTime,
-        );
         const metadata = toStepMetadata(params.completionAttributes);
         applyParentResolutionMetadata(metadata, resolution);
         const started: TraceEvent = {
@@ -470,7 +482,9 @@ export class LangChainTracePersistence {
         if (this.#standalone && !this.#lifecycle.envelopeStarted) {
           await this.#ensureRunStarted(startTime, params.completionAttributes);
         }
+        this.#lcToStepId.set(params.lcRunId, stepId);
         await this.#write(started);
+        this.#registerStepIndexes(stepId, synthName, params.completionAttributes);
       }
       if (!stepId) return;
 
@@ -525,8 +539,10 @@ export class LangChainTracePersistence {
     try {
       this.#prepareForStart();
       const stepId = createStepId();
-      this.#lcToStepId.set(params.lcRunId, stepId);
-      this.#registerStepIndexes(stepId, params.name, params.attributes);
+      const resolution = await this.#maybeAttachSyntheticGroup(
+        this.#resolveParent(params.lcParentRunId, params.attributes, stepId),
+        params.timestamp,
+      );
       beginCallbackRun(this.#lifecycle, {
         lcRunId: params.lcRunId,
         parentLcRunId: params.lcParentRunId,
@@ -539,10 +555,6 @@ export class LangChainTracePersistence {
         await this.#ensureRunStarted(params.timestamp, params.attributes);
       }
 
-      const resolution = await this.#maybeAttachSyntheticGroup(
-        this.#resolveParent(params.lcParentRunId, params.attributes),
-        params.timestamp,
-      );
       const metadata = toStepMetadata(params.attributes);
       applyParentResolutionMetadata(metadata, resolution);
 
@@ -558,7 +570,9 @@ export class LangChainTracePersistence {
         startTime: params.timestamp,
         metadata,
       };
+      this.#lcToStepId.set(params.lcRunId, stepId);
       await this.#write(started);
+      this.#registerStepIndexes(stepId, params.name, params.attributes);
 
       const completed: TraceEvent = {
         schemaVersion: "0.1",

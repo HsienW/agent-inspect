@@ -130,6 +130,38 @@ describe("v6.8-3 parent reconciliation persistence", () => {
     }
   });
 
+  it("does not self-parent when child LangGraph keys are indexed only after resolve (N-4)", async () => {
+    const persistence = new LangChainTracePersistence({
+      traceDir,
+      runId: "run_no_self_parent",
+      silent: true,
+    });
+
+    await persistence.onStepStart({
+      lcRunId: "seq",
+      lcParentRunId: "unobserved-parent",
+      name: "chain:RunnableSequence",
+      kind: "CHAIN",
+      startTime: 1,
+      attributes: { langGraph: { checkpointNamespace: "swarm-ns" } },
+    });
+    await persistence.onStepEnd({
+      lcRunId: "seq",
+      endTime: 2,
+      durationMs: 1,
+      status: "success",
+    });
+
+    const events = await readTraceEvents("run_no_self_parent", traceDir);
+    const step = events.find((e) => e.event === "step_started");
+    expect(step && "stepId" in step ? step.stepId : undefined).toBeTruthy();
+    if (step?.event === "step_started") {
+      expect(step.parentId).not.toBe(step.stepId);
+      expect(step.parentId).toBeUndefined();
+      expect(step.metadata?.parentMapping).toBe("unresolved");
+    }
+  });
+
   it("keeps LangGraph semantic parents unresolved when no unique match exists", async () => {
     const persistence = new LangChainTracePersistence({
       traceDir,
