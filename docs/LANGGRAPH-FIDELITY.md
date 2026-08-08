@@ -1,11 +1,11 @@
 # LangGraph / LangChain adapter fidelity contract
 
-**Status:** active contract; fidelity classes A–E formalized in `6.15.0`
+**Status:** active contract; fidelity classes A–E formalized in `6.15.0` ([RFC](./implementation/reviews/V6.15.0-0-FIDELITY-CLASSES-RFC.md))
 **Package:** `@agent-inspect/langchain`
 **Authority:** [AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7](./implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md) §7 · §9 · [V6.15.0-EXECUTION-PLAN](./implementation/release-trains/V6.15.0-EXECUTION-PLAN.md) · [SWARM-RELATIONSHIP-INVARIANTS](./proposals/SWARM-RELATIONSHIP-INVARIANTS.md)
 **Historical:** v6.8 fidelity foundation; Stability-and-Focus roadmap superseded
 
-This document is the public contract for standalone LangGraph-shaped (and LangChain callback) traces written by `AgentInspectCallback`. Deep swarm / multi-agent (class E) support is blocked on N-4 until `6.14.2` and formalized in `6.15.0`.
+This document is the public contract for standalone LangGraph-shaped (and LangChain callback) traces written by `AgentInspectCallback`. Capture-order self-parent (N-4) and credential-key false positives on token config fields (N-6) were fixed in `6.14.2`. Classes A–E are the permanent conformance shapes for `6.15.0+`.
 
 ## Scope
 
@@ -17,6 +17,70 @@ Does **not** require:
 - provider API keys
 - inventing hierarchy from timestamps alone
 - guaranteeing completeness when the framework never ends callbacks
+
+## Fidelity classes A–E
+
+Support claims must state which classes are verified. Cosmetic single-root trees are not required when relationships are ambiguous (prefer visibility + diagnostics).
+
+### Class A — Simple chain
+
+```text
+one chain
+one LLM
+optional parser
+```
+
+**Corpus:** `fixtures/langgraph/plain-root.jsonl`
+
+### Class B — Tool-calling agent
+
+```text
+agent / sequence
+LLM
+tool
+optional retry
+```
+
+**Corpus:** `fixtures/langgraph/dynamic-tool-name.jsonl`, `fixtures/langgraph/pilot-shaped-bridged-tool.jsonl`
+
+### Class C — Structured-output chain
+
+```text
+sequence
+LLM
+parser
+multiple root-level framework scaffolds allowed
+```
+
+**Corpus:** `fixtures/langgraph/moderate-structured-output.jsonl`
+
+### Class D — Nested subgraph
+
+```text
+graph
+subgraph
+nested sequence
+LLM/tool
+```
+
+**Corpus:** `fixtures/langgraph/semantic-parent-langgraph.jsonl`, `fixtures/langgraph/parallel-children.jsonl`
+**Live:** subgraph / parallel paths in `packages/langchain/test/langgraph-fixture-matrix.test.ts`
+
+### Class E — Swarm / multi-agent
+
+```text
+supervisor or swarm
+multiple sub-agents
+handoff
+nested tool calls
+parallel/sequential branches
+```
+
+**Corpus (positive):** `fixtures/langgraph/deep-swarm-nested-ok.jsonl`
+**Corpus (negative / regression):** `fixtures/langgraph/deep-swarm-self-parent.jsonl`
+**Packed E2E:** `scripts/packed-swarm-loop-e2e.mjs` (check → gate → Evidence verify)
+
+Class E requires nested LLM and tool visibility, no persisted self-parent, and cycle-safe trees that keep all nodes visible.
 
 ## Contract (must hold per standalone invocation)
 
@@ -92,20 +156,20 @@ Metadata-oriented capture remains the recommended default for shared traces.
 
 | Corpus | Role |
 |--------|------|
-| `fixtures/langgraph/*.jsonl` | Synthetic shapes (local, no provider) |
+| `fixtures/langgraph/*.jsonl` | Synthetic shapes mapped to classes A–E (local, no provider) |
 | `packages/langchain/test/langgraph-no-provider-app.test.ts` | Real `@langchain/langgraph` StateGraph + tools |
 | `packages/langchain/test/langgraph-fixture-matrix.test.ts` | Parallel / stream / subgraph / error |
 | `examples/recipes/langgraph-callback-local` | Deterministic callback metadata recipe |
 | `examples/recipes/nestjs-langgraph-local` | Env-gated Nest-style wiring |
-| Real LangGraph apps / partner traces | **External gate** before publishing 6.8.0 |
+| Real LangGraph apps / partner traces | **External gate** before publishing 6.15.0 |
 
 ## Publication gate
 
-Before **6.8.0** npm publication:
+Before **6.15.0** npm publication:
 
-> Two independent real or genuinely external/high-fidelity LangGraph integrations must pass this contract.
+> Two independent real or genuinely external/high-fidelity LangGraph integrations covering the claimed fidelity classes (including class E when deep-swarm support is claimed) must pass this contract.
 
-If evidence is missing, set train status `blocked-on-langgraph-validation` and stop. Do not fabricate.
+If evidence is missing, set train status `blocked-on-v6.15-external-pilot` and stop. Do not fabricate.
 
 ## Non-goals
 
