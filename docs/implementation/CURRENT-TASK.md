@@ -3,18 +3,18 @@
 ```yaml
 executionMode: autonomous-release-train
 namedTrain: agentinspect-swarm-stability-evidence-v6.14.1-to-pre-v7
-currentTrain: v6.14.2-swarm-stability
+currentTrain: v6.15.0-fidelity-and-readers
 trainStatus: active
-currentChunk: 6.14.3-verify
-nextAction: Await Version Packages → Trusted Publishing → verify npm 6.14.2; then 6.14.3 repair-or-skip
+currentChunk: 6.15-0
+nextAction: LangGraph fidelity classes A–E RFC/docs; then continue 6.15 chunks. Stop before publish if external pilots missing.
 canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md
-activePlan: docs/implementation/release-trains/V6.14.2-EXECUTION-PLAN.md
+activePlan: docs/implementation/release-trains/V6.15.0-EXECUTION-PLAN.md
 ```
 
 ## Published baseline
 
-**6.14.1** (18 fixed-group packages; Trusted Publishing)
+**6.14.2** (18 fixed-group packages; Trusted Publishing 2026-08-08)
 
 ## Notes
 
-Phase 0 activation complete. Do not fabricate pilots. No schema break. No local npm publish. N-5 reader APIs wait for 6.15.0.
+6.14.3 skipped (no confirmed post-publish defect). N-5 reader APIs are 6.15 scope. Do not fabricate pilots.
