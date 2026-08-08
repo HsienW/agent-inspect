@@ -158,7 +158,8 @@ Metadata-oriented capture remains the recommended default for shared traces.
 |--------|------|
 | `fixtures/langgraph/*.jsonl` | Synthetic shapes mapped to classes A–E (local, no provider) |
 | `packages/langchain/test/langgraph-no-provider-app.test.ts` | Real `@langchain/langgraph` StateGraph + tools |
-| `packages/langchain/test/langgraph-fixture-matrix.test.ts` | Parallel / stream / subgraph / error |
+| `packages/langchain/test/langgraph-fixture-matrix.test.ts` | Parallel / stream / subgraph / error / supervisor→worker swarm matrix |
+| `packages/core/test/langgraph-fidelity-matrix.test.ts` | Class A–E fixture shape assertions (incl. D nested + E swarm) |
 | `examples/recipes/langgraph-callback-local` | Deterministic callback metadata recipe |
 | `examples/recipes/nestjs-langgraph-local` | Env-gated Nest-style wiring |
 | Real LangGraph apps / partner traces | **External gate** before publishing 6.15.0 |

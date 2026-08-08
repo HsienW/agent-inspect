@@ -180,4 +180,76 @@ describe.runIf(langgraphAvailable)("v6.8-9 LangGraph fixture matrix", () => {
       );
     });
   });
+
+  it("6.15-2 supervisor→worker subgraph keeps a single envelope and no self-parent", async () => {
+    await withTraceDir(async (traceDir) => {
+      const { DynamicStructuredTool } = await import("@langchain/core/tools");
+      const lookup = new DynamicStructuredTool({
+        name: "lookup_item",
+        description: "Lookup an item",
+        schema: {
+          type: "object",
+          properties: { id: { type: "string" } },
+          required: ["id"],
+        },
+        func: async ({ id }: { id: string }) => JSON.stringify({ id, ok: true }),
+      });
+
+      const Worker = Annotation.Root({
+        item: Annotation<string>({ reducer: (_a, b) => b, default: () => "" }),
+      });
+      const worker = new StateGraph(Worker)
+        .addNode("fetch", async (_state, config) => {
+          const raw = await lookup.invoke({ id: "sku-1" } as never, config);
+          return { item: String(raw) };
+        })
+        .addEdge(START, "fetch")
+        .addEdge("fetch", END)
+        .compile();
+
+      const Supervisor = Annotation.Root({
+        item: Annotation<string>({ reducer: (_a, b) => b, default: () => "" }),
+        next: Annotation<string>({ reducer: (_a, b) => b, default: () => "" }),
+      });
+      const supervisor = new StateGraph(Supervisor)
+        .addNode("decide", async () => ({ next: "worker" }))
+        .addNode("handoff", async (_state, config) => {
+          const result = await worker.invoke({ item: "" }, config);
+          return { item: result.item };
+        })
+        .addEdge(START, "decide")
+        .addEdge("decide", "handoff")
+        .addEdge("handoff", END)
+        .compile();
+
+      const cb = new AgentInspectCallback({
+        traceDir,
+        persist: true,
+        runId: "run_lg_swarm_matrix",
+        silent: true,
+      });
+      const out = await supervisor.invoke({ item: "", next: "" }, { callbacks: [cb] });
+      await cb.flush();
+      await cb.finalize({ status: "success" });
+      expect(out.item).toContain("sku-1");
+
+      const events = await readTraceEvents("run_lg_swarm_matrix", traceDir);
+      expect(events.filter((e) => e.event === "run_started")).toHaveLength(1);
+      expect(events.filter((e) => e.event === "run_completed")).toHaveLength(1);
+
+      const selfParents = events.filter(
+        (e) =>
+          e.event === "step_started" &&
+          "parentId" in e &&
+          "stepId" in e &&
+          e.parentId === e.stepId,
+      );
+      expect(selfParents).toHaveLength(0);
+
+      const tool = events.find(
+        (e) => e.event === "step_started" && "name" in e && String(e.name).includes("lookup_item"),
+      );
+      expect(tool).toBeDefined();
+    });
+  });
 });
