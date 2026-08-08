@@ -12,7 +12,7 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ## Current — swarm stability (`6.14.2` → `6.16.0`)
 
-**Current release on npm:** **6.14.1** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
+**Current release on npm:** **6.14.2** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
 
 Active maintainer program: deep-swarm relationship correctness, safety-key precision, LangGraph fidelity classes, persisted-trace APIs, then evidence-first CI — before any conditional v7 assessment.
 
@@ -22,7 +22,8 @@ Active maintainer program: deep-swarm relationship correctness, safety-key preci
 | **6.12.2** | Logical lifecycle projection for checks | Published |
 | **6.12.3** / **6.13.0** | TraceFacts, semantic parity, experimental matchers | Published |
 | **6.14.0** / **6.14.1** | Evidence-first CI + public positioning | Published |
-| **6.14.2** | Swarm self-parent + safety precision | Active |
+| **6.14.2** | Swarm self-parent + safety precision | Published |
+| **6.14.3** | Reserved corrective patch | Repair-or-skip |
 | **6.15.0** | Fidelity classes A–E + reader APIs | Planned |
 | **6.16.0** | Evidence-first CI / external pilots | Planned (external gate) |
 | **v7** | Conditional major — assessment only | Not scheduled |
