@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-swarm-stability-evidence-v6.14.1-to-pre-v7
 currentTrain: v6.14.2-swarm-stability
 trainStatus: active
-currentChunk: 6.14.2-10
-nextAction: Release readiness and publish 6.14.2
+currentChunk: 6.14.3-verify
+nextAction: Await Version Packages → Trusted Publishing → verify npm 6.14.2; then 6.14.3 repair-or-skip
 canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md
 activePlan: docs/implementation/release-trains/V6.14.2-EXECUTION-PLAN.md
 ```
