@@ -1,5 +1,11 @@
 # @agent-inspect/redact
 
+## 6.16.0
+
+### Minor Changes
+
+- 5a62e84: Evidence-first CI launch candidate: moderate + deep-swarm golden check→gate→Evidence paths, pack:smoke wiring, and local MCP/CI walkthrough docs. No schema break; no new packages; no default network.
+
 ## 6.15.0
 
 ### Minor Changes
