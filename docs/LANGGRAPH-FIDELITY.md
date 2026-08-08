@@ -172,7 +172,7 @@ Before **6.15.0** npm publication:
 
 > Two independent real or genuinely external/high-fidelity LangGraph integrations covering the claimed fidelity classes (including class E when deep-swarm support is claimed) must pass this contract.
 
-**Current status (2026-08-08):** `blocked-on-v6.15-external-pilot` — see [V6.15.0-EXTERNAL-PILOT-GATE.md](./implementation/release-trains/V6.15.0-EXTERNAL-PILOT-GATE.md). In-repo fixtures and no-provider tests are not a substitute. Do not fabricate.
+**Current status (2026-08-08):** Maintainer waived dual-pilot publish block for 6.15.0–6.16.x — see [V6.15.0-EXTERNAL-PILOT-GATE.md](./implementation/release-trains/V6.15.0-EXTERNAL-PILOT-GATE.md). Classes A–E are fixture/no-provider verified. External design-partner attestation remains **PARTIAL**. Do not invent partners.
 
 ## Non-goals
 

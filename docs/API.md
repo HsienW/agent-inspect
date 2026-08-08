@@ -487,8 +487,12 @@ import {
   detectTraceFormat,
   openInferenceJsonReader,
   openTrace,
+  openTraceDirectory,
+  openTraceFile,
+  openTraceText,
   otlpJsonReader,
   readTrace,
+  formatProgrammaticDiagnostic,
 } from "agent-inspect/readers";
 import type { TraceReader } from "agent-inspect/readers";
 ```
@@ -498,12 +502,14 @@ import type { TraceReader } from "agent-inspect/readers";
 - **`detectTraceFormat(input, { readers?, format? })`**: deterministic, conservative format detection. Explicit `format` acts as an override only when a matching reader is registered.
 - **`readTrace(input, { readers?, format? })`**: detects a reader and returns `TraceReadResult`; unsupported or ambiguous input throws `TraceReadError`.
 - **`openTrace(input, options?)`**: alias for `readTrace()` and the API path used by the universal `agent-inspect open` command.
+- **`openTraceFile(path)` / `openTraceDirectory(path)` / `openTraceText(content)`**: additive conveniences that wrap structured `TraceInput` (prefer these over bare path strings).
+- **`assertTraceInput` / `formatProgrammaticDiagnostic`**: runtime input guard and stable `AI_*` message helpers (lowercase `TraceReadError.code` values remain published).
 - **`agentInspectJsonlReader`**: built-in local AgentInspect JSONL reader for v0.1, v0.2, and mixed files/directories.
 - **`openInferenceJsonReader`**: local OpenInference JSON compatibility reader. Prompt/output-like attributes are summarized and bounded rather than stored as raw content.
 - **`otlpJsonReader`**: local OTLP/HTTP JSON trace payload reader. Resource, scope, span, status, event, and parent metadata are preserved where possible with warnings for unsupported fields.
 - **`DEFAULT_TRACE_READERS`**: ordered built-in reader registry used when no custom `readers` array is supplied.
 
-The reader contract does not silently accept arbitrary JSON and does not add OTel SDK, database, hosted ingestion, or network upload dependencies.
+The reader contract does not silently accept arbitrary JSON and does not add OTel SDK, database, hosted ingestion, or network upload dependencies. See also [PROGRAMMATIC-TRACE-ANALYSIS.md](./PROGRAMMATIC-TRACE-ANALYSIS.md).
 
 ## 21. Experimental Checks
 
@@ -512,11 +518,21 @@ The reader contract does not silently accept arbitrary JSON and does not add OTe
 Import from `agent-inspect/checks`:
 
 ```ts
-import { runTraceChecks } from "agent-inspect/checks";
-import type { TraceCheckRule, TraceCheckResult } from "agent-inspect/checks";
+import {
+  runTraceChecks,
+  buildTraceFacts,
+  defineTraceContract,
+  evaluateTraceContract,
+  evaluateTraceContractRead,
+  formatProgrammaticDiagnostic,
+} from "agent-inspect/checks";
+import type { TraceCheckRule, TraceCheckResult, TraceFacts } from "agent-inspect/checks";
 ```
 
 - **`runTraceChecks({ read }, { rules?, select?, runId? })`**: executes provided rules against a `TraceReadResult` from `agent-inspect/readers`.
+- **`buildTraceFacts(read | events)`**: experimental TraceFacts over logical projection; accepts `TraceReadResult` or normalized `PersistedInspectEvent[]`.
+- **`defineTraceContract` / `evaluateTraceContract` / `evaluateTraceContractRead`**: experimental contract helpers; `evaluateTraceContractRead(read, contract)` wraps `{ read }`.
+- **`formatProgrammaticDiagnostic` / `PROGRAMMATIC_DIAGNOSTIC_SPECS`**: stable `AI_*` codes with remediation hints.
 - **Built-in rule factories**: run, tool, LLM, structure, retrieval, guardrail, decision, safety, and baseline helpers including `createRunStatusRule`, `createToolUsageRule`, `createLlmUsageRule`, `createStructureOrphanRule`, `createStructureCycleRule`, `createStructureRelationshipRule`, `createRetrievalRule`, `createGuardrailRule`, `createDecisionRule`, `createSafetyRawContentRule`, `createSafetySecretPatternRule`, and `createBaselineRegressionRule`.
 - **`TraceCheckRule`**: synchronous pure rule contract.
 - **`TraceCheckResult`**: deterministic aggregate result with findings, evidence, summary counts, and execution diagnostics.

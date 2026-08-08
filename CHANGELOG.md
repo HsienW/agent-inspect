@@ -14,13 +14,9 @@
 
 ## Unreleased
 
-### Patch
+### Minor
 
-- Swarm relationship and safety precision (6.14.2): parent resolution before child index registration, self-parent capture/logical defenses, cycle-safe trees, contextual credential-key classification (token config fields such as `ls_max_tokens` are not credentials), and moderate/deep-swarm regression fixtures with packed check→gate→bundle→verify E2E.
-
-### Documentation
-
-- Activate the v6.14.1 swarm stability roadmap (`6.14.2` → `6.16.0` → conditional v7): baseline audit, release-train plans, and AGENTS/state precedence. No runtime or schema change in this docs activation.
+- LangGraph fidelity classes A–E and persisted-trace developer APIs (6.15.0): relationship conformance corpus, ambiguous scaffolding diagnostics, `openTraceFile` / `openTraceDirectory` / `openTraceText`, `buildTraceFacts(TraceReadResult)`, `evaluateTraceContractRead`, stable `AI_*` programmatic diagnostics with remediation, ESM/CJS quickstarts, and A–E cross-surface semantic parity. No schema break; no new packages; no default network.
 
 ## 6.14.0
 
