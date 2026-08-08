@@ -221,6 +221,89 @@ export async function smoke(): Promise<number> {
     runTsc(dir);
   });
 
+  it("NodeNext ESM compiles openTraceFile + TraceFacts + TraceContractRead", () => {
+    const dir = makeConsumer(
+      "esm-prog-ts",
+      { name: "esm-programmatic", private: true, type: "module" },
+      {
+        compilerOptions: {
+          module: "NodeNext",
+          moduleResolution: "NodeNext",
+          strict: true,
+          noEmit: true,
+          skipLibCheck: true,
+        },
+        include: ["analyze.ts"],
+      },
+      "analyze.ts",
+      `import { openTraceFile } from "agent-inspect/readers";
+import {
+  buildTraceFacts,
+  defineTraceContract,
+  evaluateTraceContractRead,
+  formatProgrammaticDiagnostic,
+} from "agent-inspect/checks";
+import type { TraceReadResult } from "agent-inspect/readers";
+import type { TraceFacts, TraceContract } from "agent-inspect/checks";
+
+export async function analyze(path: string): Promise<{
+  read: TraceReadResult;
+  facts: TraceFacts;
+  status: string;
+}> {
+  const read = await openTraceFile(path);
+  const facts = buildTraceFacts(read);
+  const contract: TraceContract = defineTraceContract({
+    run: { requireCompleted: true },
+  });
+  const result = evaluateTraceContractRead(read, contract);
+  void formatProgrammaticDiagnostic("AI_TRACE_INPUT_INVALID");
+  return { read, facts, status: result.status };
+}
+`,
+    );
+    runTsc(dir);
+  });
+
+  it("Node16 CJS compiles openTraceFile + TraceFacts + TraceContractRead (.cts)", () => {
+    const dir = makeConsumer(
+      "cjs-prog-ts",
+      { name: "cjs-programmatic", private: true, type: "commonjs" },
+      {
+        compilerOptions: {
+          module: "Node16",
+          moduleResolution: "Node16",
+          strict: true,
+          noEmit: true,
+          skipLibCheck: true,
+        },
+        include: ["analyze.cts"],
+      },
+      "analyze.cts",
+      `import { openTraceFile } from "agent-inspect/readers";
+import {
+  buildTraceFacts,
+  defineTraceContract,
+  evaluateTraceContractRead,
+} from "agent-inspect/checks";
+import type { TraceReadResult } from "agent-inspect/readers";
+
+export async function analyze(path: string): Promise<TraceReadResult> {
+  const read = await openTraceFile(path);
+  const facts = buildTraceFacts(read);
+  const result = evaluateTraceContractRead(
+    read,
+    defineTraceContract({ run: { requireCompleted: true } }),
+  );
+  void facts.logicalEvents.length;
+  void result.status;
+  return read;
+}
+`,
+    );
+    runTsc(dir);
+  });
+
   it("runtime ESM import works after install", () => {
     const dir = makeConsumer(
       "esm-rt",

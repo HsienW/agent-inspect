@@ -5,21 +5,39 @@
 
 ## Current
 
+### ESM
+
 ```ts
+import { openTraceFile } from "agent-inspect/readers";
 import {
-  openTrace,
-  openTraceFile,
-  openTraceDirectory,
-  openTraceText,
-  readTrace,
-} from "agent-inspect/readers";
-import { buildTraceFacts } from "agent-inspect/checks";
+  buildTraceFacts,
+  defineTraceContract,
+  evaluateTraceContractRead,
+} from "agent-inspect/checks";
 
 const read = await openTraceFile("./.agent-inspect/run.jsonl");
 const facts = buildTraceFacts(read);
+const result = evaluateTraceContractRead(
+  read,
+  defineTraceContract({
+    run: { requireCompleted: true },
+    tools: { required: ["get_navan_rewards"] },
+  }),
+);
 ```
 
-Bare path strings passed to `openTrace` / `readTrace` throw `TraceReadError` with code `invalid_input` and message prefix `AI_TRACE_INPUT_INVALID` (no WeakMap key errors).
+### CommonJS
+
+```js
+const { openTraceFile } = require("agent-inspect/readers");
+const {
+  buildTraceFacts,
+  defineTraceContract,
+  evaluateTraceContractRead,
+} = require("agent-inspect/checks");
+```
+
+Runnable copies: `examples/programmatic-trace-analysis/quickstart.mjs` and `quickstart.cjs`.
 
 ## Remaining (6.15.8+)
 
