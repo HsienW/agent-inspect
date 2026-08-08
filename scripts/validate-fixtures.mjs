@@ -44,7 +44,9 @@ const REQUIRED = {
     "fixtures/langgraph/parallel-children.jsonl",
     "fixtures/langgraph/error-run.jsonl",
     "fixtures/langgraph/pilot-shaped-bridged-tool.jsonl",
+    "fixtures/langgraph/deep-swarm-self-parent.jsonl",
   ],
+
   tracesV02: [
     "fixtures/traces-v0.2/manual-basic.jsonl",
     "fixtures/traces-v0.2/manual-tool-error.jsonl",

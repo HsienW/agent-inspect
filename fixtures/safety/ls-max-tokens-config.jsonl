@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","type":"run_started","runId":"safety-ls-max-tokens","ts":1700001000000,"name":"safety-corpus"}
+{"schemaVersion":"0.1","type":"step_started","runId":"safety-ls-max-tokens","stepId":"safety-ls-max-tokens-s1","parentStepId":null,"ts":1700001000001,"name":"stimulus","kind":"llm"}
+{"schemaVersion":"0.1","type":"step_completed","runId":"safety-ls-max-tokens","stepId":"safety-ls-max-tokens-s1","parentStepId":null,"ts":1700001000002,"name":"stimulus","kind":"llm","status":"ok","attrs":{"ls_max_tokens":"undefined","max_tokens":4096,"token_count":1120,"metadata":{"tokens":{"input":1000,"output":120}}}}
+{"schemaVersion":"0.1","type":"run_completed","runId":"safety-ls-max-tokens","ts":1700001000003,"status":"ok"}

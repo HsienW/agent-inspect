@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-swarm-stability-evidence-v6.14.1-to-pre-v7
 currentTrain: v6.14.2-swarm-stability
 trainStatus: active
-currentChunk: 6.14.2-0
-nextAction: Reproduce N-4/N-6 from anonymized fixtures; then continue ordered 6.14.2 chunks
+currentChunk: 6.14.2-1
+nextAction: Resolve parent before registering child (start + completion-only paths)
 canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md
 activePlan: docs/implementation/release-trains/V6.14.2-EXECUTION-PLAN.md
 ```

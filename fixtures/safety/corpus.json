@@ -152,6 +152,16 @@
         "share": { "mustNotFlag": ["credential"], "mayFlag": ["identifier"], "status": "SAFE" },
         "strict": { "mustNotFlag": ["credential"], "mayFlag": ["identifier"], "status": "SAFE WITH WARNINGS" }
       }
+    },
+    {
+      "id": "ls-max-tokens-config",
+      "fixture": "ls-max-tokens-config.jsonl",
+      "stimulus": "N-6: ls_max_tokens/max_tokens/token_count are model config, not credentials (desired after 6.14.2)",
+      "expectations": {
+        "development": { "mustNotFlag": ["credential", "raw-content"], "status": "SAFE" },
+        "share": { "mustNotFlag": ["credential", "raw-content"], "status": "SAFE" },
+        "strict": { "mustNotFlag": ["credential", "raw-content"], "status": "SAFE" }
+      }
     }
   ]
 }
