@@ -21,7 +21,8 @@ export interface LogicalProjectionDiagnostic {
     | "AI_LOGICAL_PAIR_UNMATCHED_START"
     | "AI_LOGICAL_PAIR_UNMATCHED_COMPLETE"
     | "AI_LOGICAL_PARENT_REMAPPED"
-    | "AI_LOGICAL_PARENT_UNRESOLVED";
+    | "AI_LOGICAL_PARENT_UNRESOLVED"
+    | "AI_LOGICAL_SELF_PARENT_REMOVED";
   message: string;
   eventIds?: readonly string[];
 }
@@ -305,6 +306,23 @@ export function projectLogicalEvents(
     }
 
     if (!remapped) {
+      if (originalParentId === event.eventId) {
+        diagnostics.push({
+          code: "AI_LOGICAL_SELF_PARENT_REMOVED",
+          message: `Removed self-parent edge on ${event.eventId}.`,
+          eventIds: [event.eventId],
+        });
+        const { parentId: _drop, ...rest } = event;
+        normalized.push({
+          ...rest,
+          projection: {
+            ...event.projection,
+            parentNormalized: true,
+            originalParentId,
+          },
+        });
+        continue;
+      }
       if (!logicalById.has(originalParentId) && !logicalByRawId.has(originalParentId)) {
         const mapping = event.attributes?.parentMapping;
         const unresolved =
@@ -323,6 +341,24 @@ export function projectLogicalEvents(
         }
       }
       normalized.push(event);
+      continue;
+    }
+
+    if (nextParent === event.eventId) {
+      diagnostics.push({
+        code: "AI_LOGICAL_SELF_PARENT_REMOVED",
+        message: `Removed self-parent edge on ${event.eventId} (was ${originalParentId}).`,
+        eventIds: [event.eventId],
+      });
+      const { parentId: _drop, ...rest } = event;
+      normalized.push({
+        ...rest,
+        projection: {
+          ...event.projection,
+          parentNormalized: true,
+          originalParentId,
+        },
+      });
       continue;
     }
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createSafetyRawContentRule,
+  createStructureCycleRule,
   createStructureIncompleteRule,
   createStructureOrphanRule,
   createToolUsageRule,
@@ -244,6 +245,26 @@ describe("logical projection through built-in checks", () => {
 
     expect(result.status).toBe("pass");
     expect(result.findings.filter((f) => f.status === "fail")).toHaveLength(0);
+  });
+
+  it("removes self-parent edges after remapping (N-4 read-path defense)", () => {
+    const self = persisted("event-self", { parentId: "event-self", name: "chain:RunnableSequence" });
+    const child = persisted("event-child", { parentId: "event-self", name: "llm:model" });
+    const projection = projectLogicalEvents([self, child]);
+    const logicalSelf = projection.logicalEvents.find((e) => e.eventId === "event-self");
+    const logicalChild = projection.logicalEvents.find((e) => e.eventId === "event-child");
+    expect(logicalSelf?.parentId).toBeUndefined();
+    expect(logicalSelf?.projection.originalParentId).toBe("event-self");
+    expect(logicalChild?.parentId).toBe("event-self");
+    expect(
+      projection.diagnostics.some((d) => d.code === "AI_LOGICAL_SELF_PARENT_REMOVED"),
+    ).toBe(true);
+
+    const cycle = runTraceChecks(
+      { read: readResult([self, child]) },
+      { rules: [createStructureCycleRule()] },
+    );
+    expect(cycle.findings.filter((f) => f.ruleId === "structure.cycle")).toHaveLength(0);
   });
 
   it("does not treat metadata.tokens.* metric leaves as raw content (N-2)", () => {

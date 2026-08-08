@@ -101,25 +101,30 @@ function readResult(events: readonly PersistedInspectEvent[]): TraceReadResult {
 }
 
 describe("6.14.2-0 swarm stability defect reproduction", () => {
-  it("N-4: deep-swarm self-parent fixture projects a self-cycle and fails structure.cycle", async () => {
+  it("N-4: deep-swarm self-parent fixture normalizes away self-edges (post 6.14.2-3)", async () => {
     const content = readFileSync(
       path.join(fixturesRoot, "langgraph/deep-swarm-self-parent.jsonl"),
       "utf8",
     );
+    // Raw rows still carry parentId === stepId (defect artifact).
+    expect(content).toContain('"parentId":"seq_nested"');
+    expect(content).toContain('"stepId":"seq_nested"');
+
     const read = await openTrace({ type: "string", content });
     const projection = projectLogicalEvents(read.events);
     const selfParents = projection.logicalEvents.filter(
       (event) => event.parentId !== undefined && event.parentId === event.eventId,
     );
-    expect(selfParents.length).toBeGreaterThan(0);
-    expect(selfParents.some((event) => /RunnableSequence/i.test(event.name))).toBe(true);
+    expect(selfParents).toHaveLength(0);
+    expect(
+      projection.diagnostics.some((d) => d.code === "AI_LOGICAL_SELF_PARENT_REMOVED"),
+    ).toBe(true);
 
     const checks = runTraceChecks(
       { read },
       { rules: [createStructureCycleRule()] },
     );
-    expect(checks.status).toBe("fail");
-    expect(checks.findings.some((finding) => finding.ruleId === "structure.cycle")).toBe(true);
+    expect(checks.findings.some((finding) => finding.ruleId === "structure.cycle")).toBe(false);
   });
 
   it("N-6: ls_max_tokens / max_tokens / token_count currently trip safety.redaction", () => {
