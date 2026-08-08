@@ -13,6 +13,7 @@ import type {
   PersistedInspectEvent,
   PersistedTokenUsage,
 } from "../types/persisted-inspect-event.js";
+import { formatProgrammaticDiagnostic } from "../diagnostics/programmatic.js";
 
 export type TraceInput =
   | { type: "file"; path: string }
@@ -217,8 +218,9 @@ export class TraceReadError extends Error {
   }
 }
 
-const TRACE_INPUT_INVALID_MESSAGE =
-  'AI_TRACE_INPUT_INVALID: Expected { type: "file", path }, { type: "directory", path }, { type: "string", content }, { type: "buffer", content }, or { type: "stdin" }. For a file path, use openTraceFile(path).';
+const TRACE_INPUT_INVALID_MESSAGE = formatProgrammaticDiagnostic(
+  "AI_TRACE_INPUT_INVALID",
+);
 
 function isTraceInput(input: unknown): input is TraceInput {
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
@@ -2064,14 +2066,14 @@ export async function readTrace(
   if (detection.status === "unsupported" || detection.format === undefined) {
     throw new TraceReadError(
       "unsupported_format",
-      "No trace reader could detect the input format.",
+      formatProgrammaticDiagnostic("AI_TRACE_FORMAT_UNSUPPORTED"),
       detection.warnings,
     );
   }
   if (detection.status === "ambiguous") {
     throw new TraceReadError(
       "ambiguous_format",
-      "Multiple trace readers matched the input with equal confidence.",
+      formatProgrammaticDiagnostic("AI_TRACE_FORMAT_AMBIGUOUS"),
       detection.warnings,
     );
   }
@@ -2080,7 +2082,10 @@ export async function readTrace(
   if (!reader) {
     throw new TraceReadError(
       "unsupported_format",
-      `No trace reader is registered for format "${detection.format}".`,
+      formatProgrammaticDiagnostic(
+        "AI_TRACE_FORMAT_UNSUPPORTED",
+        `No trace reader is registered for format "${detection.format}".`,
+      ),
       detection.warnings,
     );
   }

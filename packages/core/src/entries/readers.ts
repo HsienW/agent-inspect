@@ -27,3 +27,13 @@ export {
   otlpJsonReader,
   readTrace,
 } from "../readers/index.js";
+
+export type {
+  ProgrammaticDiagnosticCode,
+  ProgrammaticDiagnosticSpec,
+} from "../diagnostics/programmatic.js";
+
+export {
+  PROGRAMMATIC_DIAGNOSTIC_SPECS,
+  formatProgrammaticDiagnostic,
+} from "../diagnostics/programmatic.js";

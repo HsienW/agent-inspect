@@ -9,6 +9,7 @@
  */
 
 import type { PersistedInspectEvent } from "../types/persisted-inspect-event.js";
+import { formatProgrammaticDiagnostic } from "../diagnostics/programmatic.js";
 
 /**
  * Diagnostic emitted while projecting logical lifecycle events.
@@ -309,7 +310,10 @@ export function projectLogicalEvents(
       if (originalParentId === event.eventId) {
         diagnostics.push({
           code: "AI_LOGICAL_SELF_PARENT_REMOVED",
-          message: `Removed self-parent edge on ${event.eventId}.`,
+          message: formatProgrammaticDiagnostic(
+            "AI_TRACE_RELATIONSHIP_SELF_PARENT",
+            `Removed self-parent edge on ${event.eventId}.`,
+          ),
           eventIds: [event.eventId],
         });
         const { parentId: _drop, ...rest } = event;
@@ -347,7 +351,10 @@ export function projectLogicalEvents(
     if (nextParent === event.eventId) {
       diagnostics.push({
         code: "AI_LOGICAL_SELF_PARENT_REMOVED",
-        message: `Removed self-parent edge on ${event.eventId} (was ${originalParentId}).`,
+        message: formatProgrammaticDiagnostic(
+          "AI_TRACE_RELATIONSHIP_SELF_PARENT",
+          `Removed self-parent edge on ${event.eventId} (was ${originalParentId}).`,
+        ),
         eventIds: [event.eventId],
       });
       const { parentId: _drop, ...rest } = event;

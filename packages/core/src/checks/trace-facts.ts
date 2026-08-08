@@ -6,6 +6,7 @@
 
 import type { TraceReadResult } from "../readers/index.js";
 import type { PersistedInspectEvent } from "../types/persisted-inspect-event.js";
+import { formatProgrammaticDiagnostic } from "../diagnostics/programmatic.js";
 import {
   projectLogicalEvents,
   resolveCanonicalToolName,
@@ -76,8 +77,9 @@ export interface TraceFacts {
   readonly summary: SemanticParitySummary;
 }
 
-const TRACE_FACTS_INPUT_NOT_NORMALIZED =
-  "AI_TRACE_FACTS_INPUT_NOT_NORMALIZED: TraceFacts requires TraceReadResult or PersistedInspectEvent[]. Use openTraceFile() to normalize a JSONL trace first.";
+const TRACE_FACTS_INPUT_NOT_NORMALIZED = formatProgrammaticDiagnostic(
+  "AI_TRACE_FACTS_INPUT_NOT_NORMALIZED",
+);
 
 function isTraceReadResult(input: unknown): input is TraceReadResult {
   if (typeof input !== "object" || input === null || Array.isArray(input)) {

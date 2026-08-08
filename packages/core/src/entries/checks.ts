@@ -51,6 +51,8 @@ export type {
   TraceContractObservationRules,
   TraceContractRunRules,
   TraceContractToolRules,
+  ProgrammaticDiagnosticCode,
+  ProgrammaticDiagnosticSpec,
 } from "../checks/index.js";
 
 export {
@@ -87,4 +89,6 @@ export {
   resolveCanonicalToolName,
   runTraceChecks,
   summarizeSemanticParity,
+  PROGRAMMATIC_DIAGNOSTIC_SPECS,
+  formatProgrammaticDiagnostic,
 } from "../checks/index.js";

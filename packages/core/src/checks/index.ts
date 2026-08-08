@@ -5,6 +5,7 @@ import type {
   InspectRunTree,
 } from "../types/inspect-event.js";
 import type { PersistedInspectEvent } from "../types/persisted-inspect-event.js";
+import { formatProgrammaticDiagnostic } from "../diagnostics/programmatic.js";
 import {
   extractOutcomesFromPersistedEvents,
   outcomesMatchingStatus,
@@ -25,6 +26,14 @@ export type { LogicalProjectionDiagnostic, LogicalTraceEvent } from "./logical-e
 export { projectLogicalEvents, resolveCanonicalToolName } from "./logical-events.js";
 export type { SemanticParitySummary, TraceFacts } from "./trace-facts.js";
 export { buildTraceFacts, summarizeSemanticParity } from "./trace-facts.js";
+export type {
+  ProgrammaticDiagnosticCode,
+  ProgrammaticDiagnosticSpec,
+} from "../diagnostics/programmatic.js";
+export {
+  PROGRAMMATIC_DIAGNOSTIC_SPECS,
+  formatProgrammaticDiagnostic,
+} from "../diagnostics/programmatic.js";
 export {
   DEFAULT_CREDENTIAL_SENSITIVE_KEYS,
   isCredentialSensitiveKey,
@@ -799,7 +808,13 @@ function resolveSelectedRun(
   if (input.read.runs.length === 0) {
     return {
       diagnostics: [
-        diagnostic("AI_CHECK_RUN_SELECTION_REQUIRED", "No runs are available for checks."),
+        diagnostic(
+          "AI_CHECK_RUN_SELECTION_REQUIRED",
+          formatProgrammaticDiagnostic(
+            "AI_TRACE_CONTRACT_RUN_SELECTION_REQUIRED",
+            "No runs are available for checks.",
+          ),
+        ),
       ],
     };
   }
@@ -808,7 +823,7 @@ function resolveSelectedRun(
     diagnostics: [
       diagnostic(
         "AI_CHECK_RUN_SELECTION_REQUIRED",
-        "Multiple runs are available; select a run before executing checks.",
+        formatProgrammaticDiagnostic("AI_TRACE_CONTRACT_RUN_SELECTION_REQUIRED"),
       ),
     ],
   };
@@ -1962,7 +1977,7 @@ export function createStructureCycleRule(): TraceCheckRule {
               findings.push(
                 failFinding(
                   "structure.cycle",
-                  "Trace contains a parentId cycle.",
+                  formatProgrammaticDiagnostic("AI_TRACE_RELATIONSHIP_CYCLE"),
                   cycle.map((item) => eventEvidence(item, "parentId")),
                   "acyclic parentId graph",
                   cycle.map((item) => item.eventId).sort(),

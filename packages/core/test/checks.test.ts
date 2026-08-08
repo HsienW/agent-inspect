@@ -221,10 +221,11 @@ describe("runTraceChecks", () => {
     expect(result.diagnostics).toEqual([
       {
         code: "AI_CHECK_RUN_SELECTION_REQUIRED",
-        message: "Multiple runs are available; select a run before executing checks.",
+        message: expect.stringContaining("AI_TRACE_CONTRACT_RUN_SELECTION_REQUIRED"),
         severity: "error",
       },
     ]);
+    expect(result.diagnostics[0]?.message).toMatch(/Remediation:/);
   });
 
   it("separates thrown rule errors from rule-failure findings", () => {

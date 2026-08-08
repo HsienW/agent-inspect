@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-swarm-stability-evidence-v6.14.1-to-pre-v7
 currentTrain: v6.15.0-fidelity-and-readers
 trainStatus: active
-currentChunk: 6.15-7
-nextAction: Stable actionable diagnostics (additive codes + remediation). Stop before publish if external pilots missing.
+currentChunk: 6.15-8
+nextAction: ESM/CJS/NodeNext/Node16 consumer examples and type tests. Stop before publish if external pilots missing.
 canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md
 activePlan: docs/implementation/release-trains/V6.15.0-EXECUTION-PLAN.md
 ```
@@ -17,4 +17,4 @@ activePlan: docs/implementation/release-trains/V6.15.0-EXECUTION-PLAN.md
 
 ## Notes
 
-6.15-6 evaluateTraceContractRead landed. Do not fabricate pilots.
+6.15-7 stable programmatic diagnostics landed. Do not fabricate pilots.
