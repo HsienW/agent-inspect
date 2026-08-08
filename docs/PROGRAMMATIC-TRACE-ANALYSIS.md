@@ -1,6 +1,6 @@
 # Programmatic persisted-trace analysis
 
-**Status:** In progress for `6.15.0` (N-5) — `openTraceFile` / `Directory` / `Text` landed in 6.15-4
+**Status:** In progress for `6.15.0` (N-5) — file helpers + `buildTraceFacts(TraceReadResult)` landed
 **Authority:** [implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md](./implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md) §9.5–9.8
 
 ## Current
@@ -16,8 +16,7 @@ import {
 import { buildTraceFacts } from "agent-inspect/checks";
 
 const read = await openTraceFile("./.agent-inspect/run.jsonl");
-// Prefer TraceReadResult overload in 6.15-5:
-const facts = buildTraceFacts(read.events);
+const facts = buildTraceFacts(read);
 ```
 
 Bare path strings passed to `openTrace` / `readTrace` throw `TraceReadError` with code `invalid_input` and message prefix `AI_TRACE_INPUT_INVALID` (no WeakMap key errors).

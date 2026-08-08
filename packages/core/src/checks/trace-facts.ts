@@ -4,6 +4,7 @@
  * @experimental Available through `agent-inspect/checks`; formal TraceFacts in 6.13.
  */
 
+import type { TraceReadResult } from "../readers/index.js";
 import type { PersistedInspectEvent } from "../types/persisted-inspect-event.js";
 import {
   projectLogicalEvents,
@@ -75,14 +76,83 @@ export interface TraceFacts {
   readonly summary: SemanticParitySummary;
 }
 
+const TRACE_FACTS_INPUT_NOT_NORMALIZED =
+  "AI_TRACE_FACTS_INPUT_NOT_NORMALIZED: TraceFacts requires TraceReadResult or PersistedInspectEvent[]. Use openTraceFile() to normalize a JSONL trace first.";
+
+function isTraceReadResult(input: unknown): input is TraceReadResult {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    return false;
+  }
+  const record = input as {
+    events?: unknown;
+    runs?: unknown;
+    format?: unknown;
+    warnings?: unknown;
+  };
+  return (
+    Array.isArray(record.events) &&
+    Array.isArray(record.runs) &&
+    typeof record.format === "string" &&
+    Array.isArray(record.warnings)
+  );
+}
+
+function looksLikeRawV01TraceEvents(input: unknown): boolean {
+  if (!Array.isArray(input) || input.length === 0) return false;
+  const first = input[0];
+  if (typeof first !== "object" || first === null) return false;
+  const row = first as { event?: unknown; schemaVersion?: unknown; eventId?: unknown };
+  return (
+    typeof row.event === "string" &&
+    (row.schemaVersion === "0.1" || row.eventId === undefined)
+  );
+}
+
+function isPersistedInspectEventArray(
+  input: unknown,
+): input is readonly PersistedInspectEvent[] {
+  if (!Array.isArray(input)) return false;
+  if (input.length === 0) return true;
+  const first = input[0];
+  if (typeof first !== "object" || first === null) return false;
+  const row = first as { eventId?: unknown; schemaVersion?: unknown; event?: unknown };
+  return (
+    typeof row.eventId === "string" &&
+    (row.schemaVersion === "0.2" ||
+      row.schemaVersion === "1.0" ||
+      row.schemaVersion === "0.1") &&
+    typeof row.event !== "string"
+  );
+}
+
+function resolveTraceFactsEvents(
+  input: TraceReadResult | readonly PersistedInspectEvent[],
+): readonly PersistedInspectEvent[] {
+  if (isTraceReadResult(input)) {
+    return input.events;
+  }
+  if (looksLikeRawV01TraceEvents(input)) {
+    throw new TypeError(TRACE_FACTS_INPUT_NOT_NORMALIZED);
+  }
+  if (isPersistedInspectEventArray(input)) {
+    return input;
+  }
+  throw new TypeError(TRACE_FACTS_INPUT_NOT_NORMALIZED);
+}
+
 /**
- * Build TraceFacts from raw persisted events.
+ * Build TraceFacts from a TraceReadResult or normalized persisted events.
  *
  * @experimental
  */
+export function buildTraceFacts(input: TraceReadResult): TraceFacts;
 export function buildTraceFacts(
-  events: readonly PersistedInspectEvent[],
+  input: readonly PersistedInspectEvent[],
+): TraceFacts;
+export function buildTraceFacts(
+  input: TraceReadResult | readonly PersistedInspectEvent[],
 ): TraceFacts {
+  const events = resolveTraceFactsEvents(input);
   const projection = projectLogicalEvents(events);
   const toolsByName = new Map<string, LogicalTraceEvent[]>();
   const llmEvents: LogicalTraceEvent[] = [];
