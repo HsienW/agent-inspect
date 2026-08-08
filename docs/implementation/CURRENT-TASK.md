@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-swarm-stability-evidence-v6.14.1-to-pre-v7
 currentTrain: v6.14.2-swarm-stability
 trainStatus: active
-currentChunk: 6.14.2-7
-nextAction: Moderate + deep-swarm fixture corpus
+currentChunk: 6.14.2-8
+nextAction: Packed check→gate→bundle→verify E2E
 canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md
 activePlan: docs/implementation/release-trains/V6.14.2-EXECUTION-PLAN.md
 ```
