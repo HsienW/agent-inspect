@@ -1,12 +1,12 @@
 {
   "name": "agent-inspect",
-  "version": "6.14.2",
+  "version": "6.15.0",
   "schemaVersion": "1.0",
   "category": "The local evidence debugger and trajectory-test toolkit for TypeScript AI agents",
   "headline": "Debug and regression-test TypeScript AI agents from local evidence",
   "supportingSentence": "AgentInspect captures framework-faithful execution trees, evaluates them with deterministic TraceFacts and TraceContract rules, creates integrity-verifiable Evidence v2, and lets coding assistants inspect the same local facts over read-only MCP—without a collector, account, or default upload.",
   "outcome": "See what your agent did. Prove the fix. Keep the evidence.",
-  "statusLine": "Current release: 6.14.2 · schema 1.0 · Node.js 20+ · MIT · actively maintained",
+  "statusLine": "Current release: 6.15.0 · schema 1.0 · Node.js 20+ · MIT · actively maintained",
   "pillars": [
     {
       "id": "capture",
