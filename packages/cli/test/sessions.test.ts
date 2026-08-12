@@ -123,7 +123,9 @@ describe("sessions CLI", () => {
 
   it("activity emits JSON summary", async () => {
     await copySessionFixtures(tmpDir);
-    await sessionsActivityCommand({ dir: tmpDir, json: true, since: "1000d" });
+    // Fixtures use ~2023 timestamps; use a wide window so the test does not
+    // age out as wall-clock time advances.
+    await sessionsActivityCommand({ dir: tmpDir, json: true, since: "10000d" });
     const parsed = JSON.parse(logSpy.mock.calls.flat().join("")) as {
       ok: boolean;
       sessions: number;
