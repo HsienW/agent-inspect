@@ -1,5 +1,17 @@
 # @agent-inspect/mcp-server
 
+## 6.17.0
+
+### Minor Changes
+
+- 3294db3: Add check presets (`trajectory` / `safety` / `comprehensive`), local Evidence-on-failure flags for `check`/`gate`, and `bundle open` for verified local Evidence HTML.
+
+### Patch Changes
+
+- Updated dependencies [3294db3]
+  - agent-inspect@6.17.0
+  - @agent-inspect/redact@6.17.0
+
 ## 6.16.2
 
 ### Patch Changes

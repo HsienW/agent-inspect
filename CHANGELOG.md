@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.17.0
+
+### Minor Changes
+
+- 3294db3: Add check presets (`trajectory` / `safety` / `comprehensive`), local Evidence-on-failure flags for `check`/`gate`, and `bundle open` for verified local Evidence HTML.
+
 ## 6.16.2
 
 ### Patch Changes
