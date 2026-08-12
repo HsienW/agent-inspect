@@ -6,7 +6,7 @@ AgentInspect captures framework-faithful execution trees, evaluates them with de
 
 - Category: The local evidence debugger and trajectory-test toolkit for TypeScript AI agents
 - Outcome: See what your agent did. Prove the fix. Keep the evidence.
-- Status: Current release: 6.16.1 · schema 1.0 · Node.js 20+ · MIT · actively maintained
+- Status: Current release: 6.16.2 · schema 1.0 · Node.js 20+ · MIT · actively maintained
 - Site: https://agentinspect.vercel.app
 - Docs: https://agentinspect.vercel.app/docs/
 - GitHub: https://github.com/rajudandigam/agent-inspect

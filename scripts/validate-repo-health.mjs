@@ -84,22 +84,30 @@ if (unreleased.length !== 1) {
   failures.push(`expected exactly one ## Unreleased, found ${unreleased.length}`);
 }
 
-// Public version alignment
+// Public version alignment (skip during npm lifecycle publish — docs sync lands after)
+const skipVersionAlign =
+  process.env.npm_lifecycle_event === "prepublishOnly" ||
+  process.env.npm_lifecycle_event === "prepack" ||
+  process.env.AGENT_INSPECT_REPO_HEALTH_SKIP_VERSION === "1";
 const pkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
 const version = pkg.version;
-const docsReadme = readFileSync(path.join(root, "docs/README.md"), "utf8");
-if (!docsReadme.includes(version) && !docsReadme.includes(`@${version}`)) {
-  // allow docs to lag only if still on published line during prep — require match
+if (!skipVersionAlign) {
+  const docsReadme = readFileSync(path.join(root, "docs/README.md"), "utf8");
   if (!docsReadme.includes(`agent-inspect@${version}`)) {
     failures.push(`docs/README.md should mention current version ${version}`);
   }
-}
-const rootReadme = readFileSync(path.join(root, "README.md"), "utf8");
-if (/6\.15 line is actively maintained/.test(rootReadme)) {
-  failures.push("README still mentions stale 6.15 maintenance line");
-}
-if (/waiting for adoption|no adoption yet|pre-adoption|test phase/i.test(rootReadme)) {
-  failures.push("README uses banned soft-launch / adoption-waiting language");
+  const rootReadme = readFileSync(path.join(root, "README.md"), "utf8");
+  if (/6\.15 line is actively maintained/.test(rootReadme)) {
+    failures.push("README still mentions stale 6.15 maintenance line");
+  }
+  if (/waiting for adoption|no adoption yet|pre-adoption|test phase/i.test(rootReadme)) {
+    failures.push("README uses banned soft-launch / adoption-waiting language");
+  }
+} else {
+  const rootReadme = readFileSync(path.join(root, "README.md"), "utf8");
+  if (/waiting for adoption|no adoption yet|pre-adoption|test phase/i.test(rootReadme)) {
+    failures.push("README uses banned soft-launch / adoption-waiting language");
+  }
 }
 
 // Banned soft-launch phrases on key public facts
