@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7
 currentTrain: v6.16.1-repository-health-public-truth
 trainStatus: active
-currentChunk: 6.16.1-0-repository-disposition
-nextAction: Inventory, classify, and aggressively remove stale repository material while preserving current product truth.
+currentChunk: 6.16.1-1-public-truth
+nextAction: Correct public version/status/product truth for the 6.16 baseline.
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/EXECUTION-PLAN.md
 ```
