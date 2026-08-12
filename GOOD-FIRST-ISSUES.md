@@ -57,4 +57,4 @@ Unified persisted event model, schema evolution, redaction/security internals, p
 4. No new root runtime dependencies, no Changesets, no version bumps.
 5. Do **not** fabricate external pilot evidence or mark pre-v7 evidence rows complete.
 
-Historical issue batches live under [docs/archive/github/](docs/archive/github/) and are reference-only.
+Historical contributor issue wording lives in Git history (removed from the active tree in `6.16.1`). Prefer live GitHub issues.

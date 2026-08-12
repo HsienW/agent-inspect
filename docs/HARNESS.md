@@ -1,9 +1,5 @@
-# Harness (archived)
+# Harness
 
-Harness documentation lives on the package README:
+`@agent-inspect/harness` remains a published package. The long-form historical harness design note was removed from the active tree in `6.16.1` (available in Git history).
 
-- [`@agent-inspect/harness`](../packages/harness/README.md)
-- NestJS path: [NESTJS.md](./NESTJS.md)
-- Starter: [examples/starters/harness-nestjs](../examples/starters/harness-nestjs/README.md)
-
-Full historical doc: [archive/public/HARNESS.md](./archive/public/HARNESS.md)
+Start with the package README and [SUPPORT-LEVELS.md](./SUPPORT-LEVELS.md).

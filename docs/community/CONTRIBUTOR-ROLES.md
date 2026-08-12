@@ -28,7 +28,7 @@ See [CONTRIBUTING.md](../../CONTRIBUTING.md) and [MAINTAINER-GUIDE.md](./MAINTAI
 - Runnable recipes and examples
 - Canonical fixtures and validation scripts
 - Tests that lock behavior for approved issues
-- Issue wording suggestions (via PR to [docs/archive/github/](../../docs/archive/github/) or a live issue comment)
+- Issue wording suggestions (via PR or a live issue comment)
 
 **Should not own yet:**
 

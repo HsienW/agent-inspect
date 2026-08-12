@@ -49,7 +49,7 @@ describe("archived-link rule", () => {
     expect(violations[0]?.target).toBe(".github/ISSUE_DRAFTS/001.md");
   });
 
-  it("passes allowlisted historical citations", async () => {
+  it("does not allowlist historical archive citations after 6.16.1 cleanup", async () => {
     const { findArchivedLinkViolations } = await loadRule();
     const violations = findArchivedLinkViolations([
       {
@@ -62,7 +62,7 @@ describe("archived-link rule", () => {
       },
     ]);
 
-    expect(violations).toEqual([]);
+    expect(violations).toHaveLength(2);
   });
 
   it("does not allowlist the same target from other sources", async () => {

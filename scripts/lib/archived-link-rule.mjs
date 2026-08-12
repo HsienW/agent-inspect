@@ -16,21 +16,7 @@ export const DISALLOWED_LINK_PREFIXES = [
  * Explicitly sanctioned historical citations: sources that intentionally
  * catalog archived material and say so in their surrounding prose.
  */
-export const ALLOWED_HISTORICAL_LINKS = [
-  // Contributor indexes label these pointers as historical drafts.
-  { source: "GOOD-FIRST-ISSUES.md", targetPrefix: "docs/archive/github/" },
-  { source: "GOOD-FIRST-ISSUES.md", targetPrefix: ".github/ISSUE_DRAFTS/" },
-  { source: "ROADMAP.md", targetPrefix: "docs/archive/implementation/" },
-  { source: "docs/community/CONTRIBUTOR-ROLES.md", targetPrefix: "docs/archive/github/" },
-  { source: "docs/community/GOOD-FIRST-ISSUES.md", targetPrefix: "docs/archive/github/" },
-  // Stub docs that explicitly say "(archived)" and redirect to the full
-  // historical version.
-  { source: "docs/COMMUNITY-EXTENSION-REGISTRY.md", targetPrefix: "docs/archive/public/" },
-  { source: "docs/HARNESS.md", targetPrefix: "docs/archive/public/" },
-  { source: "docs/IDE-SURFACES.md", targetPrefix: "docs/archive/public/" },
-  // The docs index links the archive index as its labeled historical section.
-  { source: "docs/README.md", targetPrefix: "docs/archive/README.md" },
-];
+export const ALLOWED_HISTORICAL_LINKS = [];
 
 const LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g;
 

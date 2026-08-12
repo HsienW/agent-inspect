@@ -120,7 +120,7 @@ Full lifecycle taxonomy (`status:*`, `priority:*`, `difficulty:*`, `area:*`, own
 
 ## Issue drafts
 
-Drafts in `.github/ISSUE_DRAFTS/` are **not** live GitHub issues. Copy into Issues with labels and milestone when ready.
+Create GitHub issues from contributor PRs or live discussion. Do not commit issue-draft markdown trees.
 
 Recommended first wave: see [GOOD-FIRST-ISSUES.md](../../GOOD-FIRST-ISSUES.md).
 

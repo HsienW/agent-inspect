@@ -1,9 +1,5 @@
-# Community extension registry (archived)
+# Community extension registry
 
-**Moved:** [archive/public/COMMUNITY-EXTENSION-REGISTRY.md](./archive/public/COMMUNITY-EXTENSION-REGISTRY.md)
+Historical community-extension guidance was removed from the active tree in `6.16.1`.
 
-For current integration work:
-
-- Official adapters: [ADAPTER-CONFORMANCE.md](./ADAPTER-CONFORMANCE.md)
-- Third-party authors: [`@agent-inspect/adapter-sdk`](../packages/adapter-sdk/README.md)
-- Contracts: [proposals/V3-EXTENSION-CONTRACTS.md](./proposals/V3-EXTENSION-CONTRACTS.md)
+See Git history for the prior document, and current package docs for supported extension surfaces.

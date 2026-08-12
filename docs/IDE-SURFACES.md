@@ -1,5 +1,5 @@
-# IDE surfaces (archived)
+# IDE surfaces
 
-**Moved:** [archive/public/IDE-SURFACES.md](./archive/public/IDE-SURFACES.md)
+Historical IDE-surface notes were removed from the active tree in `6.16.1`.
 
-The v2.6 decision record is historical. For current IDE guidance use [VSCODE.md](./VSCODE.md) (in-repo extension, F5 dev host; Marketplace publish is manual).
+For current local surfaces, see `@agent-inspect/studio`, `@agent-inspect/viewer`, `@agent-inspect/tui`, and [SUPPORT-LEVELS.md](./SUPPORT-LEVELS.md). Prior prose remains in Git history.
