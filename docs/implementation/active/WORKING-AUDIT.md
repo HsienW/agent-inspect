@@ -144,3 +144,8 @@ None remaining after this table: every candidate category has a disposition.
 ## 6.16.1-8 stale API language
 
 Reviewed core comments for obsolete “v1/v2 product era” framing. Retained accurate compatibility notes (`schemaVersion: "0.1"` global writes, no `step_failed` event) because they describe current contracts.
+
+
+## 6.16.1-9 examples/scripts/assets
+
+Demo GIFs under docs/assets/demos remain the largest intentional public assets (~1MB total). No committed demo ZIP archives. Generated Evidence samples will be produced via demo scripts in 6.17.1 rather than committed archives.
