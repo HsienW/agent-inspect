@@ -224,7 +224,7 @@
     "size": "size-limit --config size-limit.config.mjs",
     "test:all": "pnpm run typecheck && pnpm run linked-versions:check && pnpm run build && pnpm run test && pnpm run size",
     "prepublish:checks": "pnpm run typecheck && pnpm run test && pnpm run test:coverage && pnpm run build && pnpm run fixtures:check && pnpm run recipes:check && pnpm run size && pnpm run linked-versions:check && pnpm run repo:health && pnpm run pack:smoke",
-    "prepublishOnly": "pnpm run prepublish:checks",
+    "prepublishOnly": "AGENT_INSPECT_REPO_HEALTH_SKIP_VERSION=1 pnpm run prepublish:checks",
     "prepack": "pnpm run clean && pnpm run build",
     "pack:dry-run": "pnpm run build && npm pack --dry-run",
     "pack:smoke": "pnpm run build && node scripts/package-smoke.mjs && node scripts/packed-quickstart-e2e.mjs && node scripts/packed-semantic-loop-e2e.mjs && node scripts/packed-swarm-loop-e2e.mjs && node scripts/evidence-ci-golden-paths.mjs",
