@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Patch
+
+- Repository health and public-truth cleanup toward 6.16.1 (in progress).
+
 ## 6.16.0
 
 ### Minor Changes
@@ -23,12 +29,6 @@
 ### Patch Changes
 
 - 44f80dd: Public positioning and AI discoverability patch: align README/docs/website/package metadata with shipped 6.14 TraceFacts, Evidence, MCP, and experimental matchers; add llms/AI manifests, Agent Skill, and public-truth validators. Docs and presentation only — no schema/runtime change.
-
-## Unreleased
-
-### Minor
-
-- Evidence-first CI launch candidate (6.16.0): moderate + deep-swarm golden check→gate→Evidence paths (`scripts/evidence-ci-golden-paths.mjs`), pack:smoke wiring, and local MCP/CI walkthrough docs. No schema break; no new packages; no default network.
 
 ## 6.14.0
 
@@ -101,17 +101,6 @@
 ### Patch Changes
 
 - ac6747d: Corrective patch after 6.7.2: TraceContract allowed-status handling, OpenInference nano timestamp strings, cohort maxRelativeDelta for all numeric metrics, Windows path portability, CLI search --session exit codes, diff/normalizer correctness, Studio auth timing / ingest / bundle dedup, and related test hardening. No schema break; no new product surface.
-
-## Unreleased
-
-### Documentation
-
-- Activate the Stability and Focus roadmap (v6.7.3 → v6.12 → conditional v7): operational source-of-truth reconciliation, baseline audit, and release-train plans. No runtime or schema change in this docs activation.
-
-### Patch candidates (unpublished on main; intended for 6.7.4)
-
-- Completed-run status derived from terminal RUN lifecycle; explain uses shared user-facing status vocabulary (`8e525f1`).
-- Stats no longer double-prefixes already-typed step names (`tool:tool:` / `llm:llm:`) (`ee49d4c`).
 
 ## 6.7.2
 
