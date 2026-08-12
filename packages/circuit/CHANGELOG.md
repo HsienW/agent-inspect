@@ -1,5 +1,11 @@
 # @agent-inspect/circuit
 
+## 6.16.1
+
+### Patch Changes
+
+- 9aa0a80: Repository health and public-truth patch: permanent roadmap/active-plan structure, aggressive cleanup of archives/trains/proposals, ADRs, package-docs manifest, and repo:health CI gate. Docs/validators only — no schema or runtime product change.
+
 ## 6.16.0
 
 ### Minor Changes
