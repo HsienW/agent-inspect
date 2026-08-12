@@ -318,8 +318,16 @@ Options:
 - `--guardrails <rule>`: optional deterministic guardrail rules (`banned-phrase`, `pii-leak`, `prompt-injection`, …); repeatable
 - `--circuit <rule>`: optional circuit analyzers (`same-tool-repetition`, `max-retries`, …); repeatable
 - `--fail-on-observation <status>`: add `outcome.status` rule; repeatable (`failed`, `passed`, `unknown`, `skipped`; default when flag present without value: `failed`)
+- `--preset <trajectory|safety|comprehensive>`: additive check preset (does not change the default when omitted)
+  - `trajectory`: completion/structure/relationship focus; excludes share-safety findings
+  - `safety`: raw-content / secret / redaction focus
+  - `comprehensive`: union of trajectory and safety
+- `--evidence-on <fail|always|never>`: write local Evidence v2 (no upload); omitted = never
+- `--evidence-dir <path>`: Evidence output directory or base path
+- `--evidence-profile <local|share|strict>`: redaction profile for Evidence (default `share`)
+- `--evidence-format <directory|html|zip>`: Evidence layout (default `directory`)
 
-By default, `check` runs `run.status`. Additional built-in rules can be selected with `--rule` or config when their options are available.
+By default, `check` runs `run.status`. Additional built-in rules can be selected with `--rule` or config when their options are available. Prefer `--preset trajectory` in CI, then `verify-safe` before sharing.
 
 Config files use this shape:
 
@@ -341,6 +349,7 @@ Examples:
 ```bash
 npx agent-inspect check fixtures/traces-v0.2/manual-basic.jsonl --json
 npx agent-inspect check minimal-success --dir fixtures/traces --rule run.status
+npx agent-inspect check trace.jsonl --preset trajectory --evidence-on fail
 npx agent-inspect check trace.jsonl --max-duration-ms 30000 --required-tool search_docs --json
 npx agent-inspect check trace.jsonl --guardrails pii-leak --guardrails prompt-injection --json
 npx agent-inspect check trace.jsonl --circuit same-tool-repetition --circuit max-retries --json
@@ -900,6 +909,14 @@ agent-inspect bundle verify <path> [--unexpected fail|warn|ignore] [--json]
 
 Checks manifest schema, listed-file presence, SHA-256 hashes, unexpected files (default fail), assessment, and generator provenance. Unpack ZIP archives before verify.
 
+Open a verified local Evidence HTML file in the platform browser (no network):
+
+```bash
+agent-inspect bundle open <path> [--skip-verify] [--json]
+```
+
+`<path>` may be an Evidence directory or an `evidence.html` file. Verify runs first unless `--skip-verify` is set. If the OS cannot open a browser, the command prints the local file path as a fallback and does not upload anything.
+
 Output includes `trace.html`, `trace.jsonl`, `summary.md`, `metadata.json`, `check-results.json`, `redaction-report.json`, and `assets/runs/` mirrors for multi-run bundles.
 
 Examples:
@@ -1003,14 +1020,19 @@ Options:
 - `--format <format>` — `markdown`, `json`, `html`, `junit`, or `github` (default: `markdown`)
 - `-o, --output <dir>` — write `gate-results.json`, `gate-summary.md`, `gate-report.html`, `junit.xml`, `github-step-summary.md`
 - `--json` — print deterministic JSON result
+- `--evidence-on <fail|always|never>` — write local Evidence v2 (no upload); omitted = never
+- `--evidence-dir <path>` — Evidence output directory or base path
+- `--evidence-profile <local|share|strict>` — redaction profile (default `share`)
+- `--evidence-format <directory|html|zip>` — Evidence layout (default `directory`)
 
-Exit codes: **0** pass, **1** gate failed, **2** invalid config, **3** trace read failure, **4** unsupported format.
+Exit codes: **0** pass, **1** gate failed, **2** invalid config, **3** trace read failure, **4** unsupported format. Evidence emission never suppresses the original gate exit code.
 
 Example:
 
 ```bash
 npx agent-inspect gate --suite fixtures/configs/outcome-suite.suite.json --output ./gate-artifacts
 npx agent-inspect gate --dir fixtures/cohorts/before-after --max-error-rate 5 --forbid-tool deleteAccount
+npx agent-inspect gate --suite agent-inspect.suite.ts --evidence-on fail --evidence-profile share
 ```
 
 Recipe: [github-actions-gate](../examples/recipes/github-actions-gate/README.md).

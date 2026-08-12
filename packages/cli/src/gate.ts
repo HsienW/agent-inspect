@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
@@ -9,6 +9,14 @@ import {
   runGate,
 } from "@agent-inspect/core/advanced";
 
+import {
+  parseEvidenceFormat,
+  parseEvidenceProfile,
+  resolveEvidenceOutputDir,
+  shouldEmitEvidence,
+  writeLocalEvidence,
+  type EvidenceOnMode,
+} from "./evidence-on.js";
 import { loadSessionRuns } from "./sessions-load.js";
 
 export interface GateCommandOptions {
@@ -22,6 +30,11 @@ export interface GateCommandOptions {
   format?: "markdown" | "json" | "html" | "junit" | "github";
   output?: string;
   cwd?: string;
+  /** Local Evidence v2 emit mode: fail | always | never. */
+  evidenceOn?: EvidenceOnMode;
+  evidenceDir?: string;
+  evidenceProfile?: string;
+  evidenceFormat?: string;
 }
 
 const SUPPORTED_FORMATS = new Set(["markdown", "json", "html", "junit", "github"]);
@@ -141,6 +154,62 @@ export async function gateCommand(options: GateCommandOptions = {}): Promise<voi
     let artifacts: Record<string, string> | undefined;
     if (options.output !== undefined && options.output.trim() !== "") {
       artifacts = await writeArtifacts(result, path.resolve(options.output.trim()));
+    }
+
+    const failed = !result.ok;
+    if (shouldEmitEvidence(options.evidenceOn, failed)) {
+      try {
+        const runIds =
+          runs.length > 0
+            ? runs.map((run) => run.runId)
+            : (result.suiteResult?.cases
+                .map((item) => item.runId)
+                .filter((id): id is string => typeof id === "string" && id.length > 0) ??
+              ["gate"]);
+        const sourceContents = new Map<string, string>();
+        for (const run of runs) {
+          if (run.filePath) {
+            try {
+              sourceContents.set(run.runId, await readFile(run.filePath, "utf-8"));
+            } catch {
+              sourceContents.set(run.runId, "");
+            }
+          }
+        }
+        const label = runIds[0] ?? "gate";
+        const outputDir = resolveEvidenceOutputDir(
+          options.evidenceDir,
+          `gate-${label}`,
+        );
+        const written = await writeLocalEvidence({
+          outputDir,
+          runIds: runIds.length > 0 ? runIds : ["gate"],
+          sourceContents,
+          ...(gateOptions.traceDir !== undefined ? { dir: gateOptions.traceDir } : {}),
+          failed,
+          checkResultsJson: `${JSON.stringify(
+            {
+              aggregateStatus: failed ? "UNSAFE" : "SAFE",
+              gate: result,
+            },
+            null,
+            2,
+          )}\n`,
+          summaryText: renderGateReport(result, { format: "markdown" }),
+          redactionProfile: parseEvidenceProfile(options.evidenceProfile),
+          format: parseEvidenceFormat(options.evidenceFormat),
+        });
+        if (!options.json && format !== "json") {
+          console.log(`Evidence: ${written}`);
+        }
+        if (artifacts !== undefined) {
+          artifacts = { ...artifacts, evidence: written };
+        }
+      } catch (error) {
+        console.error(
+          `[AgentInspect] evidence package skipped: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     }
 
     if (options.json || format === "json") {

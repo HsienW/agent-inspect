@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import {
   TraceReadError,
   openTrace,
+  type TraceReadResult,
 } from "@agent-inspect/core/readers";
 import {
   TraceDirectory,
@@ -45,6 +46,15 @@ import {
   type TraceCheckRule,
 } from "@agent-inspect/core/checks";
 
+import {
+  checkResultToEvidenceJson,
+  parseEvidenceFormat,
+  parseEvidenceProfile,
+  resolveEvidenceOutputDir,
+  shouldEmitEvidence,
+  writeLocalEvidence,
+  type EvidenceOnMode,
+} from "./evidence-on.js";
 import { inputFromTarget } from "./trace-input.js";
 import { mergeSafetyExtensions } from "./safety-extensions.js";
 
@@ -69,6 +79,90 @@ export interface CheckCommandOptions {
   requireCompleted?: boolean;
   detectStalls?: boolean;
   failOnObservation?: string;
+  /** Additive check preset: trajectory | safety | comprehensive. */
+  preset?: string;
+  /** Local Evidence v2 emit mode: fail | always | never. */
+  evidenceOn?: EvidenceOnMode;
+  evidenceDir?: string;
+  evidenceProfile?: string;
+  evidenceFormat?: string;
+}
+
+export const CHECK_PRESET_NAMES = ["trajectory", "safety", "comprehensive"] as const;
+export type CheckPresetName = (typeof CHECK_PRESET_NAMES)[number];
+
+export interface ResolvePresetContext {
+  /** When true, trajectory/comprehensive select includes tool.usage. */
+  hasToolRules?: boolean;
+}
+
+export interface ResolvedPreset {
+  requireCompleted: boolean;
+  enableSafetyRedaction: boolean;
+  /** Inject structure.requireParentBeforeChild when config lacks relationship options. */
+  enableStructureRelationshipDefaults: boolean;
+  select: string[];
+}
+
+/**
+ * Resolve an additive check preset into option/select patches.
+ * Omitting preset returns undefined and leaves default check behavior unchanged.
+ */
+export function resolvePreset(
+  preset: string | undefined,
+  context: ResolvePresetContext = {},
+): ResolvedPreset | undefined {
+  if (preset === undefined || preset.trim() === "") return undefined;
+  const name = preset.trim().toLowerCase();
+  if (name !== "trajectory" && name !== "safety" && name !== "comprehensive") {
+    throw new Error(
+      `Unknown --preset "${preset}". Use trajectory, safety, or comprehensive.`,
+    );
+  }
+
+  const trajectorySelect = [
+    "run.status",
+    "run.requireCompleted",
+    "structure.orphan",
+    "structure.cycle",
+    "structure.relationship",
+  ];
+  if (context.hasToolRules === true) {
+    trajectorySelect.push("tool.usage");
+  }
+
+  // Rule id for createSafetyRawContentRule is safety.rawPrompt.
+  const safetySelect = [
+    "run.status",
+    "safety.rawPrompt",
+    "safety.secretPattern",
+    "safety.redaction",
+  ];
+
+  if (name === "trajectory") {
+    return {
+      requireCompleted: true,
+      enableSafetyRedaction: false,
+      enableStructureRelationshipDefaults: true,
+      select: trajectorySelect,
+    };
+  }
+  if (name === "safety") {
+    return {
+      requireCompleted: false,
+      enableSafetyRedaction: true,
+      enableStructureRelationshipDefaults: false,
+      select: safetySelect,
+    };
+  }
+
+  const select = [...new Set([...trajectorySelect, ...safetySelect])];
+  return {
+    requireCompleted: true,
+    enableSafetyRedaction: true,
+    enableStructureRelationshipDefaults: true,
+    select,
+  };
 }
 
 type CheckConfig = {
@@ -186,6 +280,54 @@ function normalizeConfig(config: CheckConfig): NonNullable<CheckConfig["checks"]
     throw new Error("checks config must be an object.");
   }
   return config.checks;
+}
+
+function hasToolRulesConfigured(
+  config: CheckConfig,
+  options: CheckCommandOptions,
+): boolean {
+  const tool = normalizeConfig(config).tool ?? {};
+  return Boolean(
+    (tool.required?.length ?? 0) > 0 ||
+      (tool.forbidden?.length ?? 0) > 0 ||
+      (tool.allowed?.length ?? 0) > 0 ||
+      tool.minCount !== undefined ||
+      tool.maxCount !== undefined ||
+      (options.requiredTool?.length ?? 0) > 0 ||
+      (options.forbiddenTool?.length ?? 0) > 0,
+  );
+}
+
+function applyResolvedPreset(
+  config: CheckConfig,
+  options: CheckCommandOptions,
+  resolved: ResolvedPreset,
+): { config: CheckConfig; options: CheckCommandOptions } {
+  const checks = { ...normalizeConfig(config) };
+
+  if (resolved.enableSafetyRedaction) {
+    checks.safety = { ...checks.safety, redaction: true };
+  }
+
+  if (resolved.enableStructureRelationshipDefaults) {
+    const structure = checks.structure ?? {};
+    const needed =
+      structure.minConfidence === undefined &&
+      structure.requireParentBeforeChild === undefined &&
+      structure.requireTraceParentSpan === undefined;
+    if (needed) {
+      checks.structure = { ...structure, requireParentBeforeChild: true };
+    }
+  }
+
+  return {
+    config: { checks },
+    options: {
+      ...options,
+      ...(resolved.requireCompleted ? { requireCompleted: true } : {}),
+      rule: [...resolved.select, ...(options.rule ?? [])],
+    },
+  };
 }
 
 function buildRules(
@@ -390,7 +532,56 @@ function printJson(result: TraceCheckResult): void {
   console.log(JSON.stringify(stable(result), null, 2));
 }
 
-function printHuman(result: TraceCheckResult): void {
+function isSafetyFinding(ruleId: string): boolean {
+  return (
+    ruleId.startsWith("safety.") ||
+    ruleId.startsWith("guardrail.") ||
+    ruleId.includes("pii") ||
+    ruleId.includes("secret")
+  );
+}
+
+function printPresetClassSummary(
+  result: TraceCheckResult,
+  preset: string | undefined,
+): void {
+  const name = preset?.trim().toLowerCase();
+  if (name !== "trajectory" && name !== "safety" && name !== "comprehensive") {
+    return;
+  }
+  const hasSafetyFindings = result.findings.some((finding) =>
+    isSafetyFinding(finding.ruleId),
+  );
+  const hasTrajectoryFindings = result.findings.some(
+    (finding) => !isSafetyFinding(finding.ruleId),
+  );
+
+  if (name === "trajectory") {
+    console.log(
+      `Trajectory: ${result.status === "pass" && !hasTrajectoryFindings ? "PASS" : result.status === "pass" ? "PASS" : "FAIL"}`,
+    );
+    console.log("Share safety: not evaluated");
+    console.log("Run verify-safe before sharing.");
+    return;
+  }
+  if (name === "safety") {
+    console.log(
+      `Share safety: ${result.status === "pass" && !hasSafetyFindings ? "PASS" : result.status === "pass" ? "PASS" : "FAIL"}`,
+    );
+    return;
+  }
+  console.log(
+    `Trajectory: ${hasTrajectoryFindings || result.status === "error" ? "FAIL" : "PASS"}`,
+  );
+  console.log(
+    `Share safety: ${hasSafetyFindings || result.status === "fail" ? "FAIL" : result.status === "pass" ? "PASS" : "FAIL"}`,
+  );
+}
+
+function printHuman(
+  result: TraceCheckResult,
+  options: CheckCommandOptions = {},
+): void {
   const scoped = result as {
     scopeKind?: string;
     scopeLabel?: string;
@@ -404,6 +595,7 @@ function printHuman(result: TraceCheckResult): void {
     }
   }
   console.log(`Check status: ${result.status}`);
+  printPresetClassSummary(result, options.preset);
   console.log(`Format: ${result.format}`);
   if (result.runId !== undefined) console.log(`Run: ${result.runId}`);
   console.log(
@@ -443,14 +635,26 @@ export async function checkCommand(
 ): Promise<void> {
   let result: TraceCheckResult;
   let phase: "config" | "read" = "config";
+  let evidenceRead: TraceReadResult | undefined;
+  let evidenceRunIds: string[] = [];
+  let evidenceSourceContents: Map<string, string> | undefined;
 
   const sessionId = options.session?.trim();
   const groupId = options.group?.trim();
   const useSessionScope = Boolean(sessionId || groupId);
 
   try {
-    const config = await loadConfig(options.config);
-    const built = buildRules(config, options);
+    let config = await loadConfig(options.config);
+    let effectiveOptions = options;
+    const resolved = resolvePreset(options.preset, {
+      hasToolRules: hasToolRulesConfigured(config, options),
+    });
+    if (resolved !== undefined) {
+      const applied = applyResolvedPreset(config, options, resolved);
+      config = applied.config;
+      effectiveOptions = applied.options;
+    }
+    const built = buildRules(config, effectiveOptions);
     if (built.diagnostics.some((item) => item.severity === "error")) {
       result = errorResult("AI_CHECK_INVALID_CONFIG", "Invalid check configuration.");
       result.diagnostics = [...built.diagnostics];
@@ -469,6 +673,7 @@ export async function checkCommand(
         correlateByGroupId: options.correlateGroup === true,
       });
       const perRun: TraceCheckResult[] = [];
+      const sourceContents = new Map<string, string>();
       for (const meta of scoped.metas) {
         const read = await openTrace(
           { type: "file", path: meta.filePath },
@@ -476,6 +681,14 @@ export async function checkCommand(
             ...(options.format !== undefined ? { format: options.format } : {}),
           },
         );
+        try {
+          sourceContents.set(meta.runId, await readFile(meta.filePath, "utf-8"));
+        } catch {
+          sourceContents.set(
+            meta.runId,
+            `${read.events.map((event) => JSON.stringify(event)).join("\n")}\n`,
+          );
+        }
         perRun.push(
           mergeSafetyExtensions(
             runTraceChecks(
@@ -494,6 +707,8 @@ export async function checkCommand(
           ),
         );
       }
+      evidenceRunIds = scoped.runIds;
+      evidenceSourceContents = sourceContents;
       result = aggregateSessionCheckResults(perRun, {
         scopeKind: scoped.scopeKind,
         scopeLabel: scoped.scopeLabel,
@@ -508,6 +723,33 @@ export async function checkCommand(
       const read = await openTrace(input, {
         ...(options.format !== undefined ? { format: options.format } : {}),
       });
+      evidenceRead = read;
+      evidenceRunIds =
+        options.run !== undefined
+          ? [options.run]
+          : read.runs.length === 1
+            ? [read.runs[0]!.runId]
+            : read.runs.map((run) => run.runId);
+      if (input.type === "file") {
+        try {
+          const raw = await readFile(input.path, "utf-8");
+          evidenceSourceContents = new Map(
+            evidenceRunIds.map((runId) => [runId, raw]),
+          );
+        } catch {
+          evidenceSourceContents = undefined;
+        }
+      } else {
+        evidenceSourceContents = new Map(
+          evidenceRunIds.map((runId) => [
+            runId,
+            `${read.events
+              .filter((event) => event.runId === runId)
+              .map((event) => JSON.stringify(event))
+              .join("\n")}\n`,
+          ]),
+        );
+      }
       result = mergeSafetyExtensions(
         runTraceChecks(
           { read },
@@ -528,7 +770,7 @@ export async function checkCommand(
     if (phase === "config") {
       const message = error instanceof Error ? error.message : String(error);
       const code: TraceCheckDiagnosticCode =
-        message.startsWith("--")
+        message.startsWith("--") || message.includes("Unknown --preset")
           ? "AI_CHECK_INVALID_ARGUMENTS"
           : error instanceof SyntaxError ||
               message.includes("Unsupported check config extension") ||
@@ -548,6 +790,59 @@ export async function checkCommand(
   }
 
   process.exitCode = exitCodeFor(result);
+
+  const failed = result.status !== "pass";
+  if (shouldEmitEvidence(options.evidenceOn, failed)) {
+    try {
+      const runIds =
+        evidenceRunIds.length > 0
+          ? evidenceRunIds
+          : result.runId !== undefined
+            ? [result.runId]
+            : ["check"];
+      if (
+        evidenceSourceContents === undefined &&
+        evidenceRead !== undefined
+      ) {
+        evidenceSourceContents = new Map(
+          runIds.map((runId) => [
+            runId,
+            `${evidenceRead!.events
+              .filter((event) => event.runId === runId)
+              .map((event) => JSON.stringify(event))
+              .join("\n")}\n`,
+          ]),
+        );
+      }
+      let redactionProfile = parseEvidenceProfile(options.evidenceProfile);
+      let evidenceFormat = parseEvidenceFormat(options.evidenceFormat);
+      const outputDir = resolveEvidenceOutputDir(
+        options.evidenceDir,
+        runIds[0] ?? "check",
+      );
+      const written = await writeLocalEvidence({
+        outputDir,
+        runIds,
+        ...(evidenceSourceContents !== undefined
+          ? { sourceContents: evidenceSourceContents }
+          : {}),
+        ...(options.dir !== undefined ? { dir: options.dir } : {}),
+        failed,
+        checkResultsJson: checkResultToEvidenceJson(result, runIds),
+        summaryText: `Check status: ${result.status}`,
+        redactionProfile,
+        format: evidenceFormat,
+      });
+      if (!options.json) {
+        console.log(`Evidence: ${written}`);
+      }
+    } catch (error) {
+      console.error(
+        `[AgentInspect] evidence package skipped: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
   if (options.json) printJson(result);
-  else printHuman(result);
+  else printHuman(result, options);
 }

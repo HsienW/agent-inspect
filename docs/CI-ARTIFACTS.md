@@ -98,6 +98,37 @@ Sample workflows: [deterministic checks workflow](../examples/recipes/determinis
       ./artifacts
 ```
 
+## Trajectory gate + Evidence on failure (recommended)
+
+```bash
+npx agent-inspect check --dir .agent-inspect --preset trajectory \
+  --evidence-on fail --evidence-profile share --evidence-format directory
+npx agent-inspect verify-safe --dir .agent-inspect
+```
+
+`init --ci github` scaffolds this pattern. Evidence stays local; upload with your CI provider’s artifact action.
+
+## GitLab CI / generic CI
+
+Same local commands work outside GitHub. Example GitLab job fragment:
+
+```yaml
+trajectory_gate:
+  image: node:22
+  script:
+    - npm ci
+    - node examples/agent-inspect-demo.mjs
+    - npx --yes agent-inspect check --dir .agent-inspect --preset trajectory --evidence-on fail
+    - npx --yes agent-inspect verify-safe --dir .agent-inspect
+  artifacts:
+    when: always
+    paths:
+      - .agent-inspect/
+  # No provider API keys required for the deterministic fixture.
+```
+
+AgentInspect performs no network upload; CI platforms attach local paths only.
+
 ## Inspect artifacts locally after download
 
 ```bash

@@ -56,5 +56,9 @@ describe("init CLI", () => {
       "utf8",
     );
     expect(workflow).toContain("upload-artifact");
+    expect(workflow).toContain("--preset trajectory");
+    expect(workflow).toContain("--evidence-on fail");
+    expect(workflow).toContain("verify-safe");
+    expect(workflow).not.toContain("OPENAI_API_KEY");
   });
 });

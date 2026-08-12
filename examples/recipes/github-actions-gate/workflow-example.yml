@@ -19,7 +19,13 @@ jobs:
         run: |
           npx agent-inspect gate \
             --suite fixtures/configs/outcome-suite.suite.json \
-            --output ./gate-artifacts
+            --output ./gate-artifacts \
+            --evidence-on fail \
+            --evidence-profile share
+      - name: Trajectory preset check
+        run: |
+          npx agent-inspect check --dir .agent-inspect --preset trajectory \
+            --evidence-on fail --evidence-dir ./gate-artifacts/evidence
       - name: Publish gate summary
         if: always()
         run: cat ./gate-artifacts/github-step-summary.md >> "$GITHUB_STEP_SUMMARY"

@@ -64,6 +64,8 @@ import type { BundleCommandOptions } from "./bundle.js";
 import { bundleCommand } from "./bundle.js";
 import type { BundleVerifyCommandOptions } from "./bundle-verify.js";
 import { bundleVerifyCommand } from "./bundle-verify.js";
+import type { BundleOpenCommandOptions } from "./bundle-open.js";
+import { bundleOpenCommand } from "./bundle-open.js";
 import type { McpConfigureOptions } from "./mcp-configure.js";
 import { isMcpConfigureClient, mcpConfigureCommand } from "./mcp-configure.js";
 import type { CiSummaryCommandOptions } from "./ci-summary.js";
@@ -415,6 +417,29 @@ export function createCliProgram(): Command {
       "run optional circuit rules (repeatable): same-tool-repetition, max-retries, ...",
       (value, previous: string[] = []) => [...previous, value],
     )
+    .addOption(
+      new Option("--preset <name>", "additive check preset")
+        .choices(["trajectory", "safety", "comprehensive"]),
+    )
+    .addOption(
+      new Option(
+        "--evidence-on <mode>",
+        "write local Evidence v2 (fail=on failure, always, never; no upload)",
+      ).choices(["fail", "always", "never"]),
+    )
+    .option("--evidence-dir <path>", "local Evidence output directory or base path")
+    .addOption(
+      new Option(
+        "--evidence-profile <profile>",
+        "Evidence redaction profile (default share)",
+      ).choices(["local", "share", "strict"]),
+    )
+    .addOption(
+      new Option(
+        "--evidence-format <format>",
+        "Evidence output format (default directory)",
+      ).choices(["directory", "html", "zip"]),
+    )
     .action((target: string, opts: CheckCommandOptions) => {
       runCommand(() => checkCommand(target, opts));
     });
@@ -678,6 +703,16 @@ export function createCliProgram(): Command {
     .option("--json", "print deterministic JSON verify result")
     .action((targetPath: string, opts: BundleVerifyCommandOptions) => {
       runCommand(() => bundleVerifyCommand(targetPath, opts));
+    });
+
+  bundleCmd
+    .command("open")
+    .description("Verify then open local Evidence HTML in the platform browser (no network)")
+    .argument("<path>", "evidence/bundle directory or evidence.html path")
+    .option("--skip-verify", "skip integrity verify before open (not recommended)")
+    .option("--json", "print deterministic JSON open result")
+    .action((targetPath: string, opts: BundleOpenCommandOptions) => {
+      runCommand(() => bundleOpenCommand(targetPath, opts));
     });
 
   program
@@ -1328,6 +1363,25 @@ export function createCliProgram(): Command {
       "write gate-results.json, gate-summary.md, gate-report.html, junit.xml, github-step-summary.md",
     )
     .option("--json", "print deterministic JSON result")
+    .addOption(
+      new Option(
+        "--evidence-on <mode>",
+        "write local Evidence v2 (fail=on failure, always, never; no upload)",
+      ).choices(["fail", "always", "never"]),
+    )
+    .option("--evidence-dir <path>", "local Evidence output directory or base path")
+    .addOption(
+      new Option(
+        "--evidence-profile <profile>",
+        "Evidence redaction profile (default share)",
+      ).choices(["local", "share", "strict"]),
+    )
+    .addOption(
+      new Option(
+        "--evidence-format <format>",
+        "Evidence output format (default directory)",
+      ).choices(["directory", "html", "zip"]),
+    )
     .action((opts: GateCommandOptions) => {
       runCommand(() => gateCommand(opts));
     });

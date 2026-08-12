@@ -1,25 +1,24 @@
-# Active execution plan — v6.16.2 Canonical Docs
+# Active execution plan — v6.17.0 Evidence UX
 
-**Train:** `v6.16.2-canonical-docs`  
-**Named:** `agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7`  
-**Target:** patch `6.16.2`  
-**Baseline:** published `6.16.1`  
-**Authority:** [../ROADMAP.md](../ROADMAP.md) §8
+**Train:** `v6.17.0-evidence-ux`
+**Named:** `agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7`
+**Target:** minor `6.17.0`
+**Baseline:** published `6.16.2`
+**Authority:** [../ROADMAP.md](../ROADMAP.md) §9
 
 ## Goal
 
-Repository Markdown is the single prose source for the website. Delete the manual `doc-content.tsx` switch.
+Additive CLI presets and local Evidence-on-failure workflow without changing default check semantics.
 
-## Chunks
+## Scope landed
 
-| ID | Scope |
-|----|-------|
-| 6.16.2-0 | Docs manifest + markdown loader |
-| 6.16.2-1 | Render pipeline + delete doc-content |
-| 6.16.2-2 | Nav/TOC/alias redirects + validators |
-| 6.16.2-3 | Generated AI/product facts hooks (as needed) |
-| 6.16.2-4 | Release readiness and publication |
+- `--preset trajectory|safety|comprehensive` on `check`
+- `--evidence-on|dir|profile|format` on `check` and `gate`
+- `bundle open` (verify then local browser open)
+- Vitest reporter `evidenceOn` retention mode
+- `init --ci github` trajectory + Evidence scaffold
+- CLI / CI docs
 
 ## Forbidden
 
-New package; schema break; default upload; fabricating partners.
+New package; schema break; default upload; silent default check change; fabricating partners.

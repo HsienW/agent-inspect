@@ -64,6 +64,13 @@ export interface AgentInspectVitestReporterOptions {
   readonly maxSuccessfulTraces?: number;
   /** Redaction profile recorded on generated artifacts. Defaults to `share`. */
   readonly redactionProfile?: TraceArtifactRedactionProfile;
+  /**
+   * Local Evidence-style retention mode for reporter artifacts (no upload).
+   * `fail` (default when omitted with retainSuccessful unset): failures only.
+   * `always`: also retain successful traces up to the success limit.
+   * `never`: skip artifact writes entirely.
+   */
+  readonly evidenceOn?: "fail" | "always" | "never";
   /** Deterministic manifest timestamp. Defaults to the Unix epoch. */
   readonly generatedAt?: string;
   /** Resolve explicit test-to-trace associations from a Vitest task/result. */
@@ -170,6 +177,8 @@ export function createAgentInspectVitestReporter(
     if (!isObject(test)) return;
     if (seenObjects.has(test)) return;
 
+    if (options.evidenceOn === "never") return;
+
     const status = readStatus(test);
     if (status === undefined || status === "skipped") return;
 
@@ -181,6 +190,7 @@ export function createAgentInspectVitestReporter(
     if (association === undefined) return;
 
     if (status === "passed") {
+      if (options.evidenceOn === "fail") return;
       if (retainedSuccesses >= successLimit) return;
       retainedSuccesses += 1;
     }
@@ -262,6 +272,9 @@ export type { AgentInspectVitestMatchers } from "./matchers.js";
 
 function normalizeSuccessLimit(options: AgentInspectVitestReporterOptions): number {
   const cap = clampCount(options.maxSuccessfulTraces, DEFAULT_SUCCESS_LIMIT);
+  if (options.evidenceOn === "always" && options.retainSuccessful === undefined) {
+    return cap;
+  }
   if (options.retainSuccessful === true) return cap;
   if (typeof options.retainSuccessful === "number") {
     return Math.min(clampCount(options.retainSuccessful, 0), cap);

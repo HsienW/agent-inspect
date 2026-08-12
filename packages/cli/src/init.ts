@@ -171,7 +171,7 @@ console.log("Trace written to .agent-inspect/");
   }
 }
 
-function githubWorkflowTemplate(): string {
+function githubWorkflowTemplate(demoPath: string): string {
   return `name: AgentInspect artifacts
 
 on:
@@ -188,16 +188,30 @@ jobs:
         with:
           node-version: "22"
       - run: npm ci
-      - run: npm test
-      - name: Upload AgentInspect traces
+      - name: Run deterministic agent fixture
+        run: node ${demoPath}
+      - name: Trajectory check with Evidence on failure
+        run: >
+          npx --yes agent-inspect check --dir .agent-inspect
+          --preset trajectory
+          --evidence-on fail
+          --evidence-profile share
+          --evidence-format directory
+      - name: Verify share safety
+        if: always()
+        run: npx --yes agent-inspect verify-safe --dir .agent-inspect
+      - name: Upload AgentInspect traces and Evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: agent-inspect-traces
-          path: .agent-inspect/**/*.jsonl
+          path: |
+            .agent-inspect/**/*.jsonl
+            .agent-inspect/evidence/**
           if-no-files-found: ignore
 `;
 }
+
 
 export async function planInit(options: InitCommandOptions = {}): Promise<InitPlan> {
   const framework = normalizeFramework(options.framework);
@@ -219,7 +233,7 @@ export async function planInit(options: InitCommandOptions = {}): Promise<InitPl
   if (options.ci === "github") {
     candidates.push({
       rel: ".github/workflows/agent-inspect-artifacts.yml",
-      content: githubWorkflowTemplate(),
+      content: githubWorkflowTemplate(demoPath),
     });
   }
 
@@ -260,13 +274,17 @@ async function writePlannedFiles(
     }
 
     await mkdir(path.dirname(abs), { recursive: true });
+    const demoPath =
+      plan.framework === "custom"
+        ? "examples/agent-inspect-demo.mjs"
+        : `examples/agent-inspect-${plan.framework}-demo.mjs`;
     const content =
       entry.path === CONFIG_FILE
         ? configTemplate(plan.framework)
         : entry.path === GITKEEP
           ? ""
           : entry.path.endsWith(".yml")
-            ? githubWorkflowTemplate()
+            ? githubWorkflowTemplate(demoPath)
             : demoTemplate(plan.framework);
     await writeFile(abs, content, "utf-8");
     written.push(entry.path);

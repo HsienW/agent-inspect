@@ -5,25 +5,25 @@
 > **Canonical roadmap:** [ROADMAP.md](./ROADMAP.md)
 
 ```yaml
-baselineVersion: "6.16.1"
-publishedVersion: "6.16.1"
-currentTrain: "v6.16.2-canonical-docs"
-trainStatus: "active"
+baselineVersion: "6.16.2"
+publishedVersion: "6.16.2"
+currentTrain: "v6.17.0-evidence-ux"
+trainStatus: "releasing"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7"
 branch: "main"
-currentChunk: "6.16.2-0"
-lastConfirmedCommit: "7782c2d"
-lastValidationLevel: "release"
-nextAction: "Recover root agent-inspect@6.16.1 on npm; then 6.16.2 single-source docs"
+currentChunk: "6.17.0-release"
+lastConfirmedCommit: "89836cf"
+lastValidationLevel: "focused"
+nextAction: "Push 6.17.0; Version Packages → Trusted Publishing; verify 18×6.17.0"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/ROADMAP.md"
 activePlan: "docs/implementation/active/EXECUTION-PLAN.md"
 completedChunks:
-  - "6.16.1 repository health (scoped packages published; root recovery)"
+  - "6.16.1 repository health"
+  - "6.16.2 single-source docs (published)"
 remainingTrains:
-  - "v6.16.2 single-source docs"
-  - "v6.17.0 evidence UX"
+  - "v6.17.0 evidence UX (in release)"
   - "v6.17.1 public proof"
   - "v6.18.0 niche launch"
   - "v6.18.x maintenance"

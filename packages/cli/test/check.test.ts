@@ -206,6 +206,77 @@ describe("check command", () => {
       "handoff-worker",
     ]);
   });
+
+  it("applies trajectory preset without selecting safety rules", async () => {
+    const file = await writeTrace(tmp, "ok.jsonl", [
+      event("event-a", {
+        attributes: { prompt: "raw prompt should not fail trajectory" },
+      }),
+    ]);
+
+    const result = await runCheck(file, { preset: "trajectory" });
+
+    expect(process.exitCode).toBe(0);
+    expect(result.status).toBe("pass");
+    expect(result.findings ?? []).toEqual([]);
+  });
+
+  it("merges preset select with explicit --rule", async () => {
+    const file = await writeTrace(tmp, "ok.jsonl", [
+      event("event-a", {
+        attributes: { prompt: "raw prompt should-not-leak" },
+      }),
+    ]);
+
+    const result = await runCheck(file, {
+      preset: "trajectory",
+      rule: ["safety.rawPrompt"],
+    });
+    const serialized = JSON.stringify(result);
+
+    expect(process.exitCode).toBe(1);
+    expect(result.status).toBe("fail");
+    expect(result.findings?.some((item) => item.ruleId === "safety.rawPrompt")).toBe(true);
+    expect(serialized).not.toContain("should-not-leak");
+  });
+
+  it("writes local evidence on failure when --evidence-on fail", async () => {
+    const cwd = process.cwd();
+    process.chdir(tmp);
+    try {
+      const file = await writeTrace(tmp, "error.jsonl", [
+        event("event-a", { status: "error" }),
+      ]);
+
+      const result = await runCheck(file, { evidenceOn: "fail" });
+
+      expect(process.exitCode).toBe(1);
+      expect(result.status).toBe("fail");
+      const evidenceJson = path.join(tmp, ".agent-inspect", "evidence", "run-check-cli", "evidence.json");
+      expect(existsSync(evidenceJson)).toBe(true);
+    } finally {
+      process.chdir(cwd);
+    }
+  });
+
+  it("respects --evidence-dir and keeps failure exit code", async () => {
+    const evidenceDir = path.join(tmp, "custom-evidence");
+    const file = await writeTrace(tmp, "error-dir.jsonl", [
+      event("event-a", { status: "error", runId: "run-evidence-dir" }),
+    ]);
+
+    const result = await runCheck(file, {
+      evidenceOn: "fail",
+      evidenceDir,
+      evidenceProfile: "share",
+      evidenceFormat: "directory",
+    });
+
+    expect(process.exitCode).toBe(1);
+    expect(result.status).toBe("fail");
+    expect(existsSync(path.join(evidenceDir, "evidence.json"))).toBe(true);
+    expect(existsSync(path.join(evidenceDir, "evidence.html"))).toBe(true);
+  });
 });
 
 describe.skipIf(!builtCliHasCheckCommand)("built check CLI", () => {
