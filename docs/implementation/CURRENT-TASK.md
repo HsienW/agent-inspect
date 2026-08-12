@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7
 currentTrain: v6.16.1-repository-health-public-truth
 trainStatus: active
-currentChunk: 6.16.1-3-stable-structure
-nextAction: Establish stable history/decisions structure and finish active-plan scaffolding.
+currentChunk: 6.16.1-4-delete-trains
+nextAction: Summarize history and delete completed release trains and version-named roadmaps.
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/EXECUTION-PLAN.md
 ```
