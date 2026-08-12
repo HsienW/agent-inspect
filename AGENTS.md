@@ -2,9 +2,9 @@
 
 ## Product boundary
 
-AgentInspect is a local-first trace workbench for TypeScript AI agents.
+AgentInspect is the local evidence debugger and trajectory-test toolkit for TypeScript AI agents.
 
-Primary loop: framework/manual event → local trace → inspect/report/diff → CI artifact → optional standards export.
+Primary loop: framework-native capture → faithful local execution tree → TraceFacts / TraceContract → deterministic trajectory gate → share-checked Evidence v2 → optional local read-only MCP.
 
 Keep it local-first, CLI-first, TypeScript-first, safe by default, dependency-light, framework-native where possible, explicit about network behavior, and compatible with existing traces.
 
@@ -18,24 +18,24 @@ Use this order:
 2. `AGENTS.md`
 3. `docs/implementation/RELEASE-TRAIN-STATE.md`
 4. `docs/implementation/CURRENT-TASK.md`
-5. canonical Swarm-Stability and Evidence roadmap `docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md`
-6. active release-train plan under `docs/implementation/release-trains/` (v6.14.2–v6.16.x pre-v7)
-7. relevant RFC/proposal/security/evidence docs
+5. `docs/implementation/ROADMAP.md` (permanent canonical roadmap)
+6. `docs/implementation/active/EXECUTION-PLAN.md`
+7. relevant ADR / security / public-evidence docs under `docs/decisions/` and `docs/`
 8. public `ROADMAP.md`
-9. historical roadmaps and archive, including:
-   - `docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.12.1-TO-V7.md` (superseded; historical)
-   - `docs/implementation/AGENTINSPECT-STABILITY-AND-FOCUS-ROADMAP-V6.7.3-TO-V7.md` (superseded program; historical)
-   - `docs/implementation/ROADMAP-V6.4-TO-PRE-V7.md` (completed pre-v7 stabilization)
-   - `docs/implementation/ROADMAP_V3_5_TO_V7.md` (completed v3.5→v6.4 trains)
-   - `docs/archive/`
+9. compact `docs/history/` summaries
+10. Git tags / releases / history for full prior detail
 
 Report material conflicts; never resolve them silently.
 
 Named autonomous train authorized when `CURRENT-TASK.md` sets `executionMode: "autonomous-release-train"`:
 
 ```text
-agentinspect-swarm-stability-evidence-v6.14.1-to-pre-v7
+agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7
 ```
+
+## Public-copy rule
+
+Public surfaces present a mature, actively maintained product used in real TypeScript agent workflows. Never use “waiting for adoption,” “no adoption yet,” “test phase,” “pre-adoption,” or similar soft-launch framing. Never fabricate company names, logos, retention figures, ROI, or private traces.
 
 ## Start every task
 
@@ -48,7 +48,7 @@ git diff --check
 
 Stop on unrelated uncommitted changes.
 
-Read only the state file, current task, active-plan section, relevant RFC, and directly related source/tests. Do not reread the whole repository or canonical roadmap unless architecture or release direction changes.
+Read only the state file, current task, active plan chunk, and directly related source/tests. Do not reread the whole repository or full roadmap unless architecture or release direction changes.
 
 ## One-chunk protocol
 
@@ -62,36 +62,28 @@ After editing:
 2. run the required chunk gate once;
 3. run `git diff --check`;
 4. update state and current-task files;
-5. stop for maintainer review.
-
-Do not start the next chunk.
+5. in autonomous-release-train mode: commit, push, wait for CI, continue; otherwise stop for maintainer review.
 
 ### Explicit autonomous release-train mode
 
-The default remains one chunk followed by maintainer review.
-
-Codex may continue across chunks only when all of the following are true:
+Continue across chunks when all of the following are true:
 
 - the maintainer explicitly authorizes a named release train;
 - `CURRENT-TASK.md` sets `executionMode: "autonomous-release-train"`;
 - an active execution plan defines the ordered chunks and gates;
 - each chunk remains one independently validated commit;
-- Codex pushes only fast-forward commits to the existing `main` branch;
+- pushes are fast-forward commits to the existing `main` branch;
 - required CI is green before the next chunk begins.
 
-This mode authorizes routine commit and push operations for the named train. It does not authorize force pushes, branch deletion, bypassing CI, destructive Git operations, local npm publishing, credential use, schema changes, new root/core dependencies, network behavior, or unrelated edits.
+This mode authorizes routine commit, push, and validated Changesets PR merging for the named train. It does not authorize force pushes, branch deletion, bypassing CI, destructive Git operations, local npm publishing, credential use, schema changes, new root/core dependencies, network behavior, or unrelated edits.
 
-Stop autonomous execution on unrelated worktree changes, material plan drift, a public breaking change, a schema/dependency/network decision, validation that cannot be repaired in current scope, partial publication, or missing credentials.
+Stop autonomous execution on unrelated worktree changes, material plan drift, a public breaking change, a schema/dependency/network decision, validation that cannot be repaired in current scope, partial publication, missing credentials, or a missing external acceptance gate (especially before 6.18.0 publication).
 
 ## Maintainer authority
 
-Unless explicitly authorized, do not commit, push, merge, create/switch/delete branches, tag, publish, create a GitHub release, change package versions, add a changeset, or convert Unreleased notes into released notes.
+Unless explicitly authorized by autonomous-release-train mode above, do not commit, push, merge, create/switch/delete branches, tag, publish, create a GitHub release, change package versions, add a changeset, or convert Unreleased notes into released notes.
 
-Do not run `npm version`, `npm publish`, `pnpm publish`, or `changeset publish`.
-
-The maintainer reviews, commits, pushes, versions, tags, and publishes.
-
-The explicit autonomous release-train mode above is the only exception for routine commits, pushes, and validated Changesets PR merging. First publication of a new npm package remains a manual maintainer gate.
+Do not run `npm version`, `npm publish`, `pnpm publish`, or `changeset publish` locally. Publication is Changeset → Version Packages PR → `publish.yml` Trusted Publishing.
 
 ## Compatibility (published APIs)
 
@@ -105,7 +97,6 @@ The explicit autonomous release-train mode above is the only exception for routi
 - ESM, CJS, declarations, CLI behavior, and Node `>=20` remain valid.
 - Optional integrations must not leak dependencies into root/core.
 - No root/core runtime dependency without approval.
-- Through 6.12.x: public experimental check `events` stay raw persisted rows; semantic built-ins use additive `logicalEvents` / TraceFacts progression per the canonical roadmap.
 
 ## Architecture rules
 
@@ -120,6 +111,7 @@ The explicit autonomous release-train mode above is the only exception for routi
 - Keep JSON output deterministic.
 - Writers/readers belong on their subpaths; low-level runtime belongs under `/advanced`.
 - Keep the root API as small as compatibility permits.
+- Prefer delete of stale operational docs over creating a new in-repo archive.
 
 ## Writer/runtime safety
 
@@ -188,6 +180,12 @@ pnpm test
 git diff --check
 ```
 
+After `repo:health` exists, include it in docs and release gates:
+
+```bash
+pnpm repo:health
+```
+
 Core/runtime chunk gate:
 
 ```bash
@@ -206,7 +204,7 @@ Add `pnpm recipes:check`, `pnpm compat:smoke`, `npm pack --dry-run`, and built C
 
 Run full release readiness only at the release gate. Do not repeatedly run `pnpm install`.
 
-## Efficient Codex behavior
+## Efficient maintainer-agent behavior
 
 - Use existing roadmap/plan; do not recreate them.
 - Avoid broad audits once the chunk is known.
@@ -219,6 +217,4 @@ Run full release readiness only at the release gate. Do not repeatedly run `pnpm
 
 ## Final report
 
-Include: starting commit; implemented scope; changed files and API/export effects; tests/fixtures; validation results; dependency/size impact; schema compatibility; security/network impact; limitations; proposed commit message; next chunk; maintainer action.
-
-Confirm: no commit, push, tag, publish, version change, or changeset.
+Include: starting commit; implemented scope; changed files and API/export effects; tests/fixtures; validation results; dependency/size impact; schema compatibility; security/network impact; limitations; next chunk.

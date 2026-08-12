@@ -2,13 +2,13 @@
 
 ```yaml
 executionMode: autonomous-release-train
-namedTrain: agentinspect-swarm-stability-evidence-v6.14.1-to-pre-v7
-currentTrain: v6.16.x-stability-adoption
+namedTrain: agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7
+currentTrain: v6.16.1-repository-health-public-truth
 trainStatus: active
-currentChunk: stability-week-0
-nextAction: Eight-week stability — only security/correctness/compat/docs; collect real adoption evidence; no new feature family.
-canonicalRoadmap: docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md
-activePlan: docs/implementation/release-trains/V6.16.X-STABILITY-AND-ADOPTION-POLICY.md
+currentChunk: 6.16.1-0-repository-disposition
+nextAction: Inventory, classify, and aggressively remove stale repository material while preserving current product truth.
+canonicalRoadmap: docs/implementation/ROADMAP.md
+activePlan: docs/implementation/active/EXECUTION-PLAN.md
 ```
 
 ## Published baseline
@@ -17,4 +17,4 @@ activePlan: docs/implementation/release-trains/V6.16.X-STABILITY-AND-ADOPTION-PO
 
 ## Notes
 
-Maintainer authorized publish through 6.16.x. External dual-pilot attestation remains PARTIAL. Do not fabricate pilots.
+Public copy presents a mature in-use product. Do not fabricate partners, retention metrics, or private traces. Stop before 6.18.0 Changeset if external acceptance evidence is missing.
