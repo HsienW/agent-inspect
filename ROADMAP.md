@@ -10,9 +10,9 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ---
 
-## Current — repository health and evidence UX (`6.17.0` → `6.18.x`)
+## Current — repository health and evidence UX (`6.17.1` → `6.18.x`)
 
-**Current release on npm:** **6.17.0** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
+**Current release on npm:** **6.17.1** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
 
 Active maintainer program: repository health and public-truth cleanup, single-source docs, trajectory/Evidence CI UX, public technical proof, and stable niche packaging — before any conditional v7 assessment.
 

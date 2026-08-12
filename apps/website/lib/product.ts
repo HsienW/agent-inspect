@@ -3,7 +3,7 @@
  * Keep in sync with docs/product/PUBLIC-PRODUCT-FACTS.json and root package.json.
  */
 export const product = {
-  version: "6.17.0",
+  version: "6.17.1",
   publicPackageCount: 18,
   releaseStatus: "Actively maintained · schema 1.0 · Node.js 20+ · MIT",
   v7Scheduled: false,
@@ -16,7 +16,7 @@ export const product = {
   category: "The local evidence debugger and trajectory-test toolkit for TypeScript AI agents",
   proof: [
     "Zero open pilot findings at the 6.16.0 moderate + deep-swarm gates.",
-    "Hardening timeline 6.7.3 → 6.16.0; Evidence UX in 6.17.0; fixture-backed demos.",
+    "Hardening timeline 6.7.3 → 6.16.0; Evidence UX in 6.17.1; fixture-backed demos.",
   ] as const,
   pillars: [
     {

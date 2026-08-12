@@ -12,12 +12,12 @@ Single source of public product truth for README, website, npm descriptions, AI 
 | Category | The local evidence debugger and trajectory-test toolkit for TypeScript AI agents |
 | Headline | Debug and regression-test TypeScript AI agents from local evidence |
 | Outcome | See what your agent did. Prove the fix. Keep the evidence |
-| Version | 6.17.0 |
+| Version | 6.17.1 |
 | Schema | 1.0 |
 | Node | >=20 |
 | License | MIT |
 | Public packages | 18 (Changesets fixed group) |
-| Status line | Current release: 6.17.0 · schema 1.0 · Node.js 20+ · MIT · actively maintained |
+| Status line | Current release: 6.17.1 · schema 1.0 · Node.js 20+ · MIT · actively maintained |
 | Maintenance | The 6.16 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution |
 
 ## Supporting sentence
@@ -34,7 +34,7 @@ AgentInspect captures framework-faithful execution trees, evaluates them with de
 ## Proof language (public-safe)
 
 - Zero open pilot findings at the 6.16.0 moderate + deep-swarm gates.
-- Hardening timeline 6.7.3 → 6.16.0; Evidence UX in 6.17.0; fixture-backed demos.
+- Hardening timeline 6.7.3 → 6.16.0; Evidence UX in 6.17.1; fixture-backed demos.
 
 Do not name companies, customers, or retention counts without explicit permission.
 
