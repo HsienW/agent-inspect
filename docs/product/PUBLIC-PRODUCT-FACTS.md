@@ -18,6 +18,7 @@ Single source of public product truth for README, website, npm descriptions, AI 
 | License | MIT |
 | Public packages | 18 (Changesets fixed group) |
 | Status line | Current release: 6.16.0 · schema 1.0 · Node.js 20+ · MIT · actively maintained |
+| Maintenance | The 6.16 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution |
 
 ## Supporting sentence
 

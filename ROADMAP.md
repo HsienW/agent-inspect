@@ -10,11 +10,11 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ---
 
-## Current — swarm stability (`6.16.0` → `6.16.x`)
+## Current — repository health and evidence UX (`6.16.0` → `6.18.x`)
 
 **Current release on npm:** **6.16.0** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
 
-Active maintainer program: deep-swarm relationship correctness, safety-key precision, LangGraph fidelity classes, persisted-trace APIs, then evidence-first CI — before any conditional v7 assessment.
+Active maintainer program: repository health and public-truth cleanup, single-source docs, trajectory/Evidence CI UX, public technical proof, and stable niche packaging — before any conditional v7 assessment.
 
 | Release | Theme | Status |
 | ------- | ----- | ------ |
@@ -26,25 +26,20 @@ Active maintainer program: deep-swarm relationship correctness, safety-key preci
 | **6.14.3** | Reserved corrective patch | Skipped |
 | **6.15.0** | Fidelity classes A–E + reader APIs | Published |
 | **6.15.1** | Reserved corrective patch | Skipped |
-| **6.16.0** | Evidence-first CI / launch candidate | Published |
-| **6.16.x** | Eight-week stability / adoption | Active |
+| **6.16.0** | Evidence-first CI / verified moderate + swarm gates | Published |
+| **6.16.1** | Repository health and public truth | In progress |
+| **6.16.2** | Canonical docs / website single-source | Planned |
+| **6.17.0** | Trajectory-gate and Evidence v2 workflow UX | Planned |
+| **6.17.1** | Public technical proof and demos | Planned |
+| **6.18.0** | Stable niche launch packaging | Planned |
+| **6.18.x** | Maintenance | Planned |
 | **v7** | Conditional major — assessment only | Not scheduled |
 
 Train state: [docs/implementation/RELEASE-TRAIN-STATE.md](docs/implementation/RELEASE-TRAIN-STATE.md).
-Canonical maintainer roadmap: [docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md](docs/implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md).
-
-Adoption measurement continues internally and is never fabricated on public surfaces.
+Canonical maintainer roadmap: [docs/implementation/ROADMAP.md](docs/implementation/ROADMAP.md).
 
 ---
 
 ## Later — conditional major
 
-Any future major remains gated on retained real-world evidence and an explicit maintainer readiness assessment. See [docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md](docs/implementation/release-trains/V7.0.0-READINESS-ASSESSMENT.md).
-
-Candidate themes (not committed): package-tier rationalization only if justified, deeper standards interop, and continued evidence-loop depth — never breadth for its own sake.
-
----
-
-## Feedback
-
-Issues and discussions welcome. Redact traces before posting.
+A major `v7` is **not scheduled**. Scheduling requires maintainer readiness criteria in the canonical roadmap.

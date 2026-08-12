@@ -11,7 +11,7 @@
   "outcome": "See what your agent did. Prove the fix. Keep the evidence.",
   "statusLine": "Current release: 6.16.0 \u00b7 schema 1.0 \u00b7 Node.js 20+ \u00b7 MIT \u00b7 actively maintained",
   "releaseStatus": "Actively maintained \u00b7 schema 1.0 \u00b7 Node.js 20+ \u00b7 MIT",
-  "maintenanceLine": "The 6.15 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution.",
+  "maintenanceLine": "The 6.16 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution.",
   "trustLine": "No account \u00b7 no collector \u00b7 no default upload \u00b7 metadata-only by default",
   "proof": [
     "Validated against production-shaped NestJS/LangGraph integrations.",

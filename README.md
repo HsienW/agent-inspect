@@ -159,7 +159,7 @@ Details: [Safe sharing](https://github.com/rajudandigam/agent-inspect/blob/main/
 
 **Current release:** **6.16.0** · schema **1.0** · Node.js **≥ 20** · **MIT** · **actively maintained** (eighteen linked npm packages).
 
-The 6.15 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution.
+The 6.16 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution.
 
 [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md) · [Public product facts](https://github.com/rajudandigam/agent-inspect/blob/main/docs/product/PUBLIC-PRODUCT-FACTS.md)
 
