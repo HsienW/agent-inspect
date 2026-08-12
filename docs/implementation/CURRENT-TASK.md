@@ -5,8 +5,8 @@ executionMode: autonomous-release-train
 namedTrain: agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7
 currentTrain: v6.16.1-repository-health-public-truth
 trainStatus: active
-currentChunk: 6.16.1-4-delete-trains
-nextAction: Summarize history and delete completed release trains and version-named roadmaps.
+currentChunk: 6.16.1-5-delete-archive
+nextAction: Delete docs/archive, ISSUE_DRAFTS, and tracked OS artifacts.
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/EXECUTION-PLAN.md
 ```
@@ -17,4 +17,4 @@ activePlan: docs/implementation/active/EXECUTION-PLAN.md
 
 ## Notes
 
-Public copy presents a mature in-use product. Do not fabricate partners, retention metrics, or private traces. Stop before 6.18.0 Changeset if external acceptance evidence is missing.
+Public copy presents a mature in-use product. Do not fabricate partners, retention metrics, or private traces.

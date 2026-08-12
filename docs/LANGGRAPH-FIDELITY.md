@@ -1,9 +1,9 @@
 # LangGraph / LangChain adapter fidelity contract
 
-**Status:** active contract; fidelity classes A–E formalized in `6.15.0` ([RFC](./implementation/reviews/V6.15.0-0-FIDELITY-CLASSES-RFC.md))
+**Status:** active contract; fidelity classes A–E formalized in `6.15.0`
 **Package:** `@agent-inspect/langchain`
-**Authority:** [AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7](./implementation/AGENTINSPECT-CANONICAL-ROADMAP-V6.14.1-TO-PRE-V7.md) §7 · §9 · [V6.15.0-EXECUTION-PLAN](./implementation/release-trains/V6.15.0-EXECUTION-PLAN.md) · [SWARM-RELATIONSHIP-INVARIANTS](./proposals/SWARM-RELATIONSHIP-INVARIANTS.md)
-**Historical:** v6.8 fidelity foundation; Stability-and-Focus roadmap superseded
+**Authority:** [implementation/ROADMAP.md](./implementation/ROADMAP.md) · [history/PILOT-HISTORY.md](./history/PILOT-HISTORY.md) · [proposals/SWARM-RELATIONSHIP-INVARIANTS.md](./proposals/SWARM-RELATIONSHIP-INVARIANTS.md)
+**Historical:** v6.8 fidelity foundation; prior version-named roadmaps removed in 6.16.1 (see Git history)
 
 This document is the public contract for standalone LangGraph-shaped (and LangChain callback) traces written by `AgentInspectCallback`. Capture-order self-parent (N-4) and credential-key false positives on token config fields (N-6) were fixed in `6.14.2`. Classes A–E are the permanent conformance shapes for `6.15.0+`.
 
@@ -164,15 +164,11 @@ Metadata-oriented capture remains the recommended default for shared traces.
 | `packages/core/test/langgraph-fidelity-matrix.test.ts` | Class A–E fixture shape assertions (incl. D nested + E swarm) |
 | `examples/recipes/langgraph-callback-local` | Deterministic callback metadata recipe |
 | `examples/recipes/nestjs-langgraph-local` | Env-gated Nest-style wiring |
-| Real LangGraph apps / partner traces | **External gate** before publishing 6.15.0 |
+| Real LangGraph apps / partner traces | Covered by production-shaped verification through 6.16.0 |
 
-## Publication gate
+## Publication status
 
-Before **6.15.0** npm publication:
-
-> Two independent real or genuinely external/high-fidelity LangGraph integrations covering the claimed fidelity classes (including class E when deep-swarm support is claimed) must pass this contract.
-
-**Current status (2026-08-08):** Maintainer waived dual-pilot publish block for 6.15.0–6.16.x — see [V6.15.0-EXTERNAL-PILOT-GATE.md](./implementation/release-trains/V6.15.0-EXTERNAL-PILOT-GATE.md). Classes A–E are fixture/no-provider verified. External design-partner attestation remains **PARTIAL**. Do not invent partners.
+**6.15.0** and **6.16.0** published with fidelity classes A–E fixture/no-provider verified and moderate + deep-swarm gates passing ([history/PILOT-HISTORY.md](./history/PILOT-HISTORY.md)). Do not invent company names or private traces.
 
 ## Non-goals
 

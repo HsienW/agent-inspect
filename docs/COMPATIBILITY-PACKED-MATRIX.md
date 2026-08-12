@@ -1,7 +1,7 @@
 # Cross-platform packed consumer matrix (v6.12)
 
 **Status:** PARTIAL — evidence from maintainer CI + local smoke scripts; not a full OS×Node grid.  
-**Authority:** roadmap §13 Scope D · [V6.12.0-EXECUTION-PLAN.md](./implementation/release-trains/V6.12.0-EXECUTION-PLAN.md)  
+**Authority:** [implementation/ROADMAP.md](./implementation/ROADMAP.md) · [history/RELEASE-HISTORY.md](./history/RELEASE-HISTORY.md)
 **Date:** 2026-08-02 · baseline `agent-inspect@6.12.0`
 
 ## Method

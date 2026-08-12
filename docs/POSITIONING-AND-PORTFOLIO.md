@@ -1,7 +1,7 @@
 # Positioning and portfolio (v6.12)
 
 **Status:** canonical public-identity + portfolio contract for AgentInspect **6.12+**  
-**Authority:** Stability and Focus roadmap §13 · [V6.12.0-EXECUTION-PLAN.md](./implementation/release-trains/V6.12.0-EXECUTION-PLAN.md)
+**Authority:** [implementation/ROADMAP.md](./implementation/ROADMAP.md) · [history/RELEASE-HISTORY.md](./history/RELEASE-HISTORY.md)
 
 ## One-sentence product identity
 
