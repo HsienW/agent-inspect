@@ -103,7 +103,7 @@ Sample workflows: [deterministic checks workflow](../examples/recipes/determinis
 ```bash
 npx agent-inspect check --dir .agent-inspect --preset trajectory \
   --evidence-on fail --evidence-profile share --evidence-format directory
-npx agent-inspect verify-safe --dir .agent-inspect
+npx agent-inspect verify-safe . --dir .agent-inspect
 ```
 
 `init --ci github` scaffolds this pattern. Evidence stays local; upload with your CI provider’s artifact action.
@@ -119,7 +119,7 @@ trajectory_gate:
     - npm ci
     - node examples/agent-inspect-demo.mjs
     - npx --yes agent-inspect check --dir .agent-inspect --preset trajectory --evidence-on fail
-    - npx --yes agent-inspect verify-safe --dir .agent-inspect
+    - npx --yes agent-inspect verify-safe . --dir .agent-inspect
   artifacts:
     when: always
     paths:

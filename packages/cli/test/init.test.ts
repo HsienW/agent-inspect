@@ -58,7 +58,7 @@ describe("init CLI", () => {
     expect(workflow).toContain("upload-artifact");
     expect(workflow).toContain("--preset trajectory");
     expect(workflow).toContain("--evidence-on fail");
-    expect(workflow).toContain("verify-safe");
+    expect(workflow).toContain("verify-safe . --dir .agent-inspect");
     expect(workflow).not.toContain("OPENAI_API_KEY");
   });
 });

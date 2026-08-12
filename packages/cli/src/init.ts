@@ -199,7 +199,7 @@ jobs:
           --evidence-format directory
       - name: Verify share safety
         if: always()
-        run: npx --yes agent-inspect verify-safe --dir .agent-inspect
+        run: npx --yes agent-inspect verify-safe . --dir .agent-inspect
       - name: Upload AgentInspect traces and Evidence
         if: always()
         uses: actions/upload-artifact@v4
