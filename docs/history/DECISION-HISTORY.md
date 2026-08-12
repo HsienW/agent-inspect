@@ -12,5 +12,5 @@ Index of lasting architecture decisions. Detailed RFCs were retired from `docs/p
 | ADR-0006 | Fixed package group | [../decisions/ADR-0006-fixed-package-group.md](../decisions/ADR-0006-fixed-package-group.md) |
 | ADR-0007 | Package tiers | [../decisions/ADR-0007-package-tiers.md](../decisions/ADR-0007-package-tiers.md) |
 | ADR-0008 | Canonical docs source | [../decisions/ADR-0008-canonical-docs-source.md](../decisions/ADR-0008-canonical-docs-source.md) |
+| ADR-0009 | Swarm relationship invariants | [../decisions/ADR-0009-swarm-relationship-invariants.md](../decisions/ADR-0009-swarm-relationship-invariants.md) |
 
-ADRs are created in chunk `6.16.1-6`. Until then, treat this table as the intended map.
