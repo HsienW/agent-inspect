@@ -1,0 +1,14 @@
+{
+  "diagnostics": [],
+  "findings": [],
+  "format": "agent-inspect-v0.1-jsonl",
+  "ok": true,
+  "runId": "swarm_anon_deep_ok",
+  "status": "pass",
+  "summary": {
+    "errors": 0,
+    "failed": 0,
+    "passed": 0,
+    "warnings": 0
+  }
+}

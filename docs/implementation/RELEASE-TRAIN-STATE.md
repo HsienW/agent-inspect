@@ -5,26 +5,26 @@
 > **Canonical roadmap:** [ROADMAP.md](./ROADMAP.md)
 
 ```yaml
-baselineVersion: "6.16.2"
-publishedVersion: "6.16.2"
-currentTrain: "v6.17.0-evidence-ux"
+baselineVersion: "6.17.0"
+publishedVersion: "6.17.0"
+currentTrain: "v6.17.1-public-proof"
 trainStatus: "releasing"
 executionMode: "autonomous-release-train"
 namedTrain: "agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7"
 branch: "main"
-currentChunk: "6.17.0-release"
-lastConfirmedCommit: "89836cf"
-lastValidationLevel: "focused"
-nextAction: "Push 6.17.0; Version Packages → Trusted Publishing; verify 18×6.17.0"
+currentChunk: "6.17.1-release"
+lastConfirmedCommit: "5da1eb9"
+lastValidationLevel: "docs"
+nextAction: "Push 6.17.1 changeset; Version Packages → Trusted Publishing; verify 18×6.17.1"
 pendingManualGate: null
 canonicalRoadmap: "docs/implementation/ROADMAP.md"
 activePlan: "docs/implementation/active/EXECUTION-PLAN.md"
 completedChunks:
   - "6.16.1 repository health"
-  - "6.16.2 single-source docs (published)"
+  - "6.16.2 single-source docs"
+  - "6.17.0 evidence UX (published)"
 remainingTrains:
-  - "v6.17.0 evidence UX (in release)"
-  - "v6.17.1 public proof"
+  - "v6.17.1 public proof (in release)"
   - "v6.18.0 niche launch"
   - "v6.18.x maintenance"
 blockedTrains:

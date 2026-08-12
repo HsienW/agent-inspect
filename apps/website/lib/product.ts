@@ -15,8 +15,8 @@ export const product = {
   outcome: "See what your agent did. Prove the fix. Keep the evidence.",
   category: "The local evidence debugger and trajectory-test toolkit for TypeScript AI agents",
   proof: [
-    "Validated against production-shaped NestJS/LangGraph integrations.",
-    "Fixture-backed across official adapters and packed consumer workflows.",
+    "Zero open pilot findings at the 6.16.0 moderate + deep-swarm gates.",
+    "Hardening timeline 6.7.3 → 6.16.0; Evidence UX in 6.17.0; fixture-backed demos.",
   ] as const,
   pillars: [
     {

@@ -42,7 +42,7 @@ AgentInspect complements platforms like LangSmith, Langfuse, and Phoenix; it own
 
 ## Proof language (public-safe)
 
-Validated against production-shaped NestJS/LangGraph integrations. Fixture-backed across official adapters and packed consumer workflows.
+Zero open pilot findings at the 6.16.0 moderate + deep-swarm gates. Hardening timeline 6.7.3 → 6.16.0; Evidence UX in 6.17.0; fixture-backed demos.
 
 See [product/PUBLIC-PRODUCT-FACTS.md](./product/PUBLIC-PRODUCT-FACTS.md) and [DECISION-GUIDE.md](./DECISION-GUIDE.md).
 

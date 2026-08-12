@@ -1,0 +1,11 @@
+$ npx agent-inspect check fixtures/langgraph/pilot-shaped-bridged-tool.jsonl --preset trajectory
+Check status: pass
+Trajectory: PASS
+Share safety: not evaluated
+Run verify-safe before sharing.
+
+$ npx agent-inspect check fixtures/langgraph/pilot-shaped-bridged-tool.jsonl --preset trajectory --evidence-on always --evidence-dir ./examples/evidence/moderate-agent/evidence
+Evidence: ./examples/evidence/moderate-agent/evidence
+
+$ npx agent-inspect bundle verify ./examples/evidence/moderate-agent/evidence
+Evidence verify: pass

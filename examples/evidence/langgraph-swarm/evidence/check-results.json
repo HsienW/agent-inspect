@@ -1,0 +1,14 @@
+{
+  "aggregateStatus": "SAFE",
+  "runs": [
+    {
+      "runId": "swarm_anon_deep_ok",
+      "status": "SAFE",
+      "errors": 0,
+      "warnings": 0,
+      "findings": 0
+    }
+  ],
+  "findings": [],
+  "diagnostics": []
+}

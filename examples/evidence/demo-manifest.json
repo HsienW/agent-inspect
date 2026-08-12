@@ -1,0 +1,19 @@
+{
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "generator": "scripts/demo-generate.mjs",
+  "packageVersion": "6.17.0",
+  "samples": [
+    {
+      "id": "moderate-agent",
+      "fixture": "fixtures/langgraph/pilot-shaped-bridged-tool.jsonl",
+      "label": "Moderate production-shaped LangGraph fixture",
+      "evidenceOk": true
+    },
+    {
+      "id": "langgraph-swarm",
+      "fixture": "fixtures/langgraph/deep-swarm-nested-ok.jsonl",
+      "label": "Deep nested swarm fixture",
+      "evidenceOk": true
+    }
+  ]
+}

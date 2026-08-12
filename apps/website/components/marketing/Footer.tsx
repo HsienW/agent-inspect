@@ -6,6 +6,7 @@ const columns = [
   {
     title: "Product",
     links: [
+      { href: "/case-study/langgraph", label: "LangGraph case study" },
       { href: "/docs/getting-started", label: "Getting started" },
       { href: "/docs/concepts/local-first", label: "Local-first" },
       { href: "/docs/safe-sharing", label: "Safe sharing" },
@@ -15,6 +16,7 @@ const columns = [
   {
     title: "Integrations",
     links: [
+      { href: "/integrations/langgraph", label: "LangGraph" },
       { href: "/docs/integrations/ai-sdk", label: "AI SDK" },
       { href: "/docs/integrations/openai-agents", label: "OpenAI Agents" },
       { href: "/docs/integrations/langchain", label: "LangChain" },

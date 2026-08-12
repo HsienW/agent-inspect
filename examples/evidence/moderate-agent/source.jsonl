@@ -1,0 +1,6 @@
+{"schemaVersion":"0.1","event":"run_started","timestamp":1720000000000,"runId":"pilot_anon_bridged_tool","name":"anon-nestjs-langgraph-pilot","startTime":1720000000000,"metadata":{"adapter":"langchain","fixture":"pilot-shaped-bridged-tool","anonymized":true}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1720000000010,"runId":"pilot_anon_bridged_tool","stepId":"chain_agent","name":"chain:agent","type":"logic","startTime":1720000000010,"metadata":{"adapter":"langchain"}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1720000000020,"runId":"pilot_anon_bridged_tool","stepId":"tool_lookup","name":"DynamicStructuredTool","type":"tool","parentId":"chain_agent","startTime":1720000000020,"metadata":{"adapter":"langchain","toolName":"lookup_orders","tokens":{"input":12,"output":4,"total":16}}}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1720000000120,"runId":"pilot_anon_bridged_tool","stepId":"tool_lookup","status":"success","endTime":1720000000120,"durationMs":100}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1720000000130,"runId":"pilot_anon_bridged_tool","stepId":"chain_agent","status":"success","endTime":1720000000130,"durationMs":120}
+{"schemaVersion":"0.1","event":"run_completed","timestamp":1720000000140,"runId":"pilot_anon_bridged_tool","status":"success","endTime":1720000000140,"durationMs":140}

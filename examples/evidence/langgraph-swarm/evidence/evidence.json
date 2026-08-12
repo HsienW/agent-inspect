@@ -1,0 +1,48 @@
+{
+  "assessment": {
+    "note": "Best-effort local safety verification only; not a compliance certification.",
+    "status": "SAFE"
+  },
+  "createdAt": "2026-08-12T23:08:05.112Z",
+  "evidenceFormatVersion": "1.0",
+  "files": [
+    {
+      "path": "check-results.json",
+      "role": "checks",
+      "sha256": "70fbf8742f528af8065b113f3931f3abfd0d33a22a1ad4514b0416f69d42582d"
+    },
+    {
+      "path": "evidence.html",
+      "role": "report",
+      "sha256": "4e7de1ff95a336dfcd8dbb6483edc13aac706b6530ed2f9ea15990f83282755b"
+    },
+    {
+      "path": "trace.jsonl",
+      "role": "redacted-trace",
+      "sha256": "a11f97fac907abc5a678bfc486970403051f7ddee507a73b3f58b7425679073d"
+    }
+  ],
+  "generator": {
+    "name": "agent-inspect",
+    "version": "6.17.0"
+  },
+  "policy": {
+    "redactionProfile": "share",
+    "verificationPolicy": "share"
+  },
+  "source": {
+    "runIds": [
+      "swarm_anon_deep_ok"
+    ],
+    "sourceHashes": [
+      {
+        "algorithm": "sha256",
+        "hash": "a11f97fac907abc5a678bfc486970403051f7ddee507a73b3f58b7425679073d",
+        "runId": "swarm_anon_deep_ok"
+      }
+    ],
+    "traceSchemaVersions": [
+      "0.1"
+    ]
+  }
+}

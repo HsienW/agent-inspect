@@ -33,8 +33,8 @@ AgentInspect captures framework-faithful execution trees, evaluates them with de
 
 ## Proof language (public-safe)
 
-- Validated against production-shaped NestJS/LangGraph integrations.
-- Fixture-backed across official adapters and packed consumer workflows.
+- Zero open pilot findings at the 6.16.0 moderate + deep-swarm gates.
+- Hardening timeline 6.7.3 → 6.16.0; Evidence UX in 6.17.0; fixture-backed demos.
 
 Do not name companies, customers, or retention counts without explicit permission.
 

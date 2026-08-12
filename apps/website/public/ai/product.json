@@ -4,9 +4,9 @@
   "schemaVersion": "1.0",
   "category": "The local evidence debugger and trajectory-test toolkit for TypeScript AI agents",
   "headline": "Debug and regression-test TypeScript AI agents from local evidence",
-  "supportingSentence": "AgentInspect captures framework-faithful execution trees, evaluates them with deterministic TraceFacts and TraceContract rules, creates integrity-verifiable Evidence v2, and lets coding assistants inspect the same local facts over read-only MCP—without a collector, account, or default upload.",
+  "supportingSentence": "AgentInspect captures framework-faithful execution trees, evaluates them with deterministic TraceFacts and TraceContract rules, creates integrity-verifiable Evidence v2, and lets coding assistants inspect the same local facts over read-only MCP\u2014without a collector, account, or default upload.",
   "outcome": "See what your agent did. Prove the fix. Keep the evidence.",
-  "statusLine": "Current release: 6.17.0 · schema 1.0 · Node.js 20+ · MIT · actively maintained",
+  "statusLine": "Current release: 6.17.0 \u00b7 schema 1.0 \u00b7 Node.js 20+ \u00b7 MIT \u00b7 actively maintained",
   "pillars": [
     {
       "id": "capture",
@@ -30,10 +30,10 @@
     }
   ],
   "proof": [
-    "Validated against production-shaped NestJS/LangGraph integrations.",
-    "Fixture-backed across official adapters and packed consumer workflows."
+    "Zero open pilot findings at the 6.16.0 moderate + deep-swarm gates.",
+    "Hardening timeline 6.7.3 \u2192 6.16.0; Evidence UX in 6.17.0; fixture-backed demos."
   ],
-  "trustLine": "No account · no collector · no default upload · metadata-only by default",
+  "trustLine": "No account \u00b7 no collector \u00b7 no default upload \u00b7 metadata-only by default",
   "urls": {
     "github": "https://github.com/rajudandigam/agent-inspect",
     "npm": "https://www.npmjs.com/package/agent-inspect",

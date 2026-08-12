@@ -14,8 +14,8 @@
   "maintenanceLine": "The 6.16 line is actively maintained for correctness, compatibility, documentation, security, and framework evolution.",
   "trustLine": "No account \u00b7 no collector \u00b7 no default upload \u00b7 metadata-only by default",
   "proof": [
-    "Validated against production-shaped NestJS/LangGraph integrations.",
-    "Fixture-backed across official adapters and packed consumer workflows."
+    "Zero open pilot findings at the 6.16.0 moderate + deep-swarm gates.",
+    "Hardening timeline 6.7.3 \u2192 6.16.0; Evidence UX in 6.17.0; fixture-backed demos."
   ],
   "pillars": [
     {

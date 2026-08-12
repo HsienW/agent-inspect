@@ -1,3 +1,12 @@
+export const marketingRoutes = {
+  caseStudyLangGraph: "/case-study/langgraph",
+  localDebugging: "/use-cases/local-agent-debugging",
+  trajectoryGates: "/use-cases/trajectory-gates",
+  portableEvidence: "/use-cases/portable-evidence",
+  noEgress: "/use-cases/no-egress",
+  langgraphIntegration: "/integrations/langgraph",
+} as const;
+
 export const marketingAnchors = {
   problem: "#problem",
   path: "#five-minute-path",

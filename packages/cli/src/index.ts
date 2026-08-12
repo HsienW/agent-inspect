@@ -701,8 +701,17 @@ export function createCliProgram(): Command {
         .default("fail"),
     )
     .option("--json", "print deterministic JSON verify result")
-    .action((targetPath: string, opts: BundleVerifyCommandOptions) => {
-      runCommand(() => bundleVerifyCommand(targetPath, opts));
+    .action((targetPath: string, opts: BundleVerifyCommandOptions, command) => {
+      const merged = {
+        ...opts,
+        ...(command.optsWithGlobals?.() ?? {}),
+      };
+      // Commander may place --json on the parent `bundle` command when both define it.
+      const json =
+        opts.json === true ||
+        merged.json === true ||
+        process.argv.includes("--json");
+      runCommand(() => bundleVerifyCommand(targetPath, { ...opts, json }));
     });
 
   bundleCmd
@@ -712,7 +721,8 @@ export function createCliProgram(): Command {
     .option("--skip-verify", "skip integrity verify before open (not recommended)")
     .option("--json", "print deterministic JSON open result")
     .action((targetPath: string, opts: BundleOpenCommandOptions) => {
-      runCommand(() => bundleOpenCommand(targetPath, opts));
+      const json = opts.json === true || process.argv.includes("--json");
+      runCommand(() => bundleOpenCommand(targetPath, { ...opts, json }));
     });
 
   program

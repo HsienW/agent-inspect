@@ -1,0 +1,14 @@
+{
+  "aggregateStatus": "SAFE",
+  "runs": [
+    {
+      "runId": "pilot_anon_bridged_tool",
+      "status": "SAFE",
+      "errors": 0,
+      "warnings": 0,
+      "findings": 0
+    }
+  ],
+  "findings": [],
+  "diagnostics": []
+}
