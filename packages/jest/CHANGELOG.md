@@ -1,5 +1,13 @@
 # @agent-inspect/jest
 
+## 6.16.2
+
+### Patch Changes
+
+- dab486a: Canonical docs website pipeline: load docs pages from repository Markdown via a content manifest and react-markdown renderer; remove the hand-maintained doc-content switch. Website-only dependency additions; no schema or runtime product change.
+- Updated dependencies [dab486a]
+  - agent-inspect@6.16.2
+
 ## 6.16.1
 
 ### Patch Changes
