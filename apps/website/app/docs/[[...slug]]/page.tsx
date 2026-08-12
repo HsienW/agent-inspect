@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { DocsLayout } from "@/components/docs/DocsLayout";
-import { renderDocContent } from "@/lib/doc-content";
 import { docHref, getAllDocSlugs, getDocPage } from "@/lib/docs";
+import { loadDoc } from "@/lib/load-doc";
 import { createMetadata } from "@/lib/metadata";
+import { RenderDocMarkdown } from "@/lib/render-doc-markdown";
 
 type DocsPageProps = {
   params: Promise<{
@@ -28,9 +29,13 @@ export async function generateMetadata({
     });
   }
 
+  const loaded = loadDoc(slug);
+  const title = loaded?.title || page.title;
+  const description = loaded?.description || page.description;
+
   return createMetadata({
-    title: `${page.title} · agent-inspect docs`,
-    description: page.description,
+    title: `${title} · agent-inspect docs`,
+    description,
     path: docHref(page.slug),
   });
 }
@@ -42,11 +47,22 @@ export default async function DocsPage({ params }: DocsPageProps) {
     notFound();
   }
 
+  const loaded = loadDoc(slug);
+  if (!loaded) {
+    notFound();
+  }
+
   const currentPath = docHref(page.slug);
+  const layoutPage = {
+    ...page,
+    title: page.title,
+    description: page.description || loaded.description,
+    toc: loaded.toc,
+  };
 
   return (
-    <DocsLayout page={page} currentPath={currentPath}>
-      {renderDocContent(page.slug)}
+    <DocsLayout page={layoutPage} currentPath={currentPath}>
+      <RenderDocMarkdown markdown={loaded.markdown} />
     </DocsLayout>
   );
 }
