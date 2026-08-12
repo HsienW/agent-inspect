@@ -1,5 +1,11 @@
 # @agent-inspect/circuit
 
+## 6.17.1
+
+### Patch Changes
+
+- 1904f50: Add public-safe LangGraph case study, use-case pages, demo Evidence samples (`pnpm demo:generate` / `demo:verify`), and fix `bundle verify --json` under the parent bundle command.
+
 ## 6.17.0
 
 ### Minor Changes
