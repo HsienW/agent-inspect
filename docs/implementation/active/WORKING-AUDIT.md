@@ -139,3 +139,8 @@ None remaining after this table: every candidate category has a disposition.
 ## Next chunk
 
 `6.16.1-1` — Correct public version/status/product truth (no soft-launch / “waiting for adoption” language).
+
+
+## 6.16.1-8 stale API language
+
+Reviewed core comments for obsolete “v1/v2 product era” framing. Retained accurate compatibility notes (`schemaVersion: "0.1"` global writes, no `step_failed` event) because they describe current contracts.
