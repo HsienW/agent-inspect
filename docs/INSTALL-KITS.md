@@ -1,9 +1,19 @@
 # Install kits
 
-Task-oriented, copyable install paths for AgentInspect **6.12+**.  
-Authority: [POSITIONING-AND-PORTFOLIO.md](./POSITIONING-AND-PORTFOLIO.md) · roadmap §13 Scope B.
+Task-oriented, copyable install paths for the AgentInspect fixed release line.  
+Authority: [SUPPORT-LEVELS.md](./SUPPORT-LEVELS.md) · [POSITIONING-AND-PORTFOLIO.md](./POSITIONING-AND-PORTFOLIO.md).
 
 Prefer these kits over listing all eighteen packages as equal install targets.
+
+## Three public groups
+
+| Group | Job | Typical packages |
+| ----- | --- | ---------------- |
+| **Core kit** | Local inspect + Evidence | `agent-inspect`, `@agent-inspect/redact` |
+| **Framework kit** | Faithful capture for your stack | `agent-inspect` + one official adapter |
+| **CI / Evidence kit** | Trajectory gates + reporters | `agent-inspect` + `@agent-inspect/vitest` or `@agent-inspect/jest` |
+
+MCP (`@agent-inspect/mcp-server`) remains an optional coding-agent loop, not a required install for the core promise.
 
 ## LangGraph local-debug kit
 

@@ -1,6 +1,6 @@
 # Support levels
 
-Canonical maturity labels for AgentInspect public packages and major surfaces (6.16.x fixed release line).
+Canonical maturity labels for AgentInspect public packages and major surfaces (6.17.x fixed release line).
 
 ## Definitions
 
@@ -19,10 +19,11 @@ Canonical maturity labels for AgentInspect public packages and major surfaces (6
 | `agent-inspect` core schema, readers, writers, inspection CLI | Stable |
 | Redaction engine / `@agent-inspect/redact` | Stable |
 | Deterministic checks (`agent-inspect/checks`) | Stable |
-| Official adapters (ai-sdk, openai-agents, langchain) | Supported |
+| Official adapters (ai-sdk, openai-agents, langchain / LangGraph fidelity classes) | Supported |
 | Vitest / Jest reporters | Supported |
 | `@agent-inspect/harness` | Supported |
-| Workspace / bundles / observed outcomes | Supported |
+| Workspace / bundles / observed outcomes / Evidence v2 | Supported |
+| TraceFacts programmatic API | Beta |
 | TraceContract API | Beta |
 | Suites / cohorts / gates | Beta |
 | `@agent-inspect/index-sqlite` | Beta |
@@ -30,11 +31,21 @@ Canonical maturity labels for AgentInspect public packages and major surfaces (6
 | `@agent-inspect/adapter-sdk` / plugins | Beta |
 | `@agent-inspect/studio` | Beta |
 | Studio HTTP / GitHub ingest | Preview |
-| `@agent-inspect/mcp-server` | Preview |
+| `@agent-inspect/mcp-server` (read-only MCP) | Preview |
 | Standards round-trip / Collector–Phoenix external proof | Preview |
 | Vitest/Jest TraceContract matchers (`toPassTraceContract`, `toHaveRequiredTool`) | Experimental |
 
 Part of the fixed AgentInspect release line — see the npm badge for the current version.
+
+## Public package groups (presentation only)
+
+Physical packages stay the fixed group of 18. Outreach/install kits group them as:
+
+1. **Core kit** — `agent-inspect` (+ CLI)
+2. **Framework kit** — official adapters matching your stack
+3. **CI / Evidence kit** — checks, gates, reporters, Evidence v2 workflows
+
+See [INSTALL-KITS.md](./INSTALL-KITS.md).
 
 ## Compatibility promise
 
@@ -44,4 +55,4 @@ Part of the fixed AgentInspect release line — see the npm badge for the curren
 
 ## Promotion criteria
 
-A surface moves up only with tests, docs, packed smoke where relevant, and honest limitation disclosure — not changelog marketing alone.
+A surface moves up only with tests, docs, packed smoke where relevant, real-project or external retained use where required for Supported/Stable, and honest limitation disclosure — not changelog marketing alone.
