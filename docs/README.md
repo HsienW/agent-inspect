@@ -60,6 +60,7 @@ Optional Preview: [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) · [MCP.md](./M
 | --- | ----- |
 | [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md) · [BUNDLES.md](./BUNDLES.md) | Evidence v2 |
 | [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md) | Redaction and share checks |
+| [SUPPORT-REPRODUCTION.md](./SUPPORT-REPRODUCTION.md) | Safe, minimized support reproduction workflow |
 | [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) | Local MCP coding-agent loop |
 | [SELF-HOSTING.md](./SELF-HOSTING.md) | Customer-owned Studio |
 
