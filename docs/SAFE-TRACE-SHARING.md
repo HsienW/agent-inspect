@@ -28,6 +28,8 @@ Manual traces redact common sensitive keys **before disk** by default. Pass `red
 
 ## Before sharing
 
+When a maintainer or support responder needs reproducible evidence, follow the [safe support reproduction workflow](./SUPPORT-REPRODUCTION.md) to create and review a minimized Evidence bundle. Do not attach a raw trace directory.
+
 - Use **`--redaction-profile share`** for PR/issue attachments; use **`strict`** when sharing outside your team.
 - **Review** the exported file — profiles do not detect all sensitive data.
 - Treat traces written with `redact: false` as sensitive. Review every event before sharing them outside your team.
