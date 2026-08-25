@@ -6,10 +6,6 @@ namedTrain: agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7
 currentTrain: v6.18.0-niche-launch
 trainStatus: stopped-before-changeset
 currentChunk: 6.18.0-external-gate
-maintenanceChunk: windows-crlf-evidence-fixture-integrity
-maintenanceStatus: ready-for-review
-maintenanceStartingCommit: 91f7d83
-maintenanceValidation: build, typecheck, test, docs:check, fresh checkout, tamper
 nextAction: External acceptance worksheet missing — do not open 6.18.0 Changeset. Enter 6.18.x maintenance / await acceptance evidence.
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/EXECUTION-PLAN.md
