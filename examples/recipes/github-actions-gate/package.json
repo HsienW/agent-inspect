@@ -3,7 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node --import tsx src/index.ts"
+    "start": "node --import tsx src/index.ts",
+    "check:contract": "node --import tsx src/trace-contract-check.ts"
+  },
+  "dependencies": {
+    "agent-inspect": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.19.2"

@@ -1,0 +1,15 @@
+{
+  "name": "retained-ci-gate-fixed",
+  "traces": "../../../fixtures/traces",
+  "cases": [
+    {
+      "id": "refund-agent-must-call-refund-order",
+      "runId": "contract-fixed",
+      "requireTools": ["refund_order"]
+    }
+  ],
+  "checks": {
+    "select": ["run.status"]
+  },
+  "redactionProfile": "share"
+}
