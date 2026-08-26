@@ -1,10 +1,10 @@
-name: AgentInspect gate (example)
+name: AgentInspect retained gate (example)
 
 on:
   workflow_dispatch:
 
 jobs:
-  gate:
+  gate-broken:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,22 +15,67 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - name: Run AgentInspect gate
+      - name: Gate broken trace (expected failure)
+        id: broken_gate
+        continue-on-error: true
+        working-directory: examples/recipes/github-actions-gate
         run: |
-          npx agent-inspect gate \
-            --suite fixtures/configs/outcome-suite.suite.json \
-            --output ./gate-artifacts \
+          set +e
+          node ../../../packages/cli/dist/index.cjs gate \
+            --suite agent-inspect.broken.suite.json \
+            --dir ../../../fixtures/traces \
+            --output .agent-inspect/broken/gate-artifacts \
+            --format github \
             --evidence-on fail \
+            --evidence-dir .agent-inspect/broken/evidence \
             --evidence-profile share
-      - name: Trajectory preset check
-        run: |
-          npx agent-inspect check --dir .agent-inspect --preset trajectory \
-            --evidence-on fail --evidence-dir ./gate-artifacts/evidence
-      - name: Publish gate summary
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
+      - name: Assert that the broken gate failed
         if: always()
-        run: cat ./gate-artifacts/github-step-summary.md >> "$GITHUB_STEP_SUMMARY"
+        run: test "${{ steps.broken_gate.outputs.exit_code }}" = "1"
+      - name: Publish broken gate summary
+        if: always()
+        run: cat examples/recipes/github-actions-gate/.agent-inspect/broken/gate-artifacts/github-step-summary.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: agent-inspect-gate
-          path: gate-artifacts/
+          name: agent-inspect-gate-broken
+          path: examples/recipes/github-actions-gate/.agent-inspect/broken/
+          retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: error
+
+  gate-fixed:
+    needs: gate-broken
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Gate fixed trace
+        working-directory: examples/recipes/github-actions-gate
+        run: |
+          node ../../../packages/cli/dist/index.cjs gate \
+            --suite agent-inspect.fixed.suite.json \
+            --dir ../../../fixtures/traces \
+            --output .agent-inspect/fixed/gate-artifacts \
+            --format github \
+            --evidence-on always \
+            --evidence-dir .agent-inspect/fixed/evidence \
+            --evidence-profile share
+      - name: Publish fixed gate summary
+        run: cat examples/recipes/github-actions-gate/.agent-inspect/fixed/gate-artifacts/github-step-summary.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-inspect-gate-fixed
+          path: examples/recipes/github-actions-gate/.agent-inspect/fixed/
+          retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: error
