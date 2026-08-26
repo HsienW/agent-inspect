@@ -41,6 +41,20 @@ setTraceProcessors([
 
 - [openai-agents-local-processor](../../examples/recipes/openai-agents-local-processor/)
 
+## No-key packed consumer check
+
+The repository includes a packed-consumer check that installs the root and
+OpenAI Agents adapter tarballs into a temporary project. It drives deterministic
+tracing fixtures without `OPENAI_API_KEY` or a live provider call, writes a local
+trace, and inspects it through the packed AgentInspect CLI.
+
+```bash
+pnpm build
+node scripts/packed-openai-agents-e2e.mjs
+```
+
+The check is also included in `pnpm pack:smoke`.
+
 ## Troubleshooting
 
 | Symptom | Check |
