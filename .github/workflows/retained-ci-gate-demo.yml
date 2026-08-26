@@ -3,25 +3,56 @@ name: AgentInspect retained gate (example)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   gate-broken:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace
+        run: pnpm build
+
+      - name: Verify local AgentInspect CLI
+        working-directory: examples/recipes/github-actions-gate
+        run: |
+          echo "Node:"
+          node --version
+
+          echo "pnpm:"
+          pnpm --version
+
+          echo "CLI build artifact:"
+          test -f ../../../packages/cli/dist/index.cjs
+          ls -la ../../../packages/cli/dist/index.cjs
+
+          echo "Resolved AgentInspect CLI:"
+          pnpm exec agent-inspect --version
+
       - name: Gate broken trace (expected failure)
         id: broken_gate
         continue-on-error: true
         working-directory: examples/recipes/github-actions-gate
         run: |
           set +e
-          npx agent-inspect gate \
+
+          pnpm exec agent-inspect gate \
             --suite agent-inspect.broken.suite.json \
             --dir ../../../fixtures/traces \
             --output .agent-inspect/broken/gate-artifacts \
@@ -29,38 +60,87 @@ jobs:
             --evidence-on fail \
             --evidence-dir .agent-inspect/broken/evidence \
             --evidence-profile share
+
           status=$?
+
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          echo "Broken gate exit code: $status"
+
           exit "$status"
-      - name: Assert that the broken gate failed
+
+      - name: Assert that the broken gate failed as expected
         if: always()
-        run: test "${{ steps.broken_gate.outputs.exit_code }}" = "1"
+        run: |
+          echo "Observed exit code: ${{ steps.broken_gate.outputs.exit_code }}"
+          test "${{ steps.broken_gate.outputs.exit_code }}" = "1"
+
+      - name: Verify broken gate artifacts
+        if: always()
+        run: |
+          test -f examples/recipes/github-actions-gate/.agent-inspect/broken/gate-artifacts/github-step-summary.md
+
+          echo "Broken gate artifacts:"
+          find examples/recipes/github-actions-gate/.agent-inspect/broken -maxdepth 4 -type f -print
+
       - name: Publish broken gate summary
         if: always()
-        run: cat examples/recipes/github-actions-gate/.agent-inspect/broken/gate-artifacts/github-step-summary.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+        run: |
+          cat examples/recipes/github-actions-gate/.agent-inspect/broken/gate-artifacts/github-step-summary.md \
+            >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload broken gate artifacts
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: agent-inspect-gate-broken
           path: examples/recipes/github-actions-gate/.agent-inspect/broken/
           retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: error
 
   gate-fixed:
     needs: gate-broken
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace
+        run: pnpm build
+
+      - name: Verify local AgentInspect CLI
+        working-directory: examples/recipes/github-actions-gate
+        run: |
+          echo "Node:"
+          node --version
+
+          echo "pnpm:"
+          pnpm --version
+
+          echo "CLI build artifact:"
+          test -f ../../../packages/cli/dist/index.cjs
+          ls -la ../../../packages/cli/dist/index.cjs
+
+          echo "Resolved AgentInspect CLI:"
+          pnpm exec agent-inspect --version
+
       - name: Gate fixed trace
         working-directory: examples/recipes/github-actions-gate
         run: |
-          npx agent-inspect gate \
+          pnpm exec agent-inspect gate \
             --suite agent-inspect.fixed.suite.json \
             --dir ../../../fixtures/traces \
             --output .agent-inspect/fixed/gate-artifacts \
@@ -68,10 +148,24 @@ jobs:
             --evidence-on always \
             --evidence-dir .agent-inspect/fixed/evidence \
             --evidence-profile share
+
+      - name: Verify fixed gate artifacts
+        run: |
+          test -f examples/recipes/github-actions-gate/.agent-inspect/fixed/gate-artifacts/github-step-summary.md
+
+          echo "Fixed gate artifacts:"
+          find examples/recipes/github-actions-gate/.agent-inspect/fixed -maxdepth 4 -type f -print
+
       - name: Publish fixed gate summary
-        run: cat examples/recipes/github-actions-gate/.agent-inspect/fixed/gate-artifacts/github-step-summary.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+        run: |
+          cat examples/recipes/github-actions-gate/.agent-inspect/fixed/gate-artifacts/github-step-summary.md \
+            >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload fixed gate artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: agent-inspect-gate-fixed
           path: examples/recipes/github-actions-gate/.agent-inspect/fixed/
           retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: error
