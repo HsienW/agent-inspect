@@ -21,7 +21,7 @@ jobs:
         working-directory: examples/recipes/github-actions-gate
         run: |
           set +e
-          npx agent-inspect gate \
+          node ../../../packages/cli/dist/index.cjs gate \
             --suite agent-inspect.broken.suite.json \
             --dir ../../../fixtures/traces \
             --output .agent-inspect/broken/gate-artifacts \
@@ -44,6 +44,8 @@ jobs:
           name: agent-inspect-gate-broken
           path: examples/recipes/github-actions-gate/.agent-inspect/broken/
           retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: error
 
   gate-fixed:
     needs: gate-broken
@@ -60,7 +62,7 @@ jobs:
       - name: Gate fixed trace
         working-directory: examples/recipes/github-actions-gate
         run: |
-          npx agent-inspect gate \
+          node ../../../packages/cli/dist/index.cjs gate \
             --suite agent-inspect.fixed.suite.json \
             --dir ../../../fixtures/traces \
             --output .agent-inspect/fixed/gate-artifacts \
@@ -75,3 +77,5 @@ jobs:
           name: agent-inspect-gate-fixed
           path: examples/recipes/github-actions-gate/.agent-inspect/fixed/
           retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: error
