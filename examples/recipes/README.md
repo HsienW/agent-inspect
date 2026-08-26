@@ -60,6 +60,7 @@ Use `AGENT_INSPECT_SILENT=true` to suppress live terminal tree output during scr
 | [nestjs-langgraph-local](nestjs-langgraph-local) | Env-gated NestJS-style LangGraph callback wiring | lazy `@agent-inspect/langchain`, metadata-only, relative `traceDir`, `close`/`getDiagnostics` | yes | no |
 | [langgraph-swarm-local](langgraph-swarm-local) | Multi-agent handoff via callback metadata | handoffFrom correlation, tool identity, persist-by-intent | yes | no |
 | [langgraph-gate-evidence](langgraph-gate-evidence) | No-key check→gate→Evidence on bridged LangGraph fixture | TraceFacts `semantics` on evidence.json | yes | no |
+| [github-actions-gate](github-actions-gate) | Retained broken → fixed CI gate pilot | `suite`, `gate`, TraceContract, Evidence v2 | yes | no |
 | [harness-basic](harness-basic) | v1.9 fixture harness basics | `@agent-inspect/harness`, fixture JSON, expected output | yes | no |
 | [harness-adapter-local](harness-adapter-local) | Adapter-shaped local harness target | `@agent-inspect/harness`, bootstrap/resolve/invoke, expected output | yes | no |
 | [mcp-client-tracing](mcp-client-tracing) | v2.4 MCP client wrap with mock client | `@agent-inspect/mcp`, `inspectRun`, `sessions` / `session` CLI | yes | no |
