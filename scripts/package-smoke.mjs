@@ -708,6 +708,150 @@ function readJson(file) {
   return JSON.parse(readFileSync(file, "utf8"));
 }
 
+function getConcreteRootExports(manifest) {
+  if (
+    !manifest.exports ||
+    typeof manifest.exports !== "object" ||
+    Array.isArray(manifest.exports)
+  ) {
+    fail("packed root manifest has no exports object");
+  }
+
+  const concrete = [];
+  const patterns = [];
+  for (const [exportKey, conditions] of Object.entries(manifest.exports)) {
+    if (exportKey !== "." && !exportKey.startsWith("./")) continue;
+    if (exportKey.includes("*")) {
+      patterns.push(exportKey);
+      continue;
+    }
+    concrete.push({ exportKey, conditions });
+  }
+
+  if (!concrete.some(({ exportKey }) => exportKey === ".")) {
+    fail("packed root manifest is missing the root export");
+  }
+  if (patterns.length > 0) {
+    console.log(
+      `[pack:smoke] excluding pattern exports from concrete root-subpath smoke: ${patterns.join(", ")}`,
+    );
+  }
+
+  return concrete;
+}
+
+function rootExportSpecifier(exportKey) {
+  return exportKey === "."
+    ? "agent-inspect"
+    : `agent-inspect/${exportKey.slice(2)}`;
+}
+
+function assertPackedRootExportTargets(packageDir, concreteExports) {
+  for (const { exportKey, conditions } of concreteExports) {
+    if (
+      !conditions ||
+      typeof conditions !== "object" ||
+      Array.isArray(conditions)
+    ) {
+      fail(`packed root export ${exportKey} has invalid conditions`);
+    }
+
+    for (const moduleFormat of ["import", "require"]) {
+      const targets = conditions[moduleFormat];
+      if (!targets || typeof targets !== "object" || Array.isArray(targets)) {
+        fail(`packed root export ${exportKey} is missing ${moduleFormat} conditions`);
+      }
+
+      for (const targetKind of ["default", "types"]) {
+        const declaredTarget = targets[targetKind];
+        if (
+          typeof declaredTarget !== "string" ||
+          !declaredTarget.startsWith("./")
+        ) {
+          fail(
+            `packed root export ${exportKey} has invalid ${moduleFormat}.${targetKind} target`,
+            String(declaredTarget),
+          );
+        }
+
+        const targetPath = path.resolve(packageDir, declaredTarget);
+        const relativeTarget = path.relative(packageDir, targetPath);
+        if (
+          relativeTarget.startsWith("..") ||
+          path.isAbsolute(relativeTarget) ||
+          !existsSync(targetPath)
+        ) {
+          fail(
+            `packed root export ${exportKey} has missing ${moduleFormat}.${targetKind} target`,
+            declaredTarget,
+          );
+        }
+      }
+    }
+  }
+}
+
+function createRootSubpathSmokeSource(moduleFormat, specifiers) {
+  const formatLabel = moduleFormat === "esm" ? "ESM" : "CJS";
+  const loadExpression =
+    moduleFormat === "esm" ? "await import(specifier)" : "require(specifier)";
+
+  return `
+const specifiers = ${JSON.stringify(specifiers)};
+const failures = [];
+let passed = 0;
+
+for (const specifier of specifiers) {
+  try {
+    const loaded = ${loadExpression};
+    if (!loaded || (typeof loaded !== "object" && typeof loaded !== "function")) {
+      throw new Error("unexpected module value");
+    }
+    passed += 1;
+  } catch (error) {
+    failures.push({
+      specifier,
+      reason: String(error?.stack ?? error),
+    });
+  }
+}
+
+if (failures.length > 0) {
+  console.error("[pack:smoke] root public subpaths ${formatLabel} FAILED (" + passed + "/" + specifiers.length + ")");
+  for (const failure of failures) {
+    console.error("\\n- " + failure.specifier + "\\n  " + failure.reason);
+  }
+  process.exit(1);
+}
+`;
+}
+
+function smokeRootSubpaths(moduleFormat, consumerDir, specifiers) {
+  const formatLabel = moduleFormat === "esm" ? "ESM" : "CJS";
+  const args =
+    moduleFormat === "esm"
+      ? [
+          "--input-type=module",
+          "-e",
+          createRootSubpathSmokeSource(moduleFormat, specifiers),
+        ]
+      : ["-e", createRootSubpathSmokeSource(moduleFormat, specifiers)];
+  const result = spawnSync(process.execPath, args, {
+    cwd: consumerDir,
+    encoding: "utf8",
+  });
+
+  if (result.status !== 0) {
+    console.error(result.stdout || "");
+    console.error(result.stderr || result.error || "");
+    process.exit(1);
+  }
+
+  console.log(
+    `[pack:smoke] root public subpaths ${formatLabel} OK (${specifiers.length}/${specifiers.length}): ${specifiers.map((specifier) => specifier.slice("agent-inspect/".length)).join(", ")}`,
+  );
+}
+
 function readPackedPackageJson(tgzPath) {
   const result = run("read packed package.json", "tar", [
     "-xOf",
@@ -954,6 +1098,24 @@ try {
     encoding: "utf8",
   });
 
+  const installedPackageDir = path.join(
+    tmpRoot,
+    "node_modules",
+    "agent-inspect",
+  );
+  const installedManifest = readJson(
+    path.join(installedPackageDir, "package.json"),
+  );
+  const concreteRootExports = getConcreteRootExports(installedManifest);
+  assertPackedRootExportTargets(installedPackageDir, concreteRootExports);
+  const rootSubpathSpecifiers = concreteRootExports
+    .filter(({ exportKey }) => exportKey !== ".")
+    .map(({ exportKey }) => rootExportSpecifier(exportKey));
+
+  if (rootSubpathSpecifiers.length === 0) {
+    fail("packed root manifest has no concrete public subpaths");
+  }
+
   const esm = spawnSync(
     process.execPath,
     [
@@ -966,6 +1128,7 @@ try {
     console.error("[pack:smoke] ESM import check failed:\n", esm.stderr || esm.stdout);
     process.exit(1);
   }
+  smokeRootSubpaths("esm", tmpRoot, rootSubpathSpecifiers);
 
   const cjsDir = path.join(tmpRoot, "cjs-check");
   mkdirSync(cjsDir, { recursive: true });
@@ -985,6 +1148,7 @@ try {
     console.error("[pack:smoke] CJS require check failed:\n", cjs.stderr || cjs.stdout);
     process.exit(1);
   }
+  smokeRootSubpaths("cjs", cjsDir, rootSubpathSpecifiers);
 
   const binPath = path.join(tmpRoot, "node_modules", ".bin", "agent-inspect");
   if (!existsSync(binPath)) {
@@ -1027,7 +1191,7 @@ try {
   smokeOptionalPackages(tgzPath, tmpRoot);
 
   console.log(
-    `[pack:smoke] OK: tarball install, ESM import, CJS require, CLI ${expectedVersion}, optional package installs, and local bin / npm exec / npx --no-install --help`,
+    `[pack:smoke] OK: tarball install, root ESM import, root CJS require, ${rootSubpathSpecifiers.length} public root subpaths in ESM/CJS, CLI ${expectedVersion}, optional package installs, and local bin / npm exec / npx --no-install --help`,
   );
 } finally {
   if (!keep) {

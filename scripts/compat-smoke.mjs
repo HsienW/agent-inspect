@@ -30,6 +30,15 @@ function run(label, cmd, args, opts = {}) {
   return result;
 }
 
+function spawnCli(cmd, args, opts = {}) {
+  const useShell =
+    process.platform === "win32" && !cmd.toLowerCase().endsWith(".exe");
+  const safeArgs = useShell
+    ? args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg))
+    : args;
+  return spawnSync(cmd, safeArgs, { encoding: "utf8", shell: useShell, ...opts });
+}
+
 function parsePackedFilename(output) {
   const trimmed = output.trim();
   if (!trimmed) return undefined;
@@ -114,7 +123,7 @@ for (const [args, needles] of cliChecks) {
   );
 }
 
-const packProc = spawnSync("npm", ["pack", "--silent", "--ignore-scripts"], {
+const packProc = spawnCli("npm", ["pack", "--silent", "--ignore-scripts"], {
   cwd: root,
   encoding: "utf8",
   env: {
@@ -178,7 +187,7 @@ try {
   if (!existsSync(binPath)) {
     fail("missing node_modules/.bin/agent-inspect after install");
   }
-  const binHelp = spawnSync(binPath, ["--help"], { cwd: binDir, encoding: "utf8" });
+  const binHelp = spawnCli(binPath, ["--help"], { cwd: binDir });
   assertCliHelp("agent-inspect --help", binHelp.stdout, binHelp.stderr, binHelp.status, [
     "agent-inspect",
     "list",

@@ -28,6 +28,7 @@ import {
   createReporterArtifactPath,
   createTraceArtifactManifest,
 } from "agent-inspect/reporters";
+import { createDefaultWorkspaceManifest } from "agent-inspect/workspace";
 
 const functionChecks = [
   parseLogsToTrees,
@@ -49,6 +50,7 @@ const functionChecks = [
   runTraceChecks,
   createReporterArtifactPath,
   createTraceArtifactManifest,
+  createDefaultWorkspaceManifest,
 ];
 
 const objectChecks = [agentInspectJsonlReader];
