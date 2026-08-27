@@ -36,6 +36,7 @@ When a maintainer or support responder needs reproducible evidence, follow the [
 - Inspect manual metadata passed to `inspectRun()`, `step()`, `step.tool()`, `step.llm()`, or `observe()`.
 - Inspect log-derived fields from `logs` / `tail` ingest configs, including custom `run-id`, `event`, `parent`, timestamp, and attribute mappings.
 - Avoid posting raw prompts, completions, tool inputs, or tool outputs in public threads unless the content is approved for public disclosure.
+- For cross-system correlation, retain a bounded identifier instead of copying the external record or payload. Follow [External reference metadata](./EXTERNAL-REFERENCES.md), and expect `share` / `strict` profiles to redact the named correlation fields.
 - Prefer Markdown export for issue or PR sharing when a summarized tree is enough.
 
 ## Remove or replace sensitive values
