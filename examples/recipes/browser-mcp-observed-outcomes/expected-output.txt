@@ -1,0 +1,9 @@
+Browser/MCP observed outcome recipe complete
+Trace directory: ./.agent-inspect
+Tool action: passed
+Returned status: success
+Expected page: checkout
+Observed page: cart
+Observed outcome: failed
+Try:
+  npx agent-inspect search --dir ./.agent-inspect --observation failed

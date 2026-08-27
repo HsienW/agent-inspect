@@ -46,6 +46,7 @@ const RECIPES = [
   "phoenix-openinference-import",
   "langfuse-local-import",
   "observed-outcome-basic",
+  "browser-mcp-observed-outcomes",
   "trace-suite-basic",
   "cohort-baseline-candidate",
   "github-actions-gate",
