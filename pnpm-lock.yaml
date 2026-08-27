@@ -243,6 +243,10 @@ importers:
         version: 4.21.0
 
   examples/recipes/github-actions-gate:
+    dependencies:
+      agent-inspect:
+        specifier: workspace:*
+        version: link:../../..
     devDependencies:
       tsx:
         specifier: ^4.19.2

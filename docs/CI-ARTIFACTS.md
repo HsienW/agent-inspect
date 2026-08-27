@@ -86,8 +86,9 @@ Recipes:
 
 - [examples/recipes/deterministic-ci-checks](../examples/recipes/deterministic-ci-checks/README.md) for v1.8 `check`, baseline, safe artifact, and step-summary workflows.
 - [examples/recipes/github-actions-artifact](../examples/recipes/github-actions-artifact/README.md) for share-safe trace exports and reporter manifest summaries.
+- [examples/recipes/github-actions-gate](../examples/recipes/github-actions-gate/README.md) for a retained broken-to-fixed suite/gate pilot with separate Evidence v2 artifacts.
 
-Sample workflows: [deterministic checks workflow](../examples/recipes/deterministic-ci-checks/workflow-example.yml), [share-safe export workflow](../examples/recipes/github-actions-artifact/workflow-example.yml)
+Sample workflows: [deterministic checks workflow](../examples/recipes/deterministic-ci-checks/workflow-example.yml), [share-safe export workflow](../examples/recipes/github-actions-artifact/workflow-example.yml), [retained gate workflow](../examples/recipes/github-actions-gate/workflow-example.yml)
 
 ```yaml
 - uses: actions/upload-artifact@v4

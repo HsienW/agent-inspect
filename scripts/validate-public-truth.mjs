@@ -5,6 +5,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateStandardsProvenance } from "./lib/standards-provenance-rule.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
@@ -12,6 +13,40 @@ const changeset = JSON.parse(readFileSync(path.join(root, ".changeset/config.jso
 const fixed = changeset.fixed?.[0] ?? [];
 const version = pkg.version;
 const failures = [];
+
+const standardsPath = path.join(root, "docs/STANDARDS.md");
+const graduationPath = path.join(root, "docs/STANDARDS-GRADUATION.md");
+const openInferenceFixturePath = path.join(root, "fixtures/standards/openinference-basic.json");
+const otlpFixturePath = path.join(root, "fixtures/standards/otlp-basic.json");
+const semconvPath = path.join(root, "packages/core/src/exporters/semconv.ts");
+
+let openInferenceFixture = null;
+try {
+  openInferenceFixture = JSON.parse(readFileSync(openInferenceFixturePath, "utf8"));
+} catch (error) {
+  failures.push(
+    `fixtures/standards/openinference-basic.json: must be readable JSON (${error instanceof Error ? error.message : String(error)})`,
+  );
+}
+
+let otlpFixture = null;
+try {
+  otlpFixture = JSON.parse(readFileSync(otlpFixturePath, "utf8"));
+} catch (error) {
+  failures.push(
+    `fixtures/standards/otlp-basic.json: must be readable JSON (${error instanceof Error ? error.message : String(error)})`,
+  );
+}
+
+failures.push(
+  ...validateStandardsProvenance({
+    standardsText: existsSync(standardsPath) ? readFileSync(standardsPath, "utf8") : "",
+    graduationText: existsSync(graduationPath) ? readFileSync(graduationPath, "utf8") : "",
+    openInferenceFixture,
+    otlpFixture,
+    semconvSource: existsSync(semconvPath) ? readFileSync(semconvPath, "utf8") : "",
+  }),
+);
 
 if (fixed.length !== 18) {
   failures.push(`expected 18 fixed packages, found ${fixed.length}`);
@@ -166,6 +201,64 @@ if (!existsSync(ledgerPath)) {
     for (const phrase of banned) {
       if (typeof phrase === "string" && phrase && text.includes(phrase)) {
         failures.push(`${rel}: banned claim phrase "${phrase}"`);
+      }
+    }
+  }
+}
+
+// API maturity annotations must stay consistent with SUPPORT-LEVELS.md.
+const supportLevelsPath = path.join(root, "docs/SUPPORT-LEVELS.md");
+if (!existsSync(supportLevelsPath)) {
+  failures.push("docs/SUPPORT-LEVELS.md is required");
+} else {
+  const supportLines = readFileSync(supportLevelsPath, "utf8").split(/\r?\n/);
+
+  // Canonical levels come from the Definitions table (| **Level** | ... |).
+  const canonicalLevels = new Set();
+  for (const line of supportLines) {
+    const m = /^\|\s*\*\*([A-Za-z]+)\*\*\s*\|/.exec(line);
+    if (m) canonicalLevels.add(m[1]);
+  }
+  if (canonicalLevels.size === 0) {
+    failures.push("SUPPORT-LEVELS.md: no canonical levels found in the Definitions table");
+  }
+
+  // Every level used in the Package matrix must be one of the canonical levels.
+  let inMatrix = false;
+  let matchersLevel;
+  for (const line of supportLines) {
+    if (/^##\s+Package matrix/.test(line)) {
+      inMatrix = true;
+      continue;
+    }
+    if (inMatrix && /^##\s+/.test(line)) break;
+    if (!inMatrix || !line.trim().startsWith("|")) continue;
+    const cells = line.split("|").slice(1, -1).map((c) => c.trim());
+    if (cells.length < 2) continue;
+    const surface = cells[0];
+    const level = cells[cells.length - 1];
+    if (surface === "Package / surface" || /^-+$/.test(level)) continue; // header / separator
+    if (!canonicalLevels.has(level)) {
+      failures.push(
+        `SUPPORT-LEVELS.md: package matrix uses non-canonical level "${level}" for "${surface}"`,
+      );
+    }
+    if (/toPassTraceContract/.test(surface)) matchersLevel = level;
+  }
+
+  // PUBLIC-PRODUCT-FACTS.json matchers.status must agree with the matchers matrix row.
+  if (factsPath && existsSync(factsPath)) {
+    const status = JSON.parse(readFileSync(factsPath, "utf8")).matchers?.status;
+    if (typeof status === "string") {
+      const normalized = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+      if (!canonicalLevels.has(normalized)) {
+        failures.push(
+          `PUBLIC-PRODUCT-FACTS.json matchers.status "${status}" is not a SUPPORT-LEVELS level`,
+        );
+      } else if (matchersLevel && normalized !== matchersLevel) {
+        failures.push(
+          `PUBLIC-PRODUCT-FACTS.json matchers.status "${status}" must match the SUPPORT-LEVELS matchers level "${matchersLevel}"`,
+        );
       }
     }
   }
