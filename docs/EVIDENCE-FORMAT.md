@@ -151,6 +151,8 @@ Emitters write **both** during the transition. As of 6.10-1, `agent-inspect bund
 - No default upload; no hosted CDN; no collector
 - Safe artifact directory names; original run ids only inside the manifest
 
+When cross-system correlation is needed, retain only bounded, disclosure-approved identifiers and follow [External reference metadata](./EXTERNAL-REFERENCES.md). Evidence integrity verification does not resolve or validate the referenced external system or record.
+
 ## Review workflow
 
 ```text
@@ -162,4 +164,5 @@ capture → check → redact → verify-safe → bundle → bundle verify → at
 - Bundles today: [BUNDLES.md](./BUNDLES.md)
 - Safety: [SAFETY-POLICY.md](./SAFETY-POLICY.md)
 - Safe sharing: [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md)
+- External reference metadata: [EXTERNAL-REFERENCES.md](./EXTERNAL-REFERENCES.md)
 - Example fixture: [`fixtures/evidence/evidence.v1.example.json`](../fixtures/evidence/evidence.v1.example.json)
