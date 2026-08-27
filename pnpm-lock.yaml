@@ -179,6 +179,15 @@ importers:
         specifier: ^4.19.0
         version: 4.21.0
 
+  examples/recipes/browser-mcp-observed-outcomes:
+    dependencies:
+      agent-inspect:
+        specifier: workspace:*
+        version: link:../../..
+      tsx:
+        specifier: ^4.19.0
+        version: 4.21.0
+
   examples/recipes/circuit-breaker-basic:
     dependencies:
       '@agent-inspect/circuit':

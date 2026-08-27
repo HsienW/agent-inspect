@@ -24,3 +24,5 @@ npx agent-inspect search --dir ./.agent-inspect --observation failed
 ## Expected output
 
 See `expected-output.txt`.
+
+For a Browser/MCP-shaped example where a successful action does not produce its expected effect, see [browser-mcp-observed-outcomes](../browser-mcp-observed-outcomes/).
