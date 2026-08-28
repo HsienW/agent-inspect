@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { appendFile, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -84,6 +84,65 @@ describe("tail", () => {
     expect(obj).toHaveProperty("trees");
     expect(obj).toHaveProperty("summary");
     writeSpy.mockRestore();
+  });
+
+  it("continues ingesting after truncation and clears buffered partial lines", async () => {
+    const file = path.join(tmpDir, "tail-follow.jsonl");
+    const beforeRunId = "before-truncate";
+    const afterRunId = "after-truncate";
+    const beforeEvent = JSON.stringify({
+      event: "proactive.job.started",
+      decisionId: beforeRunId,
+      timestamp: 1,
+    });
+    const afterEvent = JSON.stringify({
+      event: "proactive.job.started",
+      decisionId: afterRunId,
+      timestamp: 2,
+    });
+
+    await writeFile(file, " ".repeat(4096), "utf-8");
+
+    const writeSpy = vi
+      .spyOn(process.stdout, "write")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .mockImplementation(() => true as any);
+    const tailPromise = tail({
+      file,
+      format: "json",
+      json: true,
+      warnings: "none",
+      noClear: true,
+      refresh: "10",
+    });
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      await appendFile(file, `${beforeEvent}\n`, "utf-8");
+      await vi.waitFor(
+        () => {
+          const output = writeSpy.mock.calls.map((call) => String(call[0])).join("");
+          expect(output).toContain(beforeRunId);
+        },
+        { timeout: 1_500, interval: 10 },
+      );
+
+      await appendFile(file, '{"event":"proactive.job', "utf-8");
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      await writeFile(file, `${afterEvent}\n`, "utf-8");
+
+      await vi.waitFor(
+        () => {
+          const output = writeSpy.mock.calls.map((call) => String(call[0])).join("");
+          expect(output).toContain(afterRunId);
+        },
+        { timeout: 1_500, interval: 10 },
+      );
+    } finally {
+      process.emit("SIGINT");
+      await tailPromise;
+      writeSpy.mockRestore();
+    }
   });
 
   it("invalid --refresh fails clearly", async () => {
@@ -196,4 +255,3 @@ describe("tail", () => {
     writeSpy.mockRestore();
   });
 });
-

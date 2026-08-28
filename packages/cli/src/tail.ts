@@ -135,6 +135,11 @@ async function followFile(
       throw new Error(`Failed to stat file: ${filePath} (${msg})`);
     }
 
+    if (next.size < pos) {
+      pos = 0;
+      carry = "";
+    }
+
     if (next.size > pos) {
       const fh = await open(filePath, "r");
       try {
