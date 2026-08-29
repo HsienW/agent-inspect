@@ -13,11 +13,16 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const cli = path.join(root, "packages/cli/dist/index.cjs");
 const evidenceRoot = path.join(root, "examples/evidence");
 const manifestPath = path.join(evidenceRoot, "demo-manifest.json");
+const cliExists = existsSync(cli);
 
 const failures = [];
 
 function fail(msg) {
   failures.push(msg);
+}
+
+if (!cliExists) {
+  fail("CLI artifact missing; run pnpm build first");
 }
 
 function walkSync(dir) {
@@ -55,7 +60,7 @@ if (!existsSync(manifestPath)) {
       const p = path.join(dir, rel);
       if (!existsSync(p)) fail(`missing ${path.relative(root, p)}`);
     }
-    if (existsSync(cli)) {
+    if (cliExists) {
       const result = spawnSync(
         process.execPath,
         [cli, "bundle", "verify", path.join(dir, "evidence"), "--json"],
