@@ -1,9 +1,10 @@
 import { access, readFile, stat } from "node:fs/promises";
-import { spawn } from "node:child_process";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { verifyEvidenceDirectory } from "@agent-inspect/core/advanced";
+
+import { openInDefaultBrowser } from "./browser-open.js";
 
 export interface BundleOpenCommandOptions {
   json?: boolean;
@@ -30,41 +31,6 @@ async function resolveHtmlPath(root: string): Promise<string> {
   throw new Error(
     `No evidence.html found under ${root}. Pass a bundle directory or .html path.`,
   );
-}
-
-function openLocalFile(filePath: string): Promise<{ ok: boolean; detail: string }> {
-  const fileUrl = pathToFileURL(filePath).href;
-  const platform = process.platform;
-  const command =
-    platform === "darwin" ? "open" : platform === "win32" ? "cmd" : "xdg-open";
-  const args =
-    platform === "darwin"
-      ? [filePath]
-      : platform === "win32"
-        ? ["/c", "start", "", filePath]
-        : [filePath];
-
-  return new Promise((resolve) => {
-    try {
-      const child = spawn(command, args, {
-        detached: true,
-        stdio: "ignore",
-      });
-      child.on("error", (error) => {
-        resolve({
-          ok: false,
-          detail: `${error instanceof Error ? error.message : String(error)}; open manually: ${fileUrl}`,
-        });
-      });
-      child.unref();
-      resolve({ ok: true, detail: fileUrl });
-    } catch (error) {
-      resolve({
-        ok: false,
-        detail: `${error instanceof Error ? error.message : String(error)}; open manually: ${fileUrl}`,
-      });
-    }
-  });
 }
 
 /**
@@ -150,23 +116,24 @@ export async function bundleOpenCommand(
     // html-only open still allowed after verify when sidecar exists elsewhere
   }
 
-  const opened = await openLocalFile(htmlPath);
+  const fileUrl = pathToFileURL(htmlPath).href;
+  const opened = await openInDefaultBrowser(fileUrl);
   if (options.json) {
     console.log(
       writeJson({
         ok: opened.ok,
         path: htmlPath,
         opened: opened.ok,
-        detail: opened.detail,
+        detail: opened.ok ? fileUrl : `${opened.detail ?? "unknown error"}; open manually: ${fileUrl}`,
       }).trimEnd(),
     );
   } else if (opened.ok) {
     console.log(`Opened local Evidence: ${htmlPath}`);
-    console.log(`URL: ${opened.detail}`);
+    console.log(`URL: ${fileUrl}`);
   } else {
     console.error(`[AgentInspect] Could not open browser automatically.`);
     console.error(`Open this file locally: ${htmlPath}`);
-    console.error(opened.detail);
+    console.error(`${opened.detail ?? "unknown error"}; open manually: ${fileUrl}`);
   }
 
   if (!opened.ok) {

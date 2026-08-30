@@ -1,5 +1,7 @@
 import type * as Studio from "@agent-inspect/studio";
 
+import { openInDefaultBrowser } from "./browser-open.js";
+
 const PACKAGE = "@agent-inspect/studio";
 
 export interface StudioCommandOptions {
@@ -222,8 +224,11 @@ export async function studioCommand(options: StudioCommandOptions = {}): Promise
   if (options.open === true && info.host !== "127.0.0.1" && info.host !== "localhost") {
     console.warn("Skipping browser open for non-local host binding.");
   } else if (options.open === true) {
-    const openMod = await import("node:child_process");
-    openMod.exec(`open ${info.url}`, () => {});
+    const opened = await openInDefaultBrowser(info.url);
+    if (!opened.ok) {
+      console.warn("Studio started, but the browser could not be opened automatically.");
+      console.warn(`Open manually: ${info.url}`);
+    }
   }
 
   await new Promise<void>(() => {
