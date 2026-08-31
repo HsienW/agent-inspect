@@ -1,5 +1,7 @@
 import { startViewerServer } from "@agent-inspect/viewer";
 
+import { openInDefaultBrowser } from "./browser-open.js";
+
 export interface ServeCommandOptions {
   dir?: string;
   host?: string;
@@ -41,8 +43,11 @@ export async function serveCommand(options: ServeCommandOptions = {}): Promise<v
   if (options.open === true && host !== "127.0.0.1" && host !== "localhost") {
     console.warn("Skipping browser open for non-local host binding.");
   } else if (options.open === true) {
-    const openMod = await import("node:child_process");
-    openMod.exec(`open ${info.url}`, () => {});
+    const opened = await openInDefaultBrowser(info.url);
+    if (!opened.ok) {
+      console.warn("Viewer started, but the browser could not be opened automatically.");
+      console.warn(`Open manually: ${info.url}`);
+    }
   }
 
   await new Promise<void>(() => {
