@@ -62,16 +62,19 @@ export interface TraceContractToolRules {
   allowed?: string[];
   maxCalls?: number;
   /**
-   * Required tool order as adjacent first-occurrence pairs.
+   * Required tool order as adjacent first-occurrence pairs (start/encounter order).
    *
    * `[A, B, C]` expands to “A before B” and “B before C”, each comparing the
    * first occurrence of the named tool. Unlisted intermediate tools are
    * allowed. Later repetitions do not invalidate an earlier valid order.
-   * Missing tools are not ordering failures by themselves — use `required` /
-   * `requiredTools` for presence.
    *
-   * Stricter `requiredOrderMode: "all-occurrences"` is planned for 6.20.0
-   * (GitHub #308). Do not assume it is available yet.
+   * TraceContract `requiredOrder` **implies presence**: every listed name is
+   * added to the effective required-tool set. Low-level `createToolOrderingRule`
+   * alone may still pass vacuously when an endpoint is missing.
+   *
+   * This is **not** causal happens-before. Overlapping intervals emit a
+   * non-failing overlap warning. Planned modes (6.20.0, GitHub #308):
+   * `happens-before`, `all-occurrences`.
    *
    * @see docs/TRACE-CONTRACTS.md
    * @beta Available through `agent-inspect/checks`. Additive changes may ship
@@ -191,9 +194,13 @@ function contractToRules(contract: TraceContract): TraceCheckRule[] {
   }
 
   if (contract.tools) {
+    const order = contract.tools.requiredOrder ?? [];
     const required = [
-      ...(contract.tools.required ?? []),
-      ...(contract.tools.requiredTools ?? []),
+      ...new Set([
+        ...(contract.tools.required ?? []),
+        ...(contract.tools.requiredTools ?? []),
+        ...order,
+      ]),
     ];
     const forbidden = [
       ...(contract.tools.forbidden ?? []),
@@ -207,9 +214,14 @@ function contractToRules(contract: TraceContract): TraceCheckRule[] {
         ...(contract.tools.maxCalls !== undefined ? { maxCount: contract.tools.maxCalls } : {}),
       }),
     );
-    const order = contract.tools.requiredOrder ?? [];
     for (let i = 0; i < order.length - 1; i += 1) {
-      rules.push(createToolOrderingRule({ before: order[i]!, after: order[i + 1]! }));
+      rules.push(
+        createToolOrderingRule({
+          before: order[i]!,
+          after: order[i + 1]!,
+          id: `contract.tool.order.${i}`,
+        }),
+      );
     }
   }
 

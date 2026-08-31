@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { checkCommand } from "../src/check.js";
+import { checkCommand, parseCheckConfig, checkConfigHasEffect } from "../src/check.js";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, "../../..");
@@ -67,6 +67,72 @@ describe("check command", () => {
     process.exitCode = 0;
     vi.restoreAllMocks();
     await rm(tmp, { recursive: true, force: true });
+  });
+
+  it("rejects unknown nested check config keys", () => {
+    expect(() =>
+      parseCheckConfig({
+        checks: {
+          tool: {
+            forbiddn: ["send_email"],
+          },
+        },
+      }),
+    ).toThrow(/forbiddn/);
+  });
+
+  it("rejects top-level contract shape with actionable guidance", () => {
+    expect(() =>
+      parseCheckConfig({
+        contract: {
+          tools: {
+            forbidden: ["send_email"],
+          },
+        },
+      }),
+    ).toThrow(/TraceContract/);
+  });
+
+  it("treats empty and effectless configs as having no effect", () => {
+    expect(checkConfigHasEffect({})).toBe(false);
+    expect(checkConfigHasEffect({ checks: {} })).toBe(false);
+    expect(checkConfigHasEffect({ checks: { tool: {} } })).toBe(false);
+    expect(
+      checkConfigHasEffect({ checks: { tool: { forbidden: ["send_email"] } } }),
+    ).toBe(true);
+  });
+
+  it("fails explicit --config when the file has no effective rules", async () => {
+    const file = await writeTrace(tmp, "ok.jsonl", [event("event-a")]);
+    const configPath = path.join(tmp, "empty-check.json");
+    await writeFile(configPath, JSON.stringify({ checks: {} }), "utf-8");
+
+    const result = await runCheck(file, { config: configPath });
+
+    expect(process.exitCode).toBe(2);
+    expect(result.status).toBe("error");
+    expect(result.diagnostics?.[0]?.code).toBe("AI_CHECK_CONFIG_NO_EFFECTIVE_RULES");
+  });
+
+  it("fails --fail-on-observation when the trace has no outcomes", async () => {
+    const file = await writeTrace(tmp, "no-outcome.jsonl", [event("event-a")]);
+
+    const result = await runCheck(file, { failOnObservation: "failed" });
+
+    expect(process.exitCode).toBe(1);
+    expect(result.status).toBe("fail");
+    expect(result.findings?.some((item) => item.ruleId === "outcome.status")).toBe(true);
+  });
+
+  it("includes rulesEvaluated in JSON output", async () => {
+    const file = await writeTrace(tmp, "ok.jsonl", [event("event-a")]);
+
+    const result = await runCheck(file);
+
+    expect(result.status).toBe("pass");
+    expect((result as { summary?: { rulesEvaluated?: number } }).summary?.rulesEvaluated).toBeGreaterThan(
+      0,
+    );
   });
 
   it("passes a successful local trace through the canonical reader path", async () => {
@@ -153,7 +219,7 @@ describe("check command", () => {
     await writeFile(config, "export default {};\n", "utf-8");
     result = await runCheck(file, { config });
     expect(process.exitCode).toBe(2);
-    expect(result.diagnostics?.[0]?.code).toBe("AI_CHECK_INVALID_CONFIG");
+    expect(result.diagnostics?.[0]?.code).toBe("AI_CHECK_CONFIG_LOAD_FAILED");
   });
 
   it("maps unreadable and unsupported traces to exit codes 3 and 4", async () => {

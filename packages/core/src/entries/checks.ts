@@ -34,6 +34,8 @@ export type {
   TraceCheckResult,
   TraceCheckRule,
   TraceCheckRuleCategory,
+  TraceCheckRuleExecution,
+  TraceCheckRuleExecutionStatus,
   TraceCheckSeverity,
   TraceCheckStatus,
   TraceCheckSummary,

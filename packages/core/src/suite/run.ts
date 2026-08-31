@@ -190,9 +190,10 @@ async function runSuiteCase(
           ok: true,
           status: "pass" as const,
           format: read.format,
-          summary: { passed: 0, failed: 0, warnings: 0, errors: 0 },
+          summary: { passed: 0, failed: 0, warnings: 0, errors: 0, rulesEvaluated: 0 },
           findings: [],
           diagnostics: [],
+          ruleExecutions: [],
         };
   const observationResult = validateExpectedObservations(suiteCase, read);
 

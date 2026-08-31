@@ -8,9 +8,10 @@ describe("safety-extensions", () => {
       ok: true,
       status: "pass" as const,
       format: "agent-inspect-jsonl",
-      summary: { passed: 1, failed: 0, warnings: 0, errors: 0 },
+      summary: { passed: 1, failed: 0, warnings: 0, errors: 0, rulesEvaluated: 1 },
       findings: [],
       diagnostics: [],
+      ruleExecutions: [],
     };
     const read = {
       format: "agent-inspect-jsonl",

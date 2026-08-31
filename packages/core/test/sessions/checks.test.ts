@@ -17,6 +17,7 @@ function runResult(
       failed: status === "fail" ? 1 : 0,
       warnings: 0,
       errors: status === "error" ? 1 : 0,
+      rulesEvaluated: 1,
     },
     findings:
       status === "fail"
@@ -31,6 +32,15 @@ function runResult(
           ]
         : [],
     diagnostics: [],
+    ruleExecutions: [
+      {
+        ruleId: "run.status",
+        category: "run",
+        status: status === "pass" ? "pass" : status === "fail" ? "fail" : "error",
+        findingCount: status === "fail" ? 1 : 0,
+        runId,
+      },
+    ],
   };
 }
 

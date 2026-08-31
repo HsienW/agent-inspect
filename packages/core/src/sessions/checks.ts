@@ -2,6 +2,7 @@ import type {
   TraceCheckDiagnostic,
   TraceCheckFinding,
   TraceCheckResult,
+  TraceCheckRuleExecution,
   TraceCheckStatus,
   TraceCheckSummary,
 } from "../checks/index.js";
@@ -16,7 +17,7 @@ export interface TraceSessionCheckResult extends TraceCheckResult {
 }
 
 function emptySummary(): TraceCheckSummary {
-  return { passed: 0, failed: 0, warnings: 0, errors: 0 };
+  return { passed: 0, failed: 0, warnings: 0, errors: 0, rulesEvaluated: 0 };
 }
 
 function mergeSummary(
@@ -28,6 +29,7 @@ function mergeSummary(
     failed: target.failed + source.failed,
     warnings: target.warnings + source.warnings,
     errors: target.errors + source.errors,
+    rulesEvaluated: target.rulesEvaluated + source.rulesEvaluated,
   };
 }
 
@@ -67,6 +69,7 @@ export function aggregateSessionCheckResults(
           `${scope.scopeKind} not found: ${scope.scopeLabel}`,
         ),
       ],
+      ruleExecutions: [],
       ...(scope.sessionWarnings?.length
         ? { sessionWarnings: [...scope.sessionWarnings] }
         : {}),
@@ -90,6 +93,7 @@ export function aggregateSessionCheckResults(
           `No readable traces in ${scope.scopeKind}: ${scope.scopeLabel}`,
         ),
       ],
+      ruleExecutions: [],
       ...(scope.sessionWarnings?.length
         ? { sessionWarnings: [...scope.sessionWarnings] }
         : {}),
@@ -99,12 +103,14 @@ export function aggregateSessionCheckResults(
   let summary = emptySummary();
   const findings: TraceCheckFinding[] = [];
   const diagnostics: TraceCheckDiagnostic[] = [];
+  const ruleExecutions: TraceCheckRuleExecution[] = [];
   const runResults: Array<{ runId: string; status: TraceCheckStatus }> = [];
 
   for (const result of perRun) {
     summary = mergeSummary(summary, result.summary);
     findings.push(...result.findings);
     diagnostics.push(...result.diagnostics);
+    ruleExecutions.push(...(result.ruleExecutions ?? []));
     if (result.runId) {
       runResults.push({ runId: result.runId, status: result.status });
     }
@@ -115,6 +121,11 @@ export function aggregateSessionCheckResults(
     const runCmp = (a.evidence[0]?.runId ?? "").localeCompare(
       b.evidence[0]?.runId ?? "",
     );
+    if (runCmp !== 0) return runCmp;
+    return a.ruleId.localeCompare(b.ruleId);
+  });
+  ruleExecutions.sort((a, b) => {
+    const runCmp = (a.runId ?? "").localeCompare(b.runId ?? "");
     if (runCmp !== 0) return runCmp;
     return a.ruleId.localeCompare(b.ruleId);
   });
@@ -137,6 +148,7 @@ export function aggregateSessionCheckResults(
     summary,
     findings,
     diagnostics,
+    ruleExecutions,
     ...(scope.sessionWarnings?.length
       ? { sessionWarnings: [...scope.sessionWarnings] }
       : {}),

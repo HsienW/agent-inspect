@@ -23,6 +23,7 @@ This document states what AgentInspect **does not** provide today. It complement
 
 - **Subpath APIs:** `agent-inspect/writers`, `agent-inspect/readers`, and advanced helpers are available for local adoption from their owning subpaths. `createInspector()` is part of the small root API.
 - **Explicit writer ownership:** `createInspector()` does not print terminal lifecycle output or implicitly choose a disk writer. Use `fileWriter()` / `bufferedFileWriter()` / custom writers when persistence is desired.
+- **Diagnostic evidence, not an event-sourced runtime:** AgentInspect traces are local diagnostic evidence of what an agent did. They are **not** a write-ahead log, durable-before-effect journal, or application event-sourcing runtime. Buffered writers may lose a bounded tail of events on abrupt process termination. Call `flush()` / `close()` according to writer docs when you need the queue drained before exit; that lifecycle is deterministic and idempotent, but it is **not** an fsync / crash-durability guarantee.
 - **No standards upload:** OpenInference and OTLP JSON support is local read/export compatibility only. There is no OTLP gRPC/HTTP streaming sink, collector client, or hosted ingestion behavior.
 - **Conservative detection:** `agent-inspect open` does not silently accept arbitrary JSON. Unsupported or ambiguous inputs produce errors/warnings rather than guessed traces.
 - **Large inputs:** reader inputs are bounded and read into local memory. This is not a database index or production log warehouse.

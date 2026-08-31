@@ -298,9 +298,11 @@ function errorResult(
       failed: 0,
       warnings: 0,
       errors: 1,
+      rulesEvaluated: 0,
     },
     findings: [],
     diagnostics,
+    ruleExecutions: [],
   };
 }
 
@@ -321,40 +323,365 @@ function asStringArray(value: unknown): string[] | undefined {
   return value;
 }
 
-function asConfig(value: unknown): CheckConfig {
+const CHECKS_KEYS = new Set(["select", "run", "tool", "llm", "structure", "safety"]);
+const RUN_KEYS = new Set(["expected", "allowIncomplete", "maxDurationMs", "maxDepth"]);
+const TOOL_KEYS = new Set(["required", "forbidden", "allowed", "minCount", "maxCount"]);
+const LLM_KEYS = new Set([
+  "allowedModels",
+  "allowedProviders",
+  "finishReasons",
+  "maxCalls",
+  "maxTotalTokens",
+  "maxInputTokens",
+  "maxOutputTokens",
+  "maxCachedTokens",
+]);
+const STRUCTURE_KEYS = new Set([
+  "minConfidence",
+  "requireParentBeforeChild",
+  "requireTraceParentSpan",
+  "orphan",
+  "cycle",
+  "maxChildren",
+  "maxConcurrent",
+]);
+const SAFETY_KEYS = new Set([
+  "redaction",
+  "rawContent",
+  "secretPattern",
+  "maxStringLength",
+  "maxArrayLength",
+  "maxObjectKeys",
+  "maxSerializedBytes",
+  "maxFindings",
+]);
+const RUN_EXPECTED = new Set(["ok", "error", "running"]);
+const CONFIDENCE_VALUES = new Set(["exact", "high", "medium", "low", "inferred"]);
+
+class CheckConfigError extends Error {
+  readonly code: TraceCheckDiagnosticCode;
+  constructor(code: TraceCheckDiagnosticCode, message: string) {
+    super(message);
+    this.name = "CheckConfigError";
+    this.code = code;
+  }
+}
+
+function closestKey(unknown: string, known: readonly string[]): string | undefined {
+  const lower = unknown.toLowerCase();
+  let best: string | undefined;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const candidate of known) {
+    if (candidate.toLowerCase() === lower) return candidate;
+    // Simple edit-distance proxy for typo suggestions.
+    let distance = Math.abs(candidate.length - unknown.length);
+    const max = Math.max(candidate.length, unknown.length);
+    for (let i = 0; i < Math.min(candidate.length, unknown.length); i += 1) {
+      if (candidate[i]!.toLowerCase() !== unknown[i]!.toLowerCase()) distance += 1;
+    }
+    if (distance < bestDistance && distance <= Math.max(2, Math.floor(max / 3))) {
+      bestDistance = distance;
+      best = candidate;
+    }
+  }
+  return best;
+}
+
+function rejectUnknownKeys(
+  record: Record<string, unknown>,
+  allowed: ReadonlySet<string>,
+  pathPrefix: string,
+): void {
+  for (const key of Object.keys(record)) {
+    if (allowed.has(key)) continue;
+    const suggestion = closestKey(key, [...allowed]);
+    const hint = suggestion ? ` Did you mean "${suggestion}"?` : "";
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_UNKNOWN_KEY",
+      `Unknown check config key "${pathPrefix}.${key}".${hint}`,
+    );
+  }
+}
+
+function requireObject(value: unknown, pathPrefix: string): Record<string, unknown> {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix} must be an object.`,
+    );
+  }
+  return value as Record<string, unknown>;
+}
+
+function requireStringArray(value: unknown, pathPrefix: string): string[] {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string" || item.trim() === "")) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix} must be an array of non-empty strings.`,
+    );
+  }
+  return value as string[];
+}
+
+function requireNonNegativeNumber(value: unknown, pathPrefix: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix} must be a finite non-negative number.`,
+    );
+  }
+  return value;
+}
+
+function requireBoolean(value: unknown, pathPrefix: string): boolean {
+  if (typeof value !== "boolean") {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix} must be a boolean.`,
+    );
+  }
+  return value;
+}
+
+function parseRunSection(value: unknown): NonNullable<CheckConfig["checks"]>["run"] {
+  const record = requireObject(value, "checks.run");
+  rejectUnknownKeys(record, RUN_KEYS, "checks.run");
+  const out: NonNullable<CheckConfig["checks"]>["run"] = {};
+  if (record.expected !== undefined) {
+    if (typeof record.expected !== "string" || !RUN_EXPECTED.has(record.expected)) {
+      throw new CheckConfigError(
+        "AI_CHECK_CONFIG_INVALID_VALUE",
+        `checks.run.expected must be one of: ok, error, running.`,
+      );
+    }
+    out.expected = record.expected as "ok" | "error" | "running";
+  }
+  if (record.allowIncomplete !== undefined) {
+    out.allowIncomplete = requireBoolean(record.allowIncomplete, "checks.run.allowIncomplete");
+  }
+  if (record.maxDurationMs !== undefined) {
+    out.maxDurationMs = requireNonNegativeNumber(record.maxDurationMs, "checks.run.maxDurationMs");
+  }
+  if (record.maxDepth !== undefined) {
+    out.maxDepth = requireNonNegativeNumber(record.maxDepth, "checks.run.maxDepth");
+  }
+  return out;
+}
+
+function parseToolSection(value: unknown): ToolUsageRuleOptions {
+  const record = requireObject(value, "checks.tool");
+  rejectUnknownKeys(record, TOOL_KEYS, "checks.tool");
+  const out: ToolUsageRuleOptions = {};
+  if (record.required !== undefined) out.required = requireStringArray(record.required, "checks.tool.required");
+  if (record.forbidden !== undefined) out.forbidden = requireStringArray(record.forbidden, "checks.tool.forbidden");
+  if (record.allowed !== undefined) out.allowed = requireStringArray(record.allowed, "checks.tool.allowed");
+  if (record.minCount !== undefined) out.minCount = requireNonNegativeNumber(record.minCount, "checks.tool.minCount");
+  if (record.maxCount !== undefined) out.maxCount = requireNonNegativeNumber(record.maxCount, "checks.tool.maxCount");
+  return out;
+}
+
+function parseLlmSection(value: unknown): LlmUsageRuleOptions {
+  const record = requireObject(value, "checks.llm");
+  rejectUnknownKeys(record, LLM_KEYS, "checks.llm");
+  const out: LlmUsageRuleOptions = {};
+  if (record.allowedModels !== undefined) {
+    out.allowedModels = requireStringArray(record.allowedModels, "checks.llm.allowedModels");
+  }
+  if (record.allowedProviders !== undefined) {
+    out.allowedProviders = requireStringArray(record.allowedProviders, "checks.llm.allowedProviders");
+  }
+  if (record.finishReasons !== undefined) {
+    out.finishReasons = requireStringArray(record.finishReasons, "checks.llm.finishReasons");
+  }
+  if (record.maxCalls !== undefined) out.maxCalls = requireNonNegativeNumber(record.maxCalls, "checks.llm.maxCalls");
+  if (record.maxTotalTokens !== undefined) {
+    out.maxTotalTokens = requireNonNegativeNumber(record.maxTotalTokens, "checks.llm.maxTotalTokens");
+  }
+  if (record.maxInputTokens !== undefined) {
+    out.maxInputTokens = requireNonNegativeNumber(record.maxInputTokens, "checks.llm.maxInputTokens");
+  }
+  if (record.maxOutputTokens !== undefined) {
+    out.maxOutputTokens = requireNonNegativeNumber(record.maxOutputTokens, "checks.llm.maxOutputTokens");
+  }
+  if (record.maxCachedTokens !== undefined) {
+    out.maxCachedTokens = requireNonNegativeNumber(record.maxCachedTokens, "checks.llm.maxCachedTokens");
+  }
+  return out;
+}
+
+function parseStructureSection(
+  value: unknown,
+): NonNullable<CheckConfig["checks"]>["structure"] {
+  const record = requireObject(value, "checks.structure");
+  rejectUnknownKeys(record, STRUCTURE_KEYS, "checks.structure");
+  const out: NonNullable<CheckConfig["checks"]>["structure"] = {};
+  if (record.minConfidence !== undefined) {
+    if (typeof record.minConfidence !== "string" || !CONFIDENCE_VALUES.has(record.minConfidence)) {
+      throw new CheckConfigError(
+        "AI_CHECK_CONFIG_INVALID_VALUE",
+        `checks.structure.minConfidence must be one of: exact, high, medium, low, inferred.`,
+      );
+    }
+    out.minConfidence = record.minConfidence as StructureRelationshipRuleOptions["minConfidence"];
+  }
+  if (record.requireParentBeforeChild !== undefined) {
+    out.requireParentBeforeChild = requireBoolean(
+      record.requireParentBeforeChild,
+      "checks.structure.requireParentBeforeChild",
+    );
+  }
+  if (record.requireTraceParentSpan !== undefined) {
+    out.requireTraceParentSpan = requireBoolean(
+      record.requireTraceParentSpan,
+      "checks.structure.requireTraceParentSpan",
+    );
+  }
+  if (record.orphan !== undefined) out.orphan = requireBoolean(record.orphan, "checks.structure.orphan");
+  if (record.cycle !== undefined) out.cycle = requireBoolean(record.cycle, "checks.structure.cycle");
+  if (record.maxChildren !== undefined) {
+    out.maxChildren = requireNonNegativeNumber(record.maxChildren, "checks.structure.maxChildren");
+  }
+  if (record.maxConcurrent !== undefined) {
+    out.maxConcurrent = requireNonNegativeNumber(record.maxConcurrent, "checks.structure.maxConcurrent");
+  }
+  return out;
+}
+
+function parseSafetySection(
+  value: unknown,
+): NonNullable<CheckConfig["checks"]>["safety"] {
+  const record = requireObject(value, "checks.safety");
+  rejectUnknownKeys(record, SAFETY_KEYS, "checks.safety");
+  const out: NonNullable<CheckConfig["checks"]>["safety"] = {};
+  if (record.redaction !== undefined) out.redaction = requireBoolean(record.redaction, "checks.safety.redaction");
+  if (record.rawContent !== undefined) out.rawContent = requireBoolean(record.rawContent, "checks.safety.rawContent");
+  if (record.secretPattern !== undefined) {
+    out.secretPattern = requireBoolean(record.secretPattern, "checks.safety.secretPattern");
+  }
+  if (record.maxStringLength !== undefined) {
+    out.maxStringLength = requireNonNegativeNumber(record.maxStringLength, "checks.safety.maxStringLength");
+  }
+  if (record.maxArrayLength !== undefined) {
+    out.maxArrayLength = requireNonNegativeNumber(record.maxArrayLength, "checks.safety.maxArrayLength");
+  }
+  if (record.maxObjectKeys !== undefined) {
+    out.maxObjectKeys = requireNonNegativeNumber(record.maxObjectKeys, "checks.safety.maxObjectKeys");
+  }
+  if (record.maxSerializedBytes !== undefined) {
+    out.maxSerializedBytes = requireNonNegativeNumber(
+      record.maxSerializedBytes,
+      "checks.safety.maxSerializedBytes",
+    );
+  }
+  if (record.maxFindings !== undefined) {
+    out.maxFindings = requireNonNegativeNumber(record.maxFindings, "checks.safety.maxFindings");
+  }
+  return out;
+}
+
+function sectionHasEffect(section: Record<string, unknown> | undefined): boolean {
+  if (section === undefined) return false;
+  return Object.keys(section).length > 0;
+}
+
+/** True when the parsed config itself configures rules, select, or disables defaults. */
+export function checkConfigHasEffect(config: CheckConfig): boolean {
+  const checks = config.checks;
+  if (checks === undefined) return false;
+  if ((checks.select?.length ?? 0) > 0) return true;
+  if (sectionHasEffect(checks.run as Record<string, unknown> | undefined)) return true;
+  if (sectionHasEffect(checks.tool as Record<string, unknown> | undefined)) return true;
+  if (sectionHasEffect(checks.llm as Record<string, unknown> | undefined)) return true;
+  if (sectionHasEffect(checks.structure as Record<string, unknown> | undefined)) return true;
+  if (sectionHasEffect(checks.safety as Record<string, unknown> | undefined)) return true;
+  return false;
+}
+
+/**
+ * Strict runtime parser for CLI `--config` JSON/JS objects.
+ * Rejects unknown keys and invalid value types; never silently ignores typos.
+ */
+export function parseCheckConfig(value: unknown): CheckConfig {
   if (value === undefined || value === null) return {};
   if (typeof value !== "object" || Array.isArray(value)) {
-    throw new Error("Config must export an object.");
+    throw new CheckConfigError("AI_CHECK_CONFIG_INVALID_VALUE", "Config must export an object.");
   }
-  return value as CheckConfig;
+  const root = value as Record<string, unknown>;
+  if ("contract" in root) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_UNKNOWN_KEY",
+      'Top-level "contract" is not supported by `agent-inspect check --config`. ' +
+        "Use the TraceContract TypeScript API (`defineTraceContract` / `evaluateTraceContract` " +
+        "from `agent-inspect/checks`), or express tool/run/llm rules under `checks`.",
+    );
+  }
+  const rootKeys = Object.keys(root);
+  for (const key of rootKeys) {
+    if (key === "checks") continue;
+    const suggestion = closestKey(key, ["checks"]);
+    const hint = suggestion ? ` Did you mean "${suggestion}"?` : "";
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_UNKNOWN_KEY",
+      `Unknown top-level check config key "${key}". Allowed: checks.${hint}`,
+    );
+  }
+  if (!("checks" in root)) return {};
+
+  const checksRecord = requireObject(root.checks, "checks");
+  rejectUnknownKeys(checksRecord, CHECKS_KEYS, "checks");
+  const checks: NonNullable<CheckConfig["checks"]> = {};
+  if (checksRecord.select !== undefined) {
+    checks.select = requireStringArray(checksRecord.select, "checks.select");
+  }
+  if (checksRecord.run !== undefined) checks.run = parseRunSection(checksRecord.run);
+  if (checksRecord.tool !== undefined) checks.tool = parseToolSection(checksRecord.tool);
+  if (checksRecord.llm !== undefined) checks.llm = parseLlmSection(checksRecord.llm);
+  if (checksRecord.structure !== undefined) {
+    checks.structure = parseStructureSection(checksRecord.structure);
+  }
+  if (checksRecord.safety !== undefined) checks.safety = parseSafetySection(checksRecord.safety);
+  return { checks };
 }
 
 async function loadConfig(configPath: string | undefined): Promise<CheckConfig> {
   if (configPath === undefined) return {};
   const extension = path.extname(configPath);
   if (TS_CONFIG_EXTENSIONS.has(extension)) {
-    throw new Error(
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_LOAD_FAILED",
       "TypeScript check configs require an explicit precompiled JavaScript config or future --config-loader support.",
     );
   }
   if (!CONFIG_EXTENSIONS.has(extension)) {
-    throw new Error("Unsupported check config extension. Use .json, .js, .mjs, or .cjs.");
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_LOAD_FAILED",
+      "Unsupported check config extension. Use .json, .js, .mjs, or .cjs.",
+    );
   }
 
   const absolute = path.resolve(configPath);
-  if (extension === ".json") {
-    const raw = await readFile(absolute, "utf-8");
-    return asConfig(JSON.parse(raw));
-  }
+  try {
+    if (extension === ".json") {
+      const raw = await readFile(absolute, "utf-8");
+      return parseCheckConfig(JSON.parse(raw));
+    }
 
-  const mod = await import(pathToFileURL(absolute).href);
-  return asConfig("default" in mod ? mod.default : mod);
+    const mod = await import(pathToFileURL(absolute).href);
+    return parseCheckConfig("default" in mod ? mod.default : mod);
+  } catch (error) {
+    if (error instanceof CheckConfigError) throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_LOAD_FAILED",
+      `Failed to load check config: ${message}`,
+    );
+  }
 }
 
 function normalizeConfig(config: CheckConfig): NonNullable<CheckConfig["checks"]> {
   if (config.checks === undefined) return {};
   if (typeof config.checks !== "object" || Array.isArray(config.checks)) {
-    throw new Error("checks config must be an object.");
+    throw new CheckConfigError("AI_CHECK_CONFIG_INVALID_VALUE", "checks config must be an object.");
   }
   return config.checks;
 }
@@ -470,7 +797,7 @@ function buildRules(
           }
           throw new Error(`unsupported status "${value}"`);
         });
-      rules.push(createObservedOutcomeRule({ failOn: statuses }));
+      rules.push(createObservedOutcomeRule({ failOn: statuses, requireAny: true }));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       diagnostics.push(
@@ -577,6 +904,10 @@ function exitCodeFor(result: TraceCheckResult): number {
       code === "AI_CHECK_INVALID_ARGUMENTS" ||
       code === "AI_CHECK_INVALID_CONFIG" ||
       code === "AI_CHECK_CONFIG_LOAD_FAILED" ||
+      code === "AI_CHECK_CONFIG_UNKNOWN_KEY" ||
+      code === "AI_CHECK_CONFIG_INVALID_VALUE" ||
+      code === "AI_CHECK_CONFIG_NO_EFFECTIVE_RULES" ||
+      code === "AI_CHECK_NO_RULES_EVALUATED" ||
       code === "AI_CHECK_RUN_SELECTION_REQUIRED"
     )
   ) {
@@ -669,6 +1000,7 @@ function printHuman(
   console.log(
     `Summary: ${result.summary.failed} failed, ${result.summary.warnings} warning(s), ${result.summary.errors} error(s)`,
   );
+  console.log(`Rules evaluated: ${result.summary.rulesEvaluated ?? result.ruleExecutions?.length ?? 0}`);
   for (const diagnostic of result.diagnostics) {
     console.log(`- ${diagnostic.code}: ${diagnostic.message}`);
   }
@@ -713,6 +1045,16 @@ export async function checkCommand(
 
   try {
     let config = await loadConfig(options.config);
+    if (options.config !== undefined && !checkConfigHasEffect(config)) {
+      result = errorResult(
+        "AI_CHECK_CONFIG_NO_EFFECTIVE_RULES",
+        "Explicit --config has no effective check rules. Configure checks.select, checks.run, checks.tool, checks.llm, checks.structure, or checks.safety.",
+      );
+      if (options.json) printJson(result);
+      else printHuman(result, options);
+      process.exitCode = exitCodeFor(result);
+      return;
+    }
     let effectiveOptions = options;
     const resolved = resolvePreset(options.preset, {
       hasToolRules: hasToolRulesConfigured(config, options),
@@ -836,22 +1178,23 @@ export async function checkCommand(
     }
   } catch (error) {
     if (phase === "config") {
-      const message = error instanceof Error ? error.message : String(error);
-      const code: TraceCheckDiagnosticCode =
-        message.startsWith("--") || message.includes("Unknown --preset")
-          ? "AI_CHECK_INVALID_ARGUMENTS"
-          : error instanceof SyntaxError ||
-              message.includes("Unsupported check config extension") ||
-              message.includes("TypeScript check configs") ||
-              message.includes("Config must") ||
-              message.includes("checks config") ||
-              message.includes("Expected an array")
-            ? "AI_CHECK_INVALID_CONFIG"
-            : "AI_CHECK_CONFIG_LOAD_FAILED";
-      result = errorResult(
-        code,
-        message,
-      );
+      if (error instanceof CheckConfigError) {
+        result = errorResult(error.code, error.message);
+      } else {
+        const message = error instanceof Error ? error.message : String(error);
+        const code: TraceCheckDiagnosticCode =
+          message.startsWith("--") || message.includes("Unknown --preset")
+            ? "AI_CHECK_INVALID_ARGUMENTS"
+            : error instanceof SyntaxError ||
+                message.includes("Unsupported check config extension") ||
+                message.includes("TypeScript check configs") ||
+                message.includes("Config must") ||
+                message.includes("checks config") ||
+                message.includes("Expected an array")
+              ? "AI_CHECK_INVALID_CONFIG"
+              : "AI_CHECK_CONFIG_LOAD_FAILED";
+        result = errorResult(code, message);
+      }
     } else {
       result = readErrorResult(error);
     }

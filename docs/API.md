@@ -427,8 +427,8 @@ import type {
 ```
 
 - **`TraceWriter`**: async `write(event)`, optional `flush()`, optional `close()`, optional `getStats()`.
-- **`fileWriter({ dir?, filePath? })`**: appends `PersistedInspectEvent` JSONL rows to local disk. `createInspector()` emits schema 1.0 rows by default; compatibility adapters may still pass readable v0.2 rows. By default it derives one file per `event.runId`; `filePath` writes all events to an explicit local file. Filesystem and serialization failures are reflected in writer stats instead of being thrown into application code.
-- **`bufferedFileWriter({ dir?, filePath?, maxQueueSize?, flushIntervalMs?, maxBatchSize?, overflow? })`**: buffers local JSONL writes with bounded queue behavior. Overflow supports `drop-oldest` and `drop-newest`; neither mode throws into application code.
+- **`fileWriter({ dir?, filePath? })`**: appends `PersistedInspectEvent` JSONL rows to local disk. `createInspector()` emits schema 1.0 rows by default; compatibility adapters may still pass readable v0.2 rows. By default it derives one file per `event.runId`; `filePath` writes all events to an explicit local file. Filesystem and serialization failures are reflected in writer stats instead of being thrown into application code. Append-only local JSONL is diagnostic persistence — not a write-ahead log or fsync-guaranteed durable-before-effect journal.
+- **`bufferedFileWriter({ dir?, filePath?, maxQueueSize?, flushIntervalMs?, maxBatchSize?, overflow? })`**: buffers local JSONL writes with bounded queue behavior. Overflow supports `drop-oldest` and `drop-newest`; neither mode throws into application code. On abrupt process exit, a bounded unflushed tail may be lost.
 - **`compositeWriter([...writers])`**: fans out events to multiple explicit local/custom writers. A failing child writer does not prevent other children from receiving events; failures are reflected in composite stats.
 - **`memoryWriter()`**: stores cloned `PersistedInspectEvent` rows in memory for tests, adapter fixtures, and eval harnesses.
 - **`nullWriter()`**: accepts events without retaining them for disabled mode, overhead comparisons, and no-output tests.
@@ -437,7 +437,7 @@ No network writer or vendor sink exists in this package.
 
 ## 19. Experimental inspector API/runtime (v1.6)
 
-`createInspector()` is the public instance API for local-first tracing with explicit writers. It owns an instance-specific runtime context, records schema 1.0 persisted inspect events, preserves application return values/errors, and exposes diagnostics plus deterministic `flush()`/`close()` lifecycle hooks.
+`createInspector()` is the public instance API for local-first tracing with explicit writers. It owns an instance-specific runtime context, records schema 1.0 persisted inspect events, preserves application return values/errors, and exposes diagnostics plus deterministic `flush()`/`close()` lifecycle hooks (`flush`/`close` drain writer queues idempotently — they do not claim crash durability or fsync).
 
 Import from `agent-inspect`:
 

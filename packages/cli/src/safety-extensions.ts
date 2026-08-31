@@ -207,7 +207,9 @@ export function mergeSafetyExtensions(
       failed,
       warnings,
       errors: result.summary.errors,
+      rulesEvaluated: result.summary.rulesEvaluated ?? 0,
     },
     findings,
+    ruleExecutions: result.ruleExecutions ?? [],
   };
 }

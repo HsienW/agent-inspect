@@ -1,25 +1,25 @@
 # AgentInspect Canonical Roadmap (permanent)
 
 **Baseline:** `agent-inspect@6.17.4`
-**Roadmap horizon:** `6.17.5 → 6.18.0 → 6.19.0 → 6.20.0 → conditional 6.21.0`
+**Roadmap horizon:** `6.17.5 → 6.18.0 → 6.19.0 → 6.20.0 → 6.21.0 → conditional 6.22.0`
 **Status:** Active canonical roadmap (permanent path; supersedes version-named roadmap seeds)
-**Primary objective:** Close capability-truth gaps, keep release integrity green, make framework preview capture useful without weakening local-first safety, support arbitrary persisted agent-event sources through the existing reader architecture, and make deterministic contracts flexible enough for legitimate alternate agent paths
+**Primary objective:** Close capability-truth gaps, eliminate fail-open deterministic check behavior, keep release integrity green, make framework preview capture useful without weakening local-first safety, support arbitrary persisted agent-event sources through the existing reader architecture, and make deterministic contracts flexible enough for legitimate alternate agent paths
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
 **Network policy:** no new default network behavior
 **Product boundary:** local-first and customer-owned; no maintainer-hosted SaaS
-**Named train:** `agentinspect-feedback-integrity-v6.17.5-to-v6.21`
+**Named train:** `agentinspect-feedback-integrity-v6.17.5-to-v6.22`
 
 ---
 
 ## 1. Executive decision
 
-The `6.16.0`–`6.17.4` line delivered repository health, Evidence UX, and public proof. External feedback and source review now identify **bounded correctness and capability-truth** work—not a platform expansion.
+The `6.16.0`–`6.17.4` line delivered repository health, Evidence UX, and public proof. External feedback and source review now identify **bounded correctness, capability-truth, and fail-closed check integrity**—not a platform expansion.
 
 The canonical release sequence is:
 
 ```text
-6.17.5  Release integrity, visible capability truth, and bounded correctness patch  (ACTIVE)
+6.17.5  Release integrity, capability truth, and adversarial check-engine integrity  (ACTIVE)
 6.17.6  Reserved corrective patch only
 
 6.18.0  Adapter capture capabilities and bounded preview parity
@@ -28,11 +28,14 @@ The canonical release sequence is:
 6.19.0  External persisted-event reader authoring and TrueForge receipt recipe
 6.19.1  Optional design-partner correction/documentation patch
 
-6.20.0  Alternative valid paths and deterministic contract composition
+6.20.0  Alternative valid paths and causal / strict ordering modes
 6.20.1  Reserved contract compatibility patch only
 
-6.21.0  Conditional enforcement-evidence conventions
-6.21.x  Stability, external verification, and adoption
+6.21.0  Actor-scoped contracts and outcome provenance requirements
+6.21.1  Reserved multi-agent contract patch only
+
+6.22.0  Conditional design-partner evidence / control-plane recipes
+6.22.x  Stability, external verification, and adoption
 ```
 
 No major version is required. No new trace schema. No TrueForge-specific package. No full-content capture mode. No general temporal/workflow DSL.
@@ -43,9 +46,9 @@ The product identity remains:
 
 ---
 
-## 2. Active train — v6.17.5 release integrity
+## 2. Active train — v6.17.5 release integrity + check integrity
 
-**Goal:** Restore repository green status and make current adapter limitations impossible to misunderstand. Small, corrective, and safe.
+**Goal:** Restore repository green status, make adapter limitations impossible to misunderstand, and eliminate fail-open behavior in the deterministic check layer.
 
 ### 2.1 Public-truth atomicity
 
@@ -68,7 +71,7 @@ AI SDK and OpenAI Agents accept `capture: "preview"` but persist metadata-only. 
 
 ### 2.5 TraceContract ordering documentation
 
-`tools.requiredOrder` expands to adjacent pair checks comparing **first occurrences**. Document; do not change the algorithm. GitHub #308 first-occurrence docs/tests land here; strict `requiredOrderMode` implementation is deferred to 6.20.0.
+`tools.requiredOrder` expands to adjacent pair checks comparing **first occurrences** (start/encounter order). Document; do not change the algorithm. GitHub #308 first-occurrence docs/tests land here; strict `requiredOrderMode` implementation is deferred to 6.20.0.
 
 ### 2.6 Stale wording cleanup
 
@@ -76,29 +79,30 @@ Replace obsolete “evolves during v1.x” current-API wording with support-leve
 
 ### 2.7 Issue reconciliation (chunk 6.17.5-8)
 
-Map GitHub issues #308–#311 to release trains in this roadmap and TraceContract docs. No new runtime APIs in this chunk.
+Map GitHub issues #308–#311 to release trains. #310 closed after visible-warning acceptance.
 
-**In scope for 6.17.5 (close or partially close when acceptance passes):**
+### 2.8 Adversarial check-engine integrity (chunks 6.17.5-9 … 6.17.5-17)
 
-| Issue | 6.17.5 deliverable | Disposition |
-| --- | --- | --- |
-| [#310](https://github.com/rajudandigam/agent-inspect/issues/310) | Visible `AI_ADAPTER_PREVIEW_NOT_AVAILABLE`; metadata-only default unchanged | **Recommend close** when acceptance criteria pass |
-| [#308](https://github.com/rajudandigam/agent-inspect/issues/308) | First-occurrence docs + `retrieve → generate → retrieve` PASS test | **Stay open** until `requiredOrderMode: "all-occurrences"` ships (6.20.0) |
+Fail-closed deterministic gate hardening:
 
-**Deferred (stay open):**
+| Area | Deliverable |
+| --- | --- |
+| Strict config | Unknown keys / invalid values / effectless `--config` reject |
+| Rule evidence | `ruleExecutions` + `summary.rulesEvaluated`; zero rules → error |
+| Ordering | Unique contract order IDs; TraceContract `requiredOrder` implies presence; overlap warning |
+| Tool policy | Forbidden/required/allowed/counts observe running invocations |
+| Observations | CLI `--fail-on-observation` requires at least one outcome |
+| Durability docs | Diagnostic evidence ≠ event-sourced / WAL runtime |
 
-| Issue | Target release | Notes |
-| --- | --- | --- |
-| [#311](https://github.com/rajudandigam/agent-inspect/issues/311) | 6.18.0 | Actual bounded preview capture parity |
-| [#309](https://github.com/rajudandigam/agent-inspect/issues/309) | 6.20.0 | `alternatives.anyOf` for conditional/shortcut paths |
+**Do not** implement in 6.17.5: preview capture, `alternatives.anyOf`, `requiredOrderMode`, actor scope, handoff digests, outcome provenance enforcement.
 
 ---
 
 ## 2A. Issue traceability (GitHub → release)
 
 ```text
-#310 → 6.17.5 (close when visible-warning acceptance passes)
-#308 → 6.17.5 docs/tests + 6.20.0 requiredOrderMode (stay open until strict mode ships)
+#310 → 6.17.5 (closed — visible warning)
+#308 → 6.17.5 docs/tests + 6.20.0 requiredOrderMode (stay open until modes ship)
 #311 → 6.18.0 (stay open)
 #309 → 6.20.0 (stay open)
 ```
@@ -110,9 +114,10 @@ Map GitHub issues #308–#311 to release trains in this roadmap and TraceContrac
 | Release | Theme | GitHub | Notes |
 | --- | --- | --- | --- |
 | **6.18.0** | Bounded preview parity for AI SDK + OpenAI Agents | #311 | Shared capture contract; metadata-only remains default |
-| **6.19.0** | Custom `TraceReader` authoring + TrueForge receipt recipe | — | Transform is not the first stage for foreign event envelopes |
-| **6.20.0** | `alternatives.anyOf` + `requiredOrderMode` | #309, #308 | Deterministic alternate valid paths and strict ordering |
-| **6.21.0** | Conditional enforcement-evidence conventions | — | Only if external recipe proves need |
+| **6.19.0** | Custom `TraceReader` authoring + TrueForge receipt recipe | — | Foreign JSON → TraceReader → events → optional TraceTransform |
+| **6.20.0** | `alternatives.anyOf` + ordering modes | #309, #308 | Deterministic alternate paths; causal ordering modes |
+| **6.21.0** | Actor-scoped contracts + outcome provenance | — | Explicit metadata selectors; method/evidence requirements |
+| **6.22.0** | Conditional design-partner recipes | — | Handoff digests, control evidence, MCP retry fixture, CI envelope |
 
 ### 3.1 v6.18.0 — adapter capture parity (#311)
 
@@ -142,9 +147,16 @@ Map GitHub issues #308–#311 to release trains in this roadmap and TraceContrac
 
 **Goal:** Authoring guidance and TrueForge receipt recipe for arbitrary persisted agent-event sources through the existing reader architecture.
 
-- Document custom `TraceReader` authoring patterns.
-- TrueForge receipt recipe (no official TrueForge package).
-- Transform is not the first stage for foreign event envelopes.
+Pipeline:
+
+```text
+foreign source JSON
+→ TraceReader
+→ PersistedInspectEvent / TraceReadResult
+→ optional TraceTransform
+```
+
+A TraceTransform is **not** the decoder for raw vendor JSON. No official TrueForge package.
 
 ### 3.3 v6.20.0 — alternative valid paths (#309 + #308)
 
@@ -162,14 +174,31 @@ Map GitHub issues #308–#311 to release trains in this roadmap and TraceContrac
 
 | Mode | Semantics |
 | --- | --- |
-| `"first-occurrence"` (default, shipped) | Adjacent pair checks on first occurrence of each listed tool among present tools |
-| `"all-occurrences"` (planned) | Every listed tool must appear in sequence for all occurrences, not just first hits |
+| `"first-occurrence"` (default, shipped) | Legacy first-start / encounter ordering among present tools |
+| `"happens-before"` (planned) | First matching before-event must **end** before first matching after-event **starts** |
+| `"all-occurrences"` (planned) | Every before-event must end before every after-event starts |
 
 **Contributor note:** @HsienW volunteered on #308 for `requiredOrderMode` implementation. API shape requires maintainer approval before external PR lands.
 
-### 3.4 v6.21.0 — conditional enforcement evidence
+### 3.4 v6.21.0 — actor-scoped contracts and outcome provenance
 
-Conditional on TrueForge validation proving need. Enforcement-evidence conventions only; no new hosted service.
+**Goal:** Multi-agent session contracts that select a specific actor, plus trustworthy observation requirements.
+
+- Scope selectors based on explicit metadata: `runId`, `subAgentId`, `groupId`, `workflowStep`, or explicit subtree/root event where supported
+- Zero selector matches → error; ambiguous single-actor selector → error
+- No timestamp-only actor inference
+- Outcome provenance: require `method` and/or `evidence`; optionally require referenced event ID in same run/session
+
+Declared-versus-enforced control evidence conventions remain design-partner gated (see 6.22.0).
+
+### 3.5 v6.22.0 — conditional design-partner recipes
+
+Only when external partners validate need:
+
+- Digest-backed producer/consumer handoff evidence (no raw transferred content by default)
+- Declared-control versus enforced-control conventions
+- MCP retry / duplicate-side-effect design-partner fixture (after confirming whether the first retryable failure occurs after the side effect)
+- CI promotion-envelope recipe for external control planes (after zevqora / equivalent validation)
 
 Historical `6.16.x`–`6.17.1` repository-health and Evidence UX work remains summarized in [history/ROADMAP-HISTORY.md](../history/ROADMAP-HISTORY.md) and Git tags.
 
@@ -183,3 +212,4 @@ Historical `6.16.x`–`6.17.1` repository-health and Evidence UX work remains su
 - Metadata-only remains the default adapter capture mode
 - Instrumentation failures never replace application failures
 - Evidence v2 integrity semantics remain compatible
+- AgentInspect traces are diagnostic evidence, not an event-sourced application runtime

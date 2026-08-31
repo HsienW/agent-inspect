@@ -108,6 +108,10 @@ export type TraceCheckDiagnosticCode =
   | "AI_CHECK_INVALID_ARGUMENTS"
   | "AI_CHECK_INVALID_CONFIG"
   | "AI_CHECK_CONFIG_LOAD_FAILED"
+  | "AI_CHECK_CONFIG_UNKNOWN_KEY"
+  | "AI_CHECK_CONFIG_INVALID_VALUE"
+  | "AI_CHECK_CONFIG_NO_EFFECTIVE_RULES"
+  | "AI_CHECK_NO_RULES_EVALUATED"
   | "AI_CHECK_TRACE_UNREADABLE"
   | "AI_CHECK_UNSUPPORTED_FORMAT"
   | "AI_CHECK_AMBIGUOUS_FORMAT"
@@ -346,6 +350,11 @@ export interface ToolUsageRuleOptions {
 export interface ToolOrderingRuleOptions {
   before: string;
   after: string;
+  /**
+   * Explicit rule id. Defaults to `tool.order`. TraceContract-generated
+   * adjacent pairs use unique ids such as `contract.tool.order.0`.
+   */
+  id?: string;
 }
 
 /**
@@ -526,7 +535,32 @@ export interface BaselineRegressionRuleOptions {
 }
 
 /**
+ * Per-rule execution status recorded on every check result.
+ *
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
+ */
+export type TraceCheckRuleExecutionStatus = "pass" | "warning" | "fail" | "error";
+
+/**
+ * Evidence that a specific rule was evaluated (or failed before evaluation).
+ *
+ * Distinguishes “all intended rules passed” from “no intended rules ran.”
+ *
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
+ */
+export interface TraceCheckRuleExecution {
+  ruleId: string;
+  category: TraceCheckRule["category"];
+  status: TraceCheckRuleExecutionStatus;
+  findingCount: number;
+  runId?: string;
+}
+
+/**
  * Experimental aggregate counts for trace-check results.
+ *
+ * `passed` / `failed` / `warnings` count findings. `rulesEvaluated` counts
+ * rules that were selected and executed (or attempted).
  *
  * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
@@ -535,6 +569,7 @@ export interface TraceCheckSummary {
   failed: number;
   warnings: number;
   errors: number;
+  rulesEvaluated: number;
 }
 
 /**
@@ -542,7 +577,8 @@ export interface TraceCheckSummary {
  *
  * `status: "fail"` means rules ran and at least one error-severity finding
  * failed. `status: "error"` means execution could not complete because of
- * invalid input, invalid rule selection, or a thrown rule error.
+ * invalid input, invalid rule selection, zero rules selected, or a thrown
+ * rule error.
  *
  * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
@@ -554,6 +590,7 @@ export interface TraceCheckResult {
   summary: TraceCheckSummary;
   findings: TraceCheckFinding[];
   diagnostics: TraceCheckDiagnostic[];
+  ruleExecutions: TraceCheckRuleExecution[];
 }
 
 const SEVERITY_RANK: Record<TraceCheckSeverity, number> = {
@@ -671,6 +708,7 @@ function emptySummary(): TraceCheckSummary {
     failed: 0,
     warnings: 0,
     errors: 0,
+    rulesEvaluated: 0,
   };
 }
 
@@ -678,6 +716,7 @@ function errorResult(
   input: TraceCheckInput,
   diagnostics: readonly TraceCheckDiagnostic[],
   selectedRun?: InspectRunTree,
+  ruleExecutions: readonly TraceCheckRuleExecution[] = [],
 ): TraceCheckResult {
   return {
     ok: false,
@@ -687,9 +726,11 @@ function errorResult(
     summary: {
       ...emptySummary(),
       errors: diagnostics.filter((item) => item.severity === "error").length,
+      rulesEvaluated: ruleExecutions.length,
     },
     findings: [],
     diagnostics: [...diagnostics],
+    ruleExecutions: [...ruleExecutions],
   };
 }
 
@@ -880,6 +921,7 @@ function normalizeFinding(rule: TraceCheckRule, finding: TraceCheckFinding): Tra
 function summarize(
   findings: readonly TraceCheckFinding[],
   diagnostics: readonly TraceCheckDiagnostic[],
+  rulesEvaluated: number,
 ): TraceCheckSummary {
   return {
     passed: findings.filter((finding) => finding.status === "pass").length,
@@ -890,7 +932,26 @@ function summarize(
       (finding) => finding.status === "warning" || finding.severity === "warning",
     ).length,
     errors: diagnostics.filter((item) => item.severity === "error").length,
+    rulesEvaluated,
   };
+}
+
+function classifyRuleExecution(
+  findings: readonly TraceCheckFinding[],
+  threw: boolean,
+): TraceCheckRuleExecutionStatus {
+  if (threw) return "error";
+  if (findings.some((finding) => finding.status === "fail" && finding.severity === "error")) {
+    return "fail";
+  }
+  if (
+    findings.some(
+      (finding) => finding.status === "warning" || finding.severity === "warning",
+    )
+  ) {
+    return "warning";
+  }
+  return "pass";
 }
 
 function stringAttr(event: PersistedInspectEvent, keys: readonly string[]): string | undefined {
@@ -1039,6 +1100,14 @@ function finishedEvents(context: TraceCheckContext, kind?: PersistedInspectEvent
       (kind === undefined || event.kind === kind) &&
       event.status !== "running",
   );
+}
+
+/**
+ * All logical tool invocations, including still-running ones.
+ * Used for presence, forbidden, allowed, and invocation-count policy.
+ */
+function toolInvocationEvents(context: TraceCheckContext): PersistedInspectEvent[] {
+  return semanticEvents(context).filter((event) => event.kind === "TOOL");
 }
 
 function firstIndexByName(events: readonly PersistedInspectEvent[]): Map<string, number> {
@@ -1624,7 +1693,8 @@ export function createToolUsageRule(options: ToolUsageRuleOptions): TraceCheckRu
     category: "tool",
     defaultSeverity: "error",
     evaluate(context) {
-      const tools = finishedEvents(context, "TOOL");
+      // Policy rules observe invocation, including unfinished/running tools.
+      const tools = toolInvocationEvents(context);
       const names = tools.map(toolName);
       const nameSet = new Set(names);
       const findings: TraceCheckFinding[] = [];
@@ -1673,11 +1743,19 @@ export function createToolUsageRule(options: ToolUsageRuleOptions): TraceCheckRu
 /**
  * Create the experimental built-in tool ordering rule.
  *
+ * Low-level default: first-occurrence start/encounter order among finished
+ * tool events. Missing endpoints yield no finding (compositional). TraceContract
+ * `requiredOrder` additionally requires presence of listed tools.
+ *
+ * When order passes by encounter order but intervals overlap, emits a
+ * non-failing `tool.order.overlap` warning (not causal happens-before).
+ *
  * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceCheckRule {
+  const ruleId = options.id ?? "tool.order";
   return {
-    id: "tool.order",
+    id: ruleId,
     category: "tool",
     defaultSeverity: "error",
     evaluate(context) {
@@ -1685,18 +1763,50 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
       const index = firstIndexByName(tools);
       const beforeIndex = index.get(options.before);
       const afterIndex = index.get(options.after);
-      if (beforeIndex === undefined || afterIndex === undefined || beforeIndex < afterIndex) {
+      if (beforeIndex === undefined || afterIndex === undefined) {
         return [];
       }
-      return [
-        failFinding(
-          "tool.order",
-          `Tool ${options.before} must appear before ${options.after}.`,
-          [eventEvidence(tools[beforeIndex]!), eventEvidence(tools[afterIndex]!)],
-          { before: options.before, after: options.after },
-          tools.map(toolName),
-        ),
-      ];
+      if (beforeIndex >= afterIndex) {
+        return [
+          failFinding(
+            ruleId,
+            `Tool ${options.before} must appear before ${options.after}.`,
+            [eventEvidence(tools[beforeIndex]!), eventEvidence(tools[afterIndex]!)],
+            { before: options.before, after: options.after },
+            tools.map(toolName),
+          ),
+        ];
+      }
+
+      const beforeEvent = tools[beforeIndex]!;
+      const afterEvent = tools[afterIndex]!;
+      const beforeEnd = eventEndMs(beforeEvent);
+      const afterStart = eventStartMs(afterEvent);
+      if (
+        beforeEnd !== undefined &&
+        afterStart !== undefined &&
+        beforeEnd > afterStart
+      ) {
+        return [
+          {
+            ruleId,
+            severity: "warning",
+            status: "warning",
+            message:
+              `Tool order ${options.before} before ${options.after} satisfied start/encounter order, ` +
+              `but intervals overlap so causal completion before the next tool was not established.`,
+            expected: { before: options.before, after: options.after, mode: "first-occurrence" },
+            actual: {
+              code: "tool.order.overlap",
+              beforeEndedAt: beforeEvent.endedAt,
+              afterStartedAt: afterEvent.startedAt ?? afterEvent.timestamp,
+            },
+            evidence: [eventEvidence(beforeEvent), eventEvidence(afterEvent)],
+          },
+        ];
+      }
+
+      return [];
     },
   };
 }
@@ -2692,18 +2802,36 @@ export function createBaselineRegressionRule(
  */
 export interface ObservedOutcomeRuleOptions {
   failOn?: readonly ObservedOutcomeStatus[];
+  /**
+   * When true, fail if the trace contains zero observed outcomes.
+   * Default false preserves low-level programmatic compatibility.
+   * CLI `--fail-on-observation` sets this to true.
+   */
+  requireAny?: boolean;
 }
 
 export function createObservedOutcomeRule(
   options: ObservedOutcomeRuleOptions = {},
 ): TraceCheckRule {
   const failOn = options.failOn ?? (["failed"] as const);
+  const requireAny = options.requireAny === true;
   return {
     id: "outcome.status",
     category: "run",
     defaultSeverity: "error",
     evaluate(context) {
       const outcomes = extractOutcomesFromPersistedEvents(context.events);
+      if (requireAny && outcomes.length === 0) {
+        return [
+          failFinding(
+            "outcome.status",
+            "Expected at least one observed outcome.",
+            runEvidence(context.selectedRun),
+            { requireAny: true, expected: "at least one observed outcome" },
+            { code: "outcome.missing", actual: 0 },
+          ),
+        ];
+      }
       const matching = outcomesMatchingStatus(outcomes, failOn);
       if (matching.length === 0) return [];
       return [
@@ -2753,6 +2881,19 @@ export function runTraceChecks(
     return errorResult(input, rules.diagnostics, selected.run);
   }
 
+  if (rules.rules.length === 0) {
+    return errorResult(
+      input,
+      [
+        diagnostic(
+          "AI_CHECK_NO_RULES_EVALUATED",
+          "No trace check rules were evaluated. Configure at least one rule, contract, or CLI check option.",
+        ),
+      ],
+      selected.run,
+    );
+  }
+
   const facts = buildFacts(input, selected.run);
   const context: TraceCheckContext = {
     ...facts,
@@ -2761,25 +2902,41 @@ export function runTraceChecks(
   };
   const diagnostics: TraceCheckDiagnostic[] = [];
   const findings: TraceCheckFinding[] = [];
+  const ruleExecutions: TraceCheckRuleExecution[] = [];
 
   for (const rule of rules.rules) {
     try {
-      findings.push(...rule.evaluate(context).map((finding) => normalizeFinding(rule, finding)));
+      const ruleFindings = rule.evaluate(context).map((finding) => normalizeFinding(rule, finding));
+      findings.push(...ruleFindings);
+      ruleExecutions.push({
+        ruleId: rule.id,
+        category: rule.category,
+        status: classifyRuleExecution(ruleFindings, false),
+        findingCount: ruleFindings.length,
+        ...(selected.run ? { runId: selected.run.runId } : {}),
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       diagnostics.push(
         diagnostic("AI_CHECK_INTERNAL_ERROR", `Rule ${rule.id} failed: ${message}`, rule.id),
       );
+      ruleExecutions.push({
+        ruleId: rule.id,
+        category: rule.category,
+        status: "error",
+        findingCount: 0,
+        ...(selected.run ? { runId: selected.run.runId } : {}),
+      });
     }
   }
 
   if (diagnostics.length > 0) {
-    return errorResult(input, diagnostics, selected.run);
+    return errorResult(input, diagnostics, selected.run, ruleExecutions);
   }
 
   const eventById = new Map(input.read.events.map((event) => [event.eventId, event] as const));
   const sortedFindings = findings.sort(compareFindings(eventById));
-  const summary = summarize(sortedFindings, diagnostics);
+  const summary = summarize(sortedFindings, diagnostics, ruleExecutions.length);
   const status: TraceCheckStatus = summary.failed > 0 ? "fail" : "pass";
 
   return {
@@ -2790,6 +2947,7 @@ export function runTraceChecks(
     summary,
     findings: sortedFindings,
     diagnostics,
+    ruleExecutions,
   };
 }
 

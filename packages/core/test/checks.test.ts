@@ -113,25 +113,41 @@ function readResult(events: PersistedInspectEvent[]): TraceReadResult {
 }
 
 describe("runTraceChecks", () => {
-  it("passes deterministically when no rules are configured", () => {
+  it("errors when no rules are configured", () => {
     const read = readResult([persisted("event-a")]);
 
     const result = runTraceChecks({ read });
 
     expect(result).toMatchObject({
-      ok: true,
-      status: "pass",
+      ok: false,
+      status: "error",
       format: "agent-inspect-jsonl",
       runId: "run-checks",
       summary: {
         passed: 0,
         failed: 0,
         warnings: 0,
-        errors: 0,
+        errors: 1,
+        rulesEvaluated: 0,
       },
       findings: [],
-      diagnostics: [],
+      ruleExecutions: [],
+      diagnostics: [
+        expect.objectContaining({
+          code: "AI_CHECK_NO_RULES_EVALUATED",
+        }),
+      ],
     });
+  });
+
+  it("errors when an empty rules array is selected", () => {
+    const read = readResult([persisted("event-a")]);
+
+    const result = runTraceChecks({ read }, { rules: [] });
+
+    expect(result.status).toBe("error");
+    expect(result.diagnostics[0]?.code).toBe("AI_CHECK_NO_RULES_EVALUATED");
+    expect(result.summary.rulesEvaluated).toBe(0);
   });
 
   it("executes selected rules in stable id order and sorts findings by evidence", () => {
@@ -179,6 +195,7 @@ describe("runTraceChecks", () => {
       failed: 1,
       warnings: 1,
       errors: 0,
+      rulesEvaluated: 2,
     });
     expect(result.findings.map((finding) => finding.ruleId)).toEqual([
       "z.rule",

@@ -10,6 +10,8 @@
 
 AgentInspect **evidence** is a local, share-checked, integrity-verifiable artifact for reviewing one or more agent runs offline — the “Playwright report for an agent run,” not a compliance certification.
 
+Evidence v2 **integrity** verifies hashes of a finalized packaged artifact. It is **not** a live hash-chained write-ahead journal, does not prove that every trace event was durable before an external side effect, and does not claim replayability or exactly-once side effects.
+
 ## Relationship to existing bundles
 
 | Artifact | Role |

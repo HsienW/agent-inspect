@@ -16,30 +16,33 @@ Contracts compile to deterministic check rules for common cases:
 
 ## `tools.requiredOrder` semantics
 
-`requiredOrder` is expanded into **adjacent pair** ordering rules:
+`requiredOrder` is expanded into **adjacent pair** ordering rules with unique ids:
 
 ```text
 [A, B, C]
-→ A before B
-→ B before C
+→ contract.tool.order.0: A before B
+→ contract.tool.order.1: B before C
 ```
 
-Each pair compares the **first occurrence** of each tool name:
+Each pair compares the **first occurrence** (start/encounter order in the evaluated event stream):
 
 - unlisted intermediate tools are allowed;
 - later repetitions do not invalidate an earlier valid first-occurrence order;
-- a missing tool is **not** an ordering failure by itself — use `required` / `requiredTools` for presence;
+- TraceContract `requiredOrder` **implies presence** — every listed name is added to the effective required-tool set;
+- this is **not** causal happens-before; overlapping intervals emit a non-failing `tool.order.overlap` warning;
 - combine ordering with `maxCalls` or custom rules when repeated calls matter.
 
 Examples for `requiredOrder: ["retrieve", "generate"]`:
 
-| Trajectory | Ordering result |
+| Trajectory | Result |
 | --- | --- |
 | `retrieve → generate` | PASS |
 | `retrieve → rerank → generate` | PASS |
 | `retrieve → generate → retrieve` | PASS (first-occurrence) |
-| `generate → retrieve` | FAIL |
-| `cache_lookup → generate` | Ordering alone does **not** fail for missing `retrieve`; a separate required-tool rule fails if `retrieve` is required |
+| `generate → retrieve` | FAIL (order) |
+| `cache_lookup → generate` | FAIL (missing `retrieve` via implied presence) |
+
+Low-level `createToolOrderingRule({ before, after })` alone may still pass when an endpoint is missing (compositional). TraceContract `requiredOrder` does not.
 
 ### Experimental Vitest / Jest matchers (shipped)
 
@@ -64,13 +67,16 @@ Unconditional path invariant: every named tool must appear **at least once** in 
 - **Do not** use for steps that legitimate shortcuts may skip (for example cache hits that bypass `retrieve`).
 - When a shortcut is valid but you still need evidence of the outcome, prefer `observations.required` until `alternatives.anyOf` ships (6.20.0).
 
-### `tools.requiredOrder` (shipped — first-occurrence default)
+### `tools.requiredOrder` (shipped — first-occurrence / start-encounter)
 
-Ordering among **present** tools only. The evaluator walks the trace in step order and checks that each listed tool's **first occurrence** appears after the previous tool's first occurrence.
+Legacy first-start / encounter ordering. The evaluator walks the trace and checks that each listed tool's **first occurrence** appears after the previous tool's first occurrence.
 
-- Missing tools are **not** ordering failures — use `required` / `requiredTools` for presence.
-- Default mode is **first-occurrence** (unchanged algorithm since v6.17.5).
-- **Planned (6.20.0, GitHub #308):** `requiredOrderMode: "all-occurrences"` — opt-in strict ordering where every listed tool must appear in sequence for all occurrences, not just first hits.
+- TraceContract `requiredOrder` **implies presence** of every listed tool (unioned into `tools.required`).
+- Default mode is **first-occurrence** start/encounter order — **not** causal happens-before.
+- Overlapping intervals that still satisfy start order emit a non-failing overlap warning.
+- **Planned (6.20.0, GitHub #308):**
+  - `requiredOrderMode: "happens-before"` — first before must **end** before first after **starts**
+  - `requiredOrderMode: "all-occurrences"` — every before must end before every after starts
 
 ### `observations.required` (shipped)
 
@@ -83,6 +89,7 @@ Document only; **do not** use these fields in contracts today:
 | Planned field | Purpose | GitHub |
 |---------------|---------|--------|
 | `alternatives.anyOf` | One of several deterministic valid paths (one level, no nested groups, no predicates) | #309 |
+| `requiredOrderMode: "happens-before"` | Causal completion-before-start ordering | #308 |
 | `requiredOrderMode: "all-occurrences"` | Strict ordering across all tool occurrences | #308 |
 
 API shape for both requires maintainer approval before external PR lands. @HsienW volunteered on #308 for `requiredOrderMode` implementation.

@@ -209,7 +209,10 @@ export function checkResultToEvidenceJson(
       errors: result.summary.errors,
       warnings: result.summary.warnings,
       findings: result.findings.length,
+      rulesEvaluated: result.summary.rulesEvaluated ?? 0,
     })),
+    rulesEvaluated: result.summary.rulesEvaluated ?? 0,
+    evaluatedRuleIds: (result.ruleExecutions ?? []).map((item) => item.ruleId),
     findings: result.findings,
     diagnostics: result.diagnostics,
   });
