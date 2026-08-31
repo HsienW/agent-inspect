@@ -180,7 +180,11 @@ Diff is local and read-only. Programmatic diff surfaces are experimental until t
   - In-memory **`getEvents()`** / **`clear()`** unchanged when `persist` is false
 - Metadata helpers: `extractModelName`, `extractTokenUsage`, `safePreview`, `toPlainMetadata`
 
-Rationale: v1.x includes one official adapter and **zero production sinks**, so adapter surfaces remain experimental.
+Rationale: one official adapter and **zero production sinks** keep adapter surfaces experimental; they remain additive in minors.
+
+### TraceContract `requiredOrder`
+
+When defining `tools.requiredOrder`, the array expands into adjacent first-occurrence pair checks. Unlisted intermediate tools are allowed; later repetitions do not invalidate an earlier valid first-occurrence order. Missing tools are handled by required-tool rules, not ordering alone. See [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md).
 
 ## 10. Experimental `@agent-inspect/tui` APIs
 
@@ -249,7 +253,7 @@ The manifest records framework, generation time, bounded test results, artifact 
 
 ## 12. Experimental `@agent-inspect/vitest` APIs
 
-`@agent-inspect/vitest` is an optional experimental workspace package for local Vitest failure artifacts. It remains private/unpublished pending maintainer first-publication setup. It does not add a Vitest dependency to root/core, does not upload artifacts, and does not infer trace relationships by timestamp.
+`@agent-inspect/vitest` is an optional experimental workspace package for local Vitest failure artifacts. It is published with the fixed release group. It does not add a Vitest dependency to root/core, does not upload artifacts, and does not infer trace relationships by timestamp.
 
 Import from `@agent-inspect/vitest`:
 
@@ -282,7 +286,7 @@ Artifacts are safe structural summaries. The reporter writes a shared `schemaVer
 
 ## 13. Experimental `@agent-inspect/jest` APIs
 
-`@agent-inspect/jest` is an optional experimental workspace package for local Jest failure artifacts. It remains private/unpublished pending maintainer first-publication setup. It does not add a Jest dependency to root/core, does not upload artifacts, and does not infer trace relationships by timestamp.
+`@agent-inspect/jest` is an optional experimental workspace package for local Jest failure artifacts. It is published with the fixed release group. It does not add a Jest dependency to root/core, does not upload artifacts, and does not infer trace relationships by timestamp.
 
 Import from `@agent-inspect/jest`:
 
@@ -537,7 +541,9 @@ import type { TraceCheckRule, TraceCheckResult, TraceFacts } from "agent-inspect
 - **`TraceCheckRule`**: synchronous pure rule contract.
 - **`TraceCheckResult`**: deterministic aggregate result with findings, evidence, summary counts, and execution diagnostics.
 
-The checks API is experimental in v1.x. The `agent-inspect check` CLI uses this API for local reader-backed checks and deterministic JSON output; `agent-inspect artifacts` reuses the same safe findings for local CI artifact bundles and optional step-summary file output. Built-in rules operate on normalized event metadata, tree relationships, bounded summaries, token counts, and normalized baseline facts; safety and baseline findings identify event IDs and field paths rather than emitting raw prompts, outputs, secrets, headers, request/response bodies, or full tool payloads.
+The checks API is experimental. The `agent-inspect check` CLI uses this API for local reader-backed checks and deterministic JSON output; `agent-inspect artifacts` reuses the same safe findings for local CI artifact bundles and optional step-summary file output. Built-in rules operate on normalized event metadata, tree relationships, bounded summaries, token counts, and normalized baseline facts; safety and baseline findings identify event IDs and field paths rather than emitting raw prompts, outputs, secrets, headers, request/response bodies, or full tool payloads.
+
+@beta Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
 
 Recipes: [deterministic-ci-checks](../examples/recipes/deterministic-ci-checks/README.md) for check/baseline/artifact workflows, and [test-reporter-artifacts](../examples/recipes/test-reporter-artifacts/README.md) for Vitest/Jest reporter configuration patterns.
 

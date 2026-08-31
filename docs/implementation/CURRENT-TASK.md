@@ -1,19 +1,17 @@
 # Current task
 
 ```yaml
-executionMode: autonomous-release-train
-namedTrain: agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7
-currentTrain: v6.18.0-niche-launch
-trainStatus: stopped-before-changeset
-currentChunk: 6.18.0-external-gate
-nextAction: External acceptance worksheet missing — do not open 6.18.0 Changeset. Enter 6.18.x maintenance / await acceptance evidence.
+executionMode: maintainer-reviewed
+namedTrain: agentinspect-feedback-integrity-v6.17.5-to-v6.21
+currentTrain: v6.17.5-feedback-integrity
+trainStatus: in-progress
+currentChunk: 6.17.5-7-validation
+nextAction: Maintainer review of implemented v6.17.5 train; separate release-readiness/publication prompt next — do not open Changeset yet
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/EXECUTION-PLAN.md
-presentationTrain: agentinspect-public-presentation-demo-integration-v6.17.1
-presentationAddendum: docs/implementation/active/PUBLIC-PRESENTATION-PATCH.md
-pendingManualGate: 6.18.0-external-acceptance
+pendingManualGate: ""
 ```
 
 ## Published baseline
 
-**6.17.3** (all 18 packages; Version Packages in flight / npm Trusted Publishing)
+**6.17.4** (eighteen linked public packages). Persisted schema **1.0**. Do not bump versions or create a Changeset in this implementation train.

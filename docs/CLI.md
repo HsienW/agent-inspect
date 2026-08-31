@@ -204,6 +204,8 @@ Options:
 - `--refresh <ms>`: minimum time between renders
 - `--json`: newline-delimited JSON updates
 
+**Truncation recovery:** when a watched `--file` shrinks below the last read offset (for example a truncate-and-rewrite), `tail` resets the offset, discards any buffered partial line, and continues the same session from the start of the current file contents. Full inode-aware rename/recreate rotation is **not** claimed unless separately implemented and tested.
+
 Important: `tail` is a local developer tool, not a production monitor.
 
 ### 6.6 `export`

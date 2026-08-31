@@ -10,11 +10,11 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ---
 
-## Current — repository health and evidence UX (`6.17.1` → `6.18.x`)
+## Current — feedback integrity (`6.17.5`) then adapter parity (`6.18.x`)
 
-**Current release on npm:** **6.17.3** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
+**Current release on npm:** **6.17.4** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
 
-Active maintainer program: repository health and public-truth cleanup, single-source docs, trajectory/Evidence CI UX, public technical proof, and stable niche packaging — before any conditional v7 assessment.
+Active maintainer program: release integrity and capability truth (`6.17.5`), then bounded preview parity and later reader/contract trains — before any conditional v7 assessment.
 
 | Release | Theme | Status |
 | ------- | ----- | ------ |
@@ -30,10 +30,11 @@ Active maintainer program: repository health and public-truth cleanup, single-so
 | **6.16.1** | Repository health and public truth | Published |
 | **6.16.2** | Canonical docs / website single-source | Published |
 | **6.17.0** | Trajectory-gate and Evidence v2 workflow UX | Published |
-| **6.17.1** | Public technical proof and demos | Planned |
-| **6.18.0** | Stable niche launch packaging | Planned |
-| **6.18.x** | Maintenance | Planned |
-| **v7** | Conditional major — assessment only | Not scheduled |
+| **6.17.1** | Public technical proof and demos | Published |
+| **6.17.3** / **6.17.4** | Package line maintenance | Published |
+| **6.17.5** | Release integrity + visible capability truth | In progress |
+| **6.18.0** | Adapter bounded preview parity | Planned |
+| **6.19.0**–**6.21.0** | Readers, alternate contract paths, conditional enforcement | Planned / conditional |
 
 Train state: [docs/implementation/RELEASE-TRAIN-STATE.md](docs/implementation/RELEASE-TRAIN-STATE.md).
 Canonical maintainer roadmap: [docs/implementation/ROADMAP.md](docs/implementation/ROADMAP.md).

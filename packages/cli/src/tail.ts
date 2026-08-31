@@ -107,7 +107,7 @@ async function readFileOnce(
   }
 }
 
-async function followFile(
+export async function followFile(
   filePath: string,
   options: { refreshMs: number; once: boolean },
   onLine: (line: string, lineNumber: number) => void,
@@ -133,6 +133,15 @@ async function followFile(
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       throw new Error(`Failed to stat file: ${filePath} (${msg})`);
+    }
+
+    if (next.size < pos) {
+      // File was truncated (or replaced with a shorter file). Reset the read
+      // offset and discard any partial line buffered from the previous contents.
+      // Rename/recreate across inodes is not claimed as fully supported.
+      pos = 0;
+      carry = "";
+      lineNumber = 0;
     }
 
     if (next.size > pos) {

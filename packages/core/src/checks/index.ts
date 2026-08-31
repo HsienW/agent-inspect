@@ -44,16 +44,14 @@ export {
 /**
  * Experimental trace-check finding severity.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export type TraceCheckSeverity = "error" | "warning" | "info";
 
 /**
  * Experimental trace-check rule category.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export type TraceCheckRuleCategory =
   | "run"
@@ -90,24 +88,21 @@ export type SafetyFindingConfidence = "high" | "medium" | "low";
 /**
  * Experimental trace-check finding status.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export type TraceCheckFindingStatus = "pass" | "fail" | "warning";
 
 /**
  * Experimental trace-check aggregate status.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export type TraceCheckStatus = "pass" | "fail" | "error";
 
 /**
  * Experimental stable diagnostic code for check execution and input errors.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export type TraceCheckDiagnosticCode =
   | "AI_CHECK_INVALID_ARGUMENTS"
@@ -128,8 +123,7 @@ export type TraceCheckDiagnosticCode =
  * Evidence intentionally identifies runs/events/spans and bounded paths rather
  * than embedding raw prompts, outputs, request bodies, headers, or tool payloads.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface TraceCheckEvidence {
   runId?: string;
@@ -146,8 +140,7 @@ export interface TraceCheckEvidence {
 /**
  * Experimental finding emitted by a trace-check rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface TraceCheckFinding {
   ruleId: string;
@@ -186,8 +179,7 @@ export interface TraceCheckFinding {
 /**
  * Experimental diagnostic emitted when check execution cannot complete normally.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface TraceCheckDiagnostic {
   code: TraceCheckDiagnosticCode;
@@ -203,8 +195,7 @@ export interface TraceCheckDiagnostic {
  * already-normalized `TraceReadResult`. The checks engine does not read files
  * or reparse source payloads.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface TraceCheckInput {
   read: TraceReadResult;
@@ -215,8 +206,7 @@ export interface TraceCheckInput {
 /**
  * Experimental normalized facts available to trace-check rules.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface TraceCheckFacts {
   format: string;
@@ -248,8 +238,7 @@ export interface TraceCheckFacts {
 /**
  * Experimental rule evaluation context.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface TraceCheckContext extends TraceCheckFacts {
   selectedRun?: InspectRunTree;
@@ -262,8 +251,7 @@ export interface TraceCheckContext extends TraceCheckFacts {
  * Rules are synchronous and pure: they receive normalized facts and return
  * findings without reading files, mutating input, or performing network I/O.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface TraceCheckRule {
   id: string;
@@ -275,8 +263,7 @@ export interface TraceCheckRule {
 /**
  * Experimental options for `runTraceChecks`.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface RunTraceChecksOptions {
   rules?: readonly TraceCheckRule[];
@@ -287,8 +274,7 @@ export interface RunTraceChecksOptions {
 /**
  * Experimental options for the built-in run status rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface RunStatusRuleOptions {
   expected?: "ok" | "error" | "running";
@@ -298,8 +284,7 @@ export interface RunStatusRuleOptions {
 /**
  * Experimental options for the built-in run duration rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface RunDurationRuleOptions {
   maxDurationMs: number;
@@ -323,8 +308,7 @@ export interface StallDetectionRuleOptions {
 /**
  * Experimental options for the built-in event count rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface RunEventCountRuleOptions {
   kind?: PersistedInspectEvent["kind"];
@@ -335,8 +319,7 @@ export interface RunEventCountRuleOptions {
 /**
  * Experimental options for the built-in run depth rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface RunDepthRuleOptions {
   maxDepth: number;
@@ -345,8 +328,7 @@ export interface RunDepthRuleOptions {
 /**
  * Experimental options for the built-in tool usage rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface ToolUsageRuleOptions {
   required?: readonly string[];
@@ -359,8 +341,7 @@ export interface ToolUsageRuleOptions {
 /**
  * Experimental options for the built-in tool ordering rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface ToolOrderingRuleOptions {
   before: string;
@@ -370,8 +351,7 @@ export interface ToolOrderingRuleOptions {
 /**
  * Experimental options for the built-in tool failure rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface ToolFailureRuleOptions {
   maxFailures?: number;
@@ -381,8 +361,7 @@ export interface ToolFailureRuleOptions {
 /**
  * Experimental options for the built-in LLM usage rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface LlmUsageRuleOptions {
   allowedModels?: readonly string[];
@@ -398,8 +377,7 @@ export interface LlmUsageRuleOptions {
 /**
  * Experimental options for the built-in structure incomplete rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface StructureIncompleteRuleOptions {
   allowRunning?: boolean;
@@ -409,8 +387,7 @@ export interface StructureIncompleteRuleOptions {
 /**
  * Experimental options for the built-in structure orphan rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface StructureOrphanRuleOptions {
   allowMarkedUnresolved?: boolean;
@@ -419,8 +396,7 @@ export interface StructureOrphanRuleOptions {
 /**
  * Experimental options for the built-in structure relationship rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface StructureRelationshipRuleOptions {
   minConfidence?: AttributionConfidence;
@@ -431,8 +407,7 @@ export interface StructureRelationshipRuleOptions {
 /**
  * Experimental options for the built-in structure parallel-width rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface StructureParallelWidthRuleOptions {
   maxChildren?: number;
@@ -442,8 +417,7 @@ export interface StructureParallelWidthRuleOptions {
 /**
  * Experimental options shared by built-in signal rules.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface TraceSignalRuleOptions {
   required?: readonly string[];
@@ -456,32 +430,28 @@ export interface TraceSignalRuleOptions {
 /**
  * Experimental options for the built-in retrieval signal rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface RetrievalRuleOptions extends TraceSignalRuleOptions {}
 
 /**
  * Experimental options for the built-in guardrail signal rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface GuardrailRuleOptions extends TraceSignalRuleOptions {}
 
 /**
  * Experimental options for the built-in decision signal rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface DecisionRuleOptions extends TraceSignalRuleOptions {}
 
 /**
  * Experimental options for the built-in safety redaction rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface SafetyRedactionRuleOptions {
   sensitiveKeys?: readonly string[];
@@ -492,8 +462,7 @@ export interface SafetyRedactionRuleOptions {
 /**
  * Experimental options for the built-in raw content path rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface SafetyRawContentRuleOptions {
   forbiddenKeys?: readonly string[];
@@ -509,8 +478,7 @@ export interface SafetyRawContentRuleOptions {
 /**
  * Experimental secret pattern used by the built-in secret safety rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface SafetySecretPattern {
   id: string;
@@ -520,8 +488,7 @@ export interface SafetySecretPattern {
 /**
  * Experimental options for the built-in secret pattern safety rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface SafetySecretPatternRuleOptions {
   patterns?: readonly SafetySecretPattern[];
@@ -532,8 +499,7 @@ export interface SafetySecretPatternRuleOptions {
 /**
  * Experimental options for the built-in oversized attribute safety rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface SafetyOversizedAttributeRuleOptions {
   maxStringLength?: number;
@@ -550,8 +516,7 @@ export interface SafetyOversizedAttributeRuleOptions {
  * equivalent `TraceReadResult`; this rule does not read files or parse traces.
  * `durationToleranceMs` defaults to `0`, meaning exact duration comparison.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface BaselineRegressionRuleOptions {
   baseline: TraceCheckInput;
@@ -563,8 +528,7 @@ export interface BaselineRegressionRuleOptions {
 /**
  * Experimental aggregate counts for trace-check results.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface TraceCheckSummary {
   passed: number;
@@ -580,8 +544,7 @@ export interface TraceCheckSummary {
  * failed. `status: "error"` means execution could not complete because of
  * invalid input, invalid rule selection, or a thrown rule error.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export interface TraceCheckResult {
   ok: boolean;
@@ -1386,8 +1349,7 @@ function baselineDiffFinding(
 /**
  * Create the experimental built-in run status rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createRunStatusRule(options: RunStatusRuleOptions = {}): TraceCheckRule {
   const expected = options.expected ?? "ok";
@@ -1432,8 +1394,7 @@ export function createRunStatusRule(options: RunStatusRuleOptions = {}): TraceCh
 /**
  * Create the experimental built-in run duration rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createRunDurationRule(options: RunDurationRuleOptions): TraceCheckRule {
   return {
@@ -1578,8 +1539,7 @@ export function createRequireCompletedRule(): TraceCheckRule {
 /**
  * Create the experimental built-in event count rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createRunEventCountRule(options: RunEventCountRuleOptions): TraceCheckRule {
   return {
@@ -1621,8 +1581,7 @@ export function createRunEventCountRule(options: RunEventCountRuleOptions): Trac
 /**
  * Create the experimental built-in run depth rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createRunDepthRule(options: RunDepthRuleOptions): TraceCheckRule {
   return {
@@ -1657,8 +1616,7 @@ export function createRunDepthRule(options: RunDepthRuleOptions): TraceCheckRule
 /**
  * Create the experimental built-in tool usage rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createToolUsageRule(options: ToolUsageRuleOptions): TraceCheckRule {
   return {
@@ -1715,8 +1673,7 @@ export function createToolUsageRule(options: ToolUsageRuleOptions): TraceCheckRu
 /**
  * Create the experimental built-in tool ordering rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceCheckRule {
   return {
@@ -1747,8 +1704,7 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
 /**
  * Create the experimental built-in tool failure/retry rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createToolFailureRule(options: ToolFailureRuleOptions): TraceCheckRule {
   return {
@@ -1798,8 +1754,7 @@ export function createToolFailureRule(options: ToolFailureRuleOptions): TraceChe
 /**
  * Create the experimental built-in LLM usage rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createLlmUsageRule(options: LlmUsageRuleOptions): TraceCheckRule {
   return {
@@ -1886,8 +1841,7 @@ export function createLlmUsageRule(options: LlmUsageRuleOptions): TraceCheckRule
 /**
  * Create the experimental built-in structure incomplete rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createStructureIncompleteRule(
   options: StructureIncompleteRuleOptions = {},
@@ -1941,8 +1895,7 @@ export function createStructureIncompleteRule(
 /**
  * Create the experimental built-in structure orphan rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createStructureOrphanRule(
   options: StructureOrphanRuleOptions = {},
@@ -1975,8 +1928,7 @@ export function createStructureOrphanRule(
 /**
  * Create the experimental built-in structure cycle rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createStructureCycleRule(): TraceCheckRule {
   return {
@@ -2026,8 +1978,7 @@ export function createStructureCycleRule(): TraceCheckRule {
 /**
  * Create the experimental built-in structure relationship rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createStructureRelationshipRule(
   options: StructureRelationshipRuleOptions = {},
@@ -2118,8 +2069,7 @@ export function createStructureRelationshipRule(
 /**
  * Create the experimental built-in structure parallel-width rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createStructureParallelWidthRule(
   options: StructureParallelWidthRuleOptions,
@@ -2299,8 +2249,7 @@ function createSignalRule(
 /**
  * Create the experimental built-in retrieval signal rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createRetrievalRule(options: RetrievalRuleOptions): TraceCheckRule {
   return createSignalRule(
@@ -2315,8 +2264,7 @@ export function createRetrievalRule(options: RetrievalRuleOptions): TraceCheckRu
 /**
  * Create the experimental built-in guardrail signal rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createGuardrailRule(options: GuardrailRuleOptions): TraceCheckRule {
   return createSignalRule(
@@ -2331,8 +2279,7 @@ export function createGuardrailRule(options: GuardrailRuleOptions): TraceCheckRu
 /**
  * Create the experimental built-in decision signal rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createDecisionRule(options: DecisionRuleOptions): TraceCheckRule {
   return createSignalRule(
@@ -2347,8 +2294,7 @@ export function createDecisionRule(options: DecisionRuleOptions): TraceCheckRule
 /**
  * Create the experimental built-in safety redaction rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createSafetyRedactionRule(
   options: SafetyRedactionRuleOptions = {},
@@ -2390,8 +2336,7 @@ export function createSafetyRedactionRule(
 /**
  * Create the experimental built-in raw content path safety rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createSafetyRawContentRule(
   options: SafetyRawContentRuleOptions = {},
@@ -2433,8 +2378,7 @@ export function createSafetyRawContentRule(
 /**
  * Create the experimental built-in secret pattern safety rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createSafetySecretPatternRule(
   options: SafetySecretPatternRuleOptions = {},
@@ -2482,8 +2426,7 @@ export function createSafetySecretPatternRule(
 /**
  * Create the experimental built-in oversized attribute safety rule.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createSafetyOversizedAttributeRule(
   options: SafetyOversizedAttributeRuleOptions,
@@ -2596,8 +2539,7 @@ export function createSafetyOversizedAttributeRule(
  * against the candidate context. It intentionally ignores raw prompt/output,
  * request/response body, header, and tool payload text.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function createBaselineRegressionRule(
   options: BaselineRegressionRuleOptions,
@@ -2795,8 +2737,7 @@ export function createObservedOutcomeRule(
  * The engine is local-only and pure: it does not discover config files, read
  * trace files, call providers, perform network I/O, or mutate input objects.
  *
- * @experimental Available through `agent-inspect/checks`; the checks API may
- * evolve during the v1.x experimental period.
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
  */
 export function runTraceChecks(
   input: TraceCheckInput,

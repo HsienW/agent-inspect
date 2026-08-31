@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { generateText, streamText } from "ai";
 import type {
@@ -491,6 +491,7 @@ describe("@agent-inspect/ai-sdk scaffold", () => {
   });
 
   it("falls back from preview capture with explicit diagnostics and no raw text", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const writer = memoryWriter();
     const integration = agentInspect({
       writer,
@@ -499,6 +500,10 @@ describe("@agent-inspect/ai-sdk scaffold", () => {
       redactionProfile: "strict",
       maxPreviewChars: 8,
     });
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(String(warnSpy.mock.calls[0]?.[0])).toContain("AI_ADAPTER_PREVIEW_NOT_AVAILABLE");
+    expect(String(warnSpy.mock.calls[0]?.[0])).toContain("[agent-inspect:ai-sdk]");
 
     await generateText({
       model: new MockLanguageModelV3({
@@ -524,6 +529,10 @@ describe("@agent-inspect/ai-sdk scaffold", () => {
         integrations: [integration],
       },
     });
+
+    // Lifecycle callbacks must not repeat the capability warning.
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    warnSpy.mockRestore();
 
     const events = writer.getEvents();
 

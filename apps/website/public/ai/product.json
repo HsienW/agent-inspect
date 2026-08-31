@@ -1,12 +1,12 @@
 {
   "name": "agent-inspect",
-  "version": "6.17.3",
+  "version": "6.17.4",
   "schemaVersion": "1.0",
   "category": "Local-first evidence for TypeScript AI agents",
   "headline": "See what your agent did. Catch the wrong path in CI. Keep the evidence local.",
-  "supportingSentence": "AgentInspect turns TypeScript agent runs into readable execution trees, deterministic trajectory checks, and portable Evidence v2\u2014without requiring an account, collector, or default upload.",
+  "supportingSentence": "AgentInspect turns TypeScript agent runs into readable execution trees, deterministic trajectory checks, and portable Evidence v2—without requiring an account, collector, or default upload.",
   "outcome": "Capture once. Debug, prevent, and share from the same local trace.",
-  "statusLine": "Current release: 6.17.3 \u00b7 schema 1.0 \u00b7 Node.js 20+ \u00b7 MIT \u00b7 actively maintained",
+  "statusLine": "Current release: 6.17.4 · schema 1.0 · Node.js 20+ · MIT · actively maintained",
   "pillars": [
     {
       "id": "debug",
@@ -16,7 +16,7 @@
     {
       "id": "prevent",
       "title": "Prevent",
-      "summary": "Deterministic check presets, TraceContract, suites, and CI gates \u2014 no LLM judge required."
+      "summary": "Deterministic check presets, TraceContract, suites, and CI gates — no LLM judge required."
     },
     {
       "id": "share",
@@ -26,9 +26,9 @@
   ],
   "proof": [
     "Zero open pilot findings at the 6.16.0 moderate + deep-swarm gates.",
-    "Hardening timeline 6.7.3 \u2192 6.16.0; Evidence UX in 6.17.1; fixture-backed demos."
+    "Hardening timeline 6.7.3 → 6.16.0; Evidence UX in 6.17.1; fixture-backed demos."
   ],
-  "trustLine": "No account \u00b7 no collector \u00b7 no default upload \u00b7 metadata-only by default",
+  "trustLine": "No account · no collector · no default upload · metadata-only by default",
   "urls": {
     "github": "https://github.com/rajudandigam/agent-inspect",
     "npm": "https://www.npmjs.com/package/agent-inspect",

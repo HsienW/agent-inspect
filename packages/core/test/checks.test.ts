@@ -324,6 +324,64 @@ describe("built-in run, tool, and LLM checks", () => {
     });
   });
 
+  it("tool ordering uses first-occurrence semantics", () => {
+    const retrieve1 = persisted("e1", {
+      kind: "TOOL",
+      name: "tool:retrieve",
+      attributes: { toolName: "retrieve" },
+    });
+    const generate = persisted("e2", {
+      kind: "TOOL",
+      name: "tool:generate",
+      attributes: { toolName: "generate" },
+    });
+    const retrieve2 = persisted("e3", {
+      kind: "TOOL",
+      name: "tool:retrieve",
+      attributes: { toolName: "retrieve" },
+    });
+    const pass = runTraceChecks(
+      { read: readResult([retrieve1, generate, retrieve2]) },
+      { rules: [createToolOrderingRule({ before: "retrieve", after: "generate" })] },
+    );
+    expect(pass.status).toBe("pass");
+
+    const reversed = runTraceChecks(
+      {
+        read: readResult([
+          persisted("r1", {
+            kind: "TOOL",
+            name: "tool:generate",
+            attributes: { toolName: "generate" },
+          }),
+          persisted("r2", {
+            kind: "TOOL",
+            name: "tool:retrieve",
+            attributes: { toolName: "retrieve" },
+          }),
+        ]),
+      },
+      { rules: [createToolOrderingRule({ before: "retrieve", after: "generate" })] },
+    );
+    expect(reversed.status).toBe("fail");
+    expect(reversed.findings.some((f) => f.ruleId === "tool.order")).toBe(true);
+
+    // Missing "retrieve" alone is not an ordering failure.
+    const missingBefore = runTraceChecks(
+      {
+        read: readResult([
+          persisted("g1", {
+            kind: "TOOL",
+            name: "tool:generate",
+            attributes: { toolName: "generate" },
+          }),
+        ]),
+      },
+      { rules: [createToolOrderingRule({ before: "retrieve", after: "generate" })] },
+    );
+    expect(missingBefore.status).toBe("pass");
+  });
+
   it("reports required, forbidden, allowed, ordered, failed, and retried tool violations", () => {
     const forbidden = persisted("event-a", {
       kind: "TOOL",

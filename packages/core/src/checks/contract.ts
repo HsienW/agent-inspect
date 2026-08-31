@@ -54,6 +54,18 @@ export interface TraceContractToolRules {
   forbiddenTools?: string[];
   allowed?: string[];
   maxCalls?: number;
+  /**
+   * Required tool order as adjacent first-occurrence pairs.
+   *
+   * `[A, B, C]` expands to “A before B” and “B before C”, each comparing the
+   * first occurrence of the named tool. Unlisted intermediate tools are
+   * allowed. Later repetitions do not invalidate an earlier valid order.
+   * Missing tools are not ordering failures by themselves — use `required` /
+   * `requiredTools` for presence.
+   *
+   * @beta Available through `agent-inspect/checks`. Additive changes may ship
+   * in minor releases; breaking changes require a future major.
+   */
   requiredOrder?: string[];
 }
 

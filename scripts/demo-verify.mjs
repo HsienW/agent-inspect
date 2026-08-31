@@ -55,17 +55,25 @@ if (!existsSync(manifestPath)) {
       const p = path.join(dir, rel);
       if (!existsSync(p)) fail(`missing ${path.relative(root, p)}`);
     }
-    if (existsSync(cli)) {
-      const result = spawnSync(
-        process.execPath,
-        [cli, "bundle", "verify", path.join(dir, "evidence"), "--json"],
-        { cwd: root, encoding: "utf8" },
+    if (!existsSync(cli)) {
+      fail(
+        `AI_DEMO_VERIFY_CLI_MISSING: Evidence bundle verification requires ${path.relative(root, cli)}. Run \`pnpm build\` or \`pnpm build:cli\` before \`pnpm demo:verify\`. Unverified demo: ${sample.id}`,
       );
-      if (result.status !== 0) {
-        fail(`bundle verify failed for ${sample.id}`);
-      } else {
+      continue;
+    }
+    const result = spawnSync(
+      process.execPath,
+      [cli, "bundle", "verify", path.join(dir, "evidence"), "--json"],
+      { cwd: root, encoding: "utf8" },
+    );
+    if (result.status !== 0) {
+      fail(`bundle verify failed for ${sample.id}`);
+    } else {
+      try {
         const parsed = JSON.parse(result.stdout);
         if (parsed.ok !== true) fail(`bundle verify not ok for ${sample.id}`);
+      } catch {
+        fail(`bundle verify produced invalid JSON for ${sample.id}`);
       }
     }
   }

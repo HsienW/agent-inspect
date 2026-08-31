@@ -634,6 +634,8 @@ class AgentInspectAiSdkTelemetryIntegration {
     this.diagnostics.lastWarning = message;
   }
 
+  private previewCapabilityWarned = false;
+
   private recordCaptureOptionWarnings(): void {
     const previewOnlyOptions: string[] = [];
     if (this.requestedCapture === "preview") previewOnlyOptions.push("capture");
@@ -641,9 +643,15 @@ class AgentInspectAiSdkTelemetryIntegration {
     if (this.options.maxPreviewChars !== undefined) previewOnlyOptions.push("maxPreviewChars");
 
     if (this.requestedCapture === "preview") {
+      const message =
+        `AI_ADAPTER_PREVIEW_NOT_AVAILABLE: capture:"preview" was requested, but this adapter currently persists metadata-only. Effective capture: metadata-only. No preview content was written. See docs/ADAPTERS.md.`;
       this.recordLifecycleWarning(
         `AI SDK preview capture is not supported yet; falling back to metadata-only capture. Unsupported options: ${previewOnlyOptions.join(", ")}.`,
       );
+      if (!this.previewCapabilityWarned) {
+        this.previewCapabilityWarned = true;
+        console.warn(`[agent-inspect:ai-sdk] ${message}`);
+      }
       return;
     }
 

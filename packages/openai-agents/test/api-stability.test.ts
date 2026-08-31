@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   agentInspectProcessor,
@@ -277,6 +277,7 @@ describe("@agent-inspect/openai-agents processor", () => {
   });
 
   it("diagnoses preview-only options and out-of-order callbacks without throwing", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const writer = memoryWriter();
     const processor = agentInspectProcessor({
       writer,
@@ -285,10 +286,17 @@ describe("@agent-inspect/openai-agents processor", () => {
       maxPreviewChars: 8,
     });
 
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(String(warnSpy.mock.calls[0]?.[0])).toContain("AI_ADAPTER_PREVIEW_NOT_AVAILABLE");
+    expect(String(warnSpy.mock.calls[0]?.[0])).toContain("[agent-inspect:openai-agents]");
+
     await processor.onSpanEnd(
       spanFixture({ type: "generation", model: "gpt-fixture" }),
     );
     await processor.onTraceEnd(traceFixture({ traceId: "missing-trace" }));
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    warnSpy.mockRestore();
 
     expect(writer.getEvents()).toEqual([]);
     expect(processor.getDiagnostics()).toMatchObject({

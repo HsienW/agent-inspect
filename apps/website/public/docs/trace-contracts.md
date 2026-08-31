@@ -14,6 +14,33 @@ Contracts compile to deterministic check rules for common cases:
 - evidence-bearing findings on failures
 - evaluation over **logical** TraceFacts (raw events remain available)
 
+## `tools.requiredOrder` semantics
+
+`requiredOrder` is expanded into **adjacent pair** ordering rules:
+
+```text
+[A, B, C]
+→ A before B
+→ B before C
+```
+
+Each pair compares the **first occurrence** of each tool name:
+
+- unlisted intermediate tools are allowed;
+- later repetitions do not invalidate an earlier valid first-occurrence order;
+- a missing tool is **not** an ordering failure by itself — use `required` / `requiredTools` for presence;
+- combine ordering with `maxCalls` or custom rules when repeated calls matter.
+
+Examples for `requiredOrder: ["retrieve", "generate"]`:
+
+| Trajectory | Ordering result |
+| --- | --- |
+| `retrieve → generate` | PASS |
+| `retrieve → rerank → generate` | PASS |
+| `retrieve → generate → retrieve` | PASS (first-occurrence) |
+| `generate → retrieve` | FAIL |
+| `cache_lookup → generate` | Ordering alone does **not** fail for missing `retrieve`; a separate required-tool rule fails if `retrieve` is required |
+
 ### Experimental Vitest / Jest matchers (shipped)
 
 | Package | Export | Matchers |

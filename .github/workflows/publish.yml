@@ -79,6 +79,9 @@ jobs:
         if: steps.release-work.outputs.should_run == 'true'
         uses: changesets/action@v1
         with:
+          # After Changesets bumps versions/changelogs, sync mechanical public-truth
+          # surfaces so Version Packages PRs are not blocked by stale version strings.
+          version: pnpm run version:packages
           publish: pnpm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

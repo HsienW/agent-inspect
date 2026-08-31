@@ -458,6 +458,7 @@ class AgentInspectOpenAiAgentsTracingProcessor implements AgentInspectOpenAiAgen
       "activeTraces",
       "activeSpans",
       "closed",
+      "previewCapabilityWarned",
     ] as const) {
       Object.defineProperty(this, key, { enumerable: false });
     }
@@ -711,6 +712,8 @@ class AgentInspectOpenAiAgentsTracingProcessor implements AgentInspectOpenAiAgen
     this.diagnostics.lastWarning = message;
   }
 
+  private previewCapabilityWarned = false;
+
   private recordCaptureOptionWarnings(): void {
     const previewOnlyOptions: string[] = [];
     if (this.requestedCapture === "preview") previewOnlyOptions.push("capture");
@@ -718,9 +721,15 @@ class AgentInspectOpenAiAgentsTracingProcessor implements AgentInspectOpenAiAgen
     if (this.options.maxPreviewChars !== undefined) previewOnlyOptions.push("maxPreviewChars");
 
     if (this.requestedCapture === "preview") {
+      const message =
+        `AI_ADAPTER_PREVIEW_NOT_AVAILABLE: capture:"preview" was requested, but this adapter currently persists metadata-only. Effective capture: metadata-only. No preview content was written. See docs/ADAPTERS.md.`;
       this.recordLifecycleWarning(
         `OpenAI Agents preview capture is not supported yet; falling back to metadata-only capture. Unsupported options: ${previewOnlyOptions.join(", ")}.`,
       );
+      if (!this.previewCapabilityWarned) {
+        this.previewCapabilityWarned = true;
+        console.warn(`[agent-inspect:openai-agents] ${message}`);
+      }
       return;
     }
 

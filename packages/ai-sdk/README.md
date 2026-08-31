@@ -52,6 +52,7 @@ const result = await generateText({
 - Writes JSONL under `.agent-inspect/` only
 - No network calls from AgentInspect
 - Default capture: metadata-only
+- `capture: "preview"` is accepted for compatibility but currently falls back to metadata-only and emits one `AI_ADAPTER_PREVIEW_NOT_AVAILABLE` console warning per integration instance
 
 ## API
 
@@ -75,7 +76,7 @@ const result = await generateText({
 ## Troubleshooting
 
 - **No trace events:** Ensure `experimental_telemetry.isEnabled: true` and handlers are spread
-- **Preview mode warning:** `capture: "preview"` is not fully implemented; use `metadata-only`
+- **Preview mode warning:** `capture: "preview"` is not implemented yet; AgentInspect emits `AI_ADAPTER_PREVIEW_NOT_AVAILABLE` once and keeps metadata-only persistence
 
 
 ## Version

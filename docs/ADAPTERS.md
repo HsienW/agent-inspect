@@ -22,7 +22,7 @@ Reporters (`@agent-inspect/vitest` and `@agent-inspect/jest`) are public package
 
 **Status:** experimental adapter — optional package published in the aligned v2.2.0 package set and hardened in the v2.3 adapter train.
 
-The adapter has hardened lifecycle identity and parallel integration isolation. It remains metadata-only: `capture: "preview"` and preview-only redaction options emit diagnostics and fall back to metadata-only capture until bounded free-text previews are implemented.
+The adapter has hardened lifecycle identity and parallel integration isolation. It remains metadata-only: `capture: "preview"` and preview-only redaction options emit diagnostics **and one visible** `AI_ADAPTER_PREVIEW_NOT_AVAILABLE` warning per adapter instance, then fall back to metadata-only capture. Bounded free-text preview capture is planned for a later train; it is not implemented here.
 
 ### Install
 
@@ -59,7 +59,7 @@ const result = await generateText({
 - **Metadata-only by default** — records model, finish reason, token usage, timing, and safe counts/summaries.
 - **Required safe telemetry settings** — set `recordInputs: false` and `recordOutputs: false` on every AI SDK call using this adapter.
 - **No raw payload capture by default** — prompts, messages, generated text, stream chunks, tool inputs/outputs, headers, request bodies, and response bodies are not persisted.
-- **Preview capture is not enabled yet** — `capture: "preview"`, `redactionProfile`, and `maxPreviewChars` are diagnosed through `getDiagnostics()` and do not persist raw previews.
+- **Preview capture is not enabled yet** — requesting `capture: "preview"` emits one console warning with code `AI_ADAPTER_PREVIEW_NOT_AVAILABLE`, records diagnostics via `getDiagnostics()`, and does not persist raw previews. Effective capture remains metadata-only.
 
 ### Local no-network recipe
 
@@ -375,7 +375,7 @@ Integration modes:
 - **No upload behavior** — the processor writes only to an explicit local writer or `traceDir`.
 - **Metadata-only by default** — records trace/span IDs, parentage, names, timing, status, errors, safe model/tool names, token counts, and bounded summaries.
 - **No raw payload capture by default** — prompts, messages, generated text, function inputs/outputs, arbitrary custom data, trace exporter credentials, headers, request bodies, response bodies, and hosted tool payloads are not persisted.
-- **Preview capture is not enabled yet** — `capture: "preview"`, `redactionProfile`, and `maxPreviewChars` are diagnosed through `getDiagnostics()` and do not persist raw previews.
+- **Preview capture is not enabled yet** — requesting `capture: "preview"` emits one console warning with code `AI_ADAPTER_PREVIEW_NOT_AVAILABLE`, records diagnostics via `getDiagnostics()`, and does not persist raw previews. Effective capture remains metadata-only.
 - **Fixture-backed lifecycle coverage** — local tests and the recipe cover agent, generation, function tool, handoff, guardrail, response, MCP tools, custom, transcription, and speech span shapes without provider calls.
 
 Full API: [API.md](./API.md) §14.

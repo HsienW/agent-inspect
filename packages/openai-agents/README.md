@@ -44,6 +44,7 @@ Use **`setTraceProcessors` replacement** for local-only mode. Avoid `addTracePro
 - Local JSONL files only
 - AgentInspect does not upload traces to OpenAI
 - Metadata-only by default
+- `capture: "preview"` is accepted for compatibility but currently falls back to metadata-only and emits one `AI_ADAPTER_PREVIEW_NOT_AVAILABLE` console warning per processor instance
 
 ## API
 
@@ -65,6 +66,7 @@ Use **`setTraceProcessors` replacement** for local-only mode. Avoid `addTracePro
 
 - **Duplicate export:** Using `addTraceProcessor` keeps SDK default exporter — use replacement mode for local-only
 - **Handoffs/sessions:** Mapped to run metadata; see docs for session IDs
+- **Preview mode warning:** `capture: "preview"` is not implemented yet; AgentInspect emits `AI_ADAPTER_PREVIEW_NOT_AVAILABLE` once and keeps metadata-only persistence
 
 
 ## Version

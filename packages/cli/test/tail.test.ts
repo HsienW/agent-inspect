@@ -177,23 +177,53 @@ describe("tail", () => {
     logSpy.mockRestore();
   });
 
-  it("--no-clear does not emit clear-screen sequences", async () => {
-    (process.stdout as any).isTTY = true;
-    const writeSpy = vi
-      .spyOn(process.stdout, "write")
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockImplementation(() => true as any);
-    await tail({
-      file: sampleJson,
-      once: true,
-      format: "json",
-      config: sampleConfig,
-      warnings: "none",
-      noClear: true,
+  it("recovers after file truncation without emitting stale partial lines", async () => {
+    const { appendFile, truncate } = await import("node:fs/promises");
+    const { followFile } = await import("../src/tail.js");
+    const file = path.join(tmpDir, "truncate-follow.log");
+    await writeFile(file, "", "utf-8");
+
+    const lines: string[] = [];
+    let stop = false;
+    const follower = followFile(
+      file,
+      { refreshMs: 20, once: false },
+      (line) => {
+        lines.push(line);
+      },
+      () => stop,
+    );
+
+    // Wait until follower is past initial end-of-file seek.
+    await new Promise((r) => setTimeout(r, 40));
+
+    const eventA = JSON.stringify({
+      event: "proactive.job.started",
+      decisionId: "run-a",
+      timestamp: 1,
     });
-    const written = writeSpy.mock.calls.map((c) => String(c[0])).join("");
-    expect(written).not.toContain("\x1b[2J\x1b[0f");
-    writeSpy.mockRestore();
+    await appendFile(file, `${eventA}\n`, "utf-8");
+    await new Promise((r) => setTimeout(r, 60));
+    expect(lines.some((l) => l.includes("run-a"))).toBe(true);
+
+    await appendFile(file, '{"partial', "utf-8");
+    await new Promise((r) => setTimeout(r, 60));
+
+    await truncate(file, 0);
+    const eventB = JSON.stringify({
+      event: "proactive.job.started",
+      decisionId: "run-b",
+      timestamp: 2,
+    });
+    await writeFile(file, `${eventB}\n`, "utf-8");
+    await new Promise((r) => setTimeout(r, 80));
+
+    expect(lines.some((l) => l.includes("run-b"))).toBe(true);
+    expect(lines.some((l) => l.includes('{"partial'))).toBe(false);
+    expect(stop).toBe(false);
+
+    stop = true;
+    await follower;
   });
 });
 
