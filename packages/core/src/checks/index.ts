@@ -365,6 +365,14 @@ export interface ToolUsageRuleOptions {
 export interface ToolOrderingRuleOptions {
   before: string;
   after: string;
+  /**
+   * Ordering semantics. `"first"` compares first occurrences, while `"strict"`
+   * requires every `before` occurrence to precede every `after` occurrence.
+   *
+   * @defaultValue `"first"`
+   * @experimental
+   */
+  mode?: "first" | "strict";
 }
 
 /**
@@ -1725,9 +1733,22 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
     defaultSeverity: "error",
     evaluate(context) {
       const tools = finishedEvents(context, "TOOL");
-      const index = firstIndexByName(tools);
-      const beforeIndex = index.get(options.before);
-      const afterIndex = index.get(options.after);
+      const mode = options.mode ?? "first";
+      let beforeIndex: number | undefined;
+      let afterIndex: number | undefined;
+
+      if (mode === "first") {
+        const index = firstIndexByName(tools);
+        beforeIndex = index.get(options.before);
+        afterIndex = index.get(options.after);
+      } else {
+        for (const [position, tool] of tools.entries()) {
+          const name = toolName(tool);
+          if (name === options.before) beforeIndex = position;
+          if (name === options.after && afterIndex === undefined) afterIndex = position;
+        }
+      }
+
       if (beforeIndex === undefined || afterIndex === undefined || beforeIndex < afterIndex) {
         return [];
       }

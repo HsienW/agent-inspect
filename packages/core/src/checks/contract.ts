@@ -54,7 +54,24 @@ export interface TraceContractToolRules {
   forbiddenTools?: string[];
   allowed?: string[];
   maxCalls?: number;
+  /**
+   * Tool names that must appear in the declared order. Adjacent names form
+   * ordering pairs. By default, only the first occurrence of each name is
+   * compared, so `["retrieve", "generate", "retrieve"]` satisfies
+   * `["retrieve", "generate"]`.
+   */
   requiredOrder?: string[];
+  /**
+   * Ordering semantics for every adjacent pair in `requiredOrder`.
+   *
+   * - `"first"` compares first occurrences and preserves the default behavior.
+   * - `"strict"` requires every earlier-tool occurrence to precede every
+   *   occurrence of the next tool.
+   *
+   * @defaultValue `"first"`
+   * @experimental TraceContract tool ordering may evolve in a future minor.
+   */
+  requiredOrderMode?: "first" | "strict";
 }
 
 export interface TraceContractLlmRules {
@@ -185,8 +202,26 @@ function contractToRules(contract: TraceContract): TraceCheckRule[] {
       }),
     );
     const order = contract.tools.requiredOrder ?? [];
+    const orderMode = contract.tools.requiredOrderMode ?? "first";
+    const orderingRules: TraceCheckRule[] = [];
     for (let i = 0; i < order.length - 1; i += 1) {
-      rules.push(createToolOrderingRule({ before: order[i]!, after: order[i + 1]! }));
+      orderingRules.push(
+        createToolOrderingRule({
+          before: order[i]!,
+          after: order[i + 1]!,
+          mode: orderMode,
+        }),
+      );
+    }
+    if (orderingRules.length > 0) {
+      rules.push({
+        id: "tool.order",
+        category: "tool",
+        defaultSeverity: "error",
+        evaluate(context) {
+          return orderingRules.flatMap((rule) => rule.evaluate(context));
+        },
+      });
     }
   }
 
