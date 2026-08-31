@@ -95,6 +95,32 @@ function failFindings(result: ReturnType<typeof evaluateTraceContract>) {
   return result.findings.filter((finding) => finding.status === "fail");
 }
 
+function toolEvents(names: readonly string[]): PersistedInspectEvent[] {
+  return names.map((name, index) =>
+    persisted(`tool-${index}`, {
+      kind: "TOOL",
+      name: `tool:${name}`,
+      timestamp: `2026-07-11T00:00:${String(index + 1).padStart(2, "0")}.000Z`,
+      attributes: { toolName: name },
+    }),
+  );
+}
+
+function evaluateToolOrder(
+  names: readonly string[],
+  requiredOrder: string[],
+  requiredOrderMode?: "first" | "strict",
+) {
+  const tools = {
+    requiredOrder,
+    ...(requiredOrderMode === undefined ? {} : { requiredOrderMode }),
+  };
+  return evaluateTraceContract(
+    { read: readResult("ok", toolEvents(names)) },
+    defineTraceContract({ tools }),
+  );
+}
+
 describe("trace contract", () => {
   it("evaluates run duration and tool requirements", async () => {
     const repoRoot = path.resolve(import.meta.dirname, "../../../..");
@@ -112,6 +138,59 @@ describe("trace contract", () => {
     const viaRead = evaluateTraceContractRead(read, contract);
     expect(viaRead.status).toBe(result.status);
     expect(viaRead.findings.length).toBe(result.findings.length);
+  });
+
+  describe("tools.requiredOrder", () => {
+    it.each([
+      { names: ["retrieve", "generate"], expected: "pass" },
+      { names: ["retrieve", "retrieve", "generate"], expected: "pass" },
+      { names: ["retrieve", "generate", "retrieve"], expected: "pass" },
+      { names: ["generate", "retrieve"], expected: "fail" },
+    ] as const)("preserves default first-occurrence semantics for $names", ({ names, expected }) => {
+      expect(evaluateToolOrder(names, ["retrieve", "generate"]).status).toBe(expected);
+    });
+
+    it("makes explicit first mode equivalent to the omitted default", () => {
+      const names = ["retrieve", "generate", "retrieve"];
+      const defaultResult = evaluateToolOrder(names, ["retrieve", "generate"]);
+      const explicitFirstResult = evaluateToolOrder(names, ["retrieve", "generate"], "first");
+
+      expect(explicitFirstResult).toEqual(defaultResult);
+      expect(explicitFirstResult.status).toBe("pass");
+    });
+
+    it.each([
+      { names: ["retrieve", "generate"], expected: "pass" },
+      { names: ["retrieve", "retrieve", "generate"], expected: "pass" },
+      { names: ["retrieve", "generate", "retrieve"], expected: "fail" },
+      { names: ["retrieve", "retrieve", "generate", "generate"], expected: "pass" },
+      { names: ["retrieve", "generate", "generate", "retrieve"], expected: "fail" },
+      { names: ["generate", "retrieve"], expected: "fail" },
+    ] as const)("applies strict all-occurrences ordering for $names", ({ names, expected }) => {
+      expect(evaluateToolOrder(names, ["retrieve", "generate"], "strict").status).toBe(expected);
+    });
+
+    it.each([
+      {
+        names: ["retrieve", "retrieve", "rerank", "rerank", "generate", "generate"],
+        expected: "pass",
+      },
+      { names: ["retrieve", "rerank", "retrieve", "generate"], expected: "fail" },
+      { names: ["retrieve", "rerank", "generate", "rerank"], expected: "fail" },
+    ] as const)("propagates strict mode through a multi-element chain for $names", ({ names, expected }) => {
+      expect(
+        evaluateToolOrder(names, ["retrieve", "rerank", "generate"], "strict").status,
+      ).toBe(expected);
+    });
+
+    it.each([["retrieve"], ["generate"], ["other"]] as const)(
+      "does not treat strict ordering as a presence rule for %s",
+      (...names) => {
+        const result = evaluateToolOrder(names, ["retrieve", "generate"], "strict");
+        expect(result.status).toBe("pass");
+        expect(failFindings(result)).toEqual([]);
+      },
+    );
   });
 
   describe("run.allowedStatuses", () => {

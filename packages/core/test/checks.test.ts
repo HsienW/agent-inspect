@@ -112,6 +112,17 @@ function readResult(events: PersistedInspectEvent[]): TraceReadResult {
   };
 }
 
+function toolEvents(names: readonly string[]): PersistedInspectEvent[] {
+  return names.map((name, index) =>
+    persisted(`tool-${index}`, {
+      kind: "TOOL",
+      name: `tool:${name}`,
+      timestamp: `2026-06-26T00:00:${String(index + 1).padStart(2, "0")}.000Z`,
+      attributes: { toolName: name },
+    }),
+  );
+}
+
 describe("runTraceChecks", () => {
   it("passes deterministically when no rules are configured", () => {
     const read = readResult([persisted("event-a")]);
@@ -370,6 +381,66 @@ describe("built-in run, tool, and LLM checks", () => {
       kind: "TOOL",
       name: "tool:deleteUser",
     });
+  });
+
+  it("keeps first-occurrence tool ordering as the default and supports strict ordering", () => {
+    const read = readResult(toolEvents(["retrieve", "generate", "retrieve"]));
+
+    const defaultResult = runTraceChecks(
+      { read },
+      { rules: [createToolOrderingRule({ before: "retrieve", after: "generate" })] },
+    );
+    const explicitFirstResult = runTraceChecks(
+      { read },
+      {
+        rules: [
+          createToolOrderingRule({ before: "retrieve", after: "generate", mode: "first" }),
+        ],
+      },
+    );
+    const strictResult = runTraceChecks(
+      { read },
+      {
+        rules: [
+          createToolOrderingRule({ before: "retrieve", after: "generate", mode: "strict" }),
+        ],
+      },
+    );
+
+    expect(defaultResult.status).toBe("pass");
+    expect(explicitFirstResult).toEqual(defaultResult);
+    expect(strictResult.status).toBe("fail");
+    expect(strictResult.findings.map((finding) => finding.ruleId)).toEqual(["tool.order"]);
+  });
+
+  it("keeps strict ordering separate from presence and preserves the same-tool edge case", () => {
+    const strictRule = createToolOrderingRule({
+      before: "retrieve",
+      after: "generate",
+      mode: "strict",
+    });
+
+    for (const names of [["retrieve"], ["generate"], ["other"]]) {
+      const result = runTraceChecks({ read: readResult(toolEvents(names)) }, { rules: [strictRule] });
+      expect(result.status).toBe("pass");
+      expect(result.findings).toEqual([]);
+    }
+
+    const defaultSameTool = runTraceChecks(
+      { read: readResult(toolEvents(["retrieve"])) },
+      { rules: [createToolOrderingRule({ before: "retrieve", after: "retrieve" })] },
+    );
+    const strictSameTool = runTraceChecks(
+      { read: readResult(toolEvents(["retrieve"])) },
+      {
+        rules: [
+          createToolOrderingRule({ before: "retrieve", after: "retrieve", mode: "strict" }),
+        ],
+      },
+    );
+
+    expect(defaultSameTool.status).toBe("fail");
+    expect(strictSameTool.status).toBe("fail");
   });
 
   it("treats an empty tool allowlist as no restriction", () => {
