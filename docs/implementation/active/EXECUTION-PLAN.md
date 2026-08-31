@@ -37,6 +37,18 @@
 | `6.17.5-5-preview-warning` | done |
 | `6.17.5-6-contract-docs` | done |
 | `6.17.5-7-validation` | done |
+| `6.17.5-8-issue-reconciliation` | done |
+
+## Issue disposition (6.17.5-8)
+
+| Issue | Release | Recommendation |
+| --- | --- | --- |
+| [#310](https://github.com/rajudandigam/agent-inspect/issues/310) | 6.17.5 | Close when visible-warning acceptance passes |
+| [#308](https://github.com/rajudandigam/agent-inspect/issues/308) | 6.17.5 docs + 6.20.0 impl | Stay open until `requiredOrderMode: "all-occurrences"` ships |
+| [#311](https://github.com/rajudandigam/agent-inspect/issues/311) | 6.18.0 | Stay open |
+| [#309](https://github.com/rajudandigam/agent-inspect/issues/309) | 6.20.0 | Stay open |
+
+Confirmed: no `requiredOrderMode`, `alternatives.anyOf`, or bounded preview capture landed in 6.17.5-8.
 
 ## Stop rule
 

@@ -96,6 +96,18 @@ describe("@agent-inspect/openai-agents processor", () => {
     });
   });
 
+  it("does not emit preview capability warning for metadata-only capture", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    agentInspectProcessor({
+      capture: "metadata-only",
+      workflowName: "metadata-only-fixture",
+    });
+
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
   it("maps trace and span lifecycle events to metadata-only v0.2 rows", async () => {
     const writer = memoryWriter();
     const processor = agentInspectProcessor({ writer });

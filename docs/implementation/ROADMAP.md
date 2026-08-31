@@ -68,22 +68,108 @@ AI SDK and OpenAI Agents accept `capture: "preview"` but persist metadata-only. 
 
 ### 2.5 TraceContract ordering documentation
 
-`tools.requiredOrder` expands to adjacent pair checks comparing **first occurrences**. Document; do not change the algorithm.
+`tools.requiredOrder` expands to adjacent pair checks comparing **first occurrences**. Document; do not change the algorithm. GitHub #308 first-occurrence docs/tests land here; strict `requiredOrderMode` implementation is deferred to 6.20.0.
 
 ### 2.6 Stale wording cleanup
 
 Replace obsolete “evolves during v1.x” current-API wording with support-level language. Do not rewrite historical changelogs.
 
+### 2.7 Issue reconciliation (chunk 6.17.5-8)
+
+Map GitHub issues #308–#311 to release trains in this roadmap and TraceContract docs. No new runtime APIs in this chunk.
+
+**In scope for 6.17.5 (close or partially close when acceptance passes):**
+
+| Issue | 6.17.5 deliverable | Disposition |
+| --- | --- | --- |
+| [#310](https://github.com/rajudandigam/agent-inspect/issues/310) | Visible `AI_ADAPTER_PREVIEW_NOT_AVAILABLE`; metadata-only default unchanged | **Recommend close** when acceptance criteria pass |
+| [#308](https://github.com/rajudandigam/agent-inspect/issues/308) | First-occurrence docs + `retrieve → generate → retrieve` PASS test | **Stay open** until `requiredOrderMode: "all-occurrences"` ships (6.20.0) |
+
+**Deferred (stay open):**
+
+| Issue | Target release | Notes |
+| --- | --- | --- |
+| [#311](https://github.com/rajudandigam/agent-inspect/issues/311) | 6.18.0 | Actual bounded preview capture parity |
+| [#309](https://github.com/rajudandigam/agent-inspect/issues/309) | 6.20.0 | `alternatives.anyOf` for conditional/shortcut paths |
+
+---
+
+## 2A. Issue traceability (GitHub → release)
+
+```text
+#310 → 6.17.5 (close when visible-warning acceptance passes)
+#308 → 6.17.5 docs/tests + 6.20.0 requiredOrderMode (stay open until strict mode ships)
+#311 → 6.18.0 (stay open)
+#309 → 6.20.0 (stay open)
+```
+
 ---
 
 ## 3. Later trains (planned / conditional)
 
-| Release | Theme | Notes |
-| --- | --- | --- |
-| **6.18.0** | Bounded preview parity for AI SDK + OpenAI Agents | Shared capability diagnostics; metadata-only remains default |
-| **6.19.0** | Custom `TraceReader` authoring + TrueForge receipt recipe | Transform is not the first stage for foreign event envelopes |
-| **6.20.0** | `alternatives.anyOf` contract composition | Deterministic alternate valid paths |
-| **6.21.0** | Conditional enforcement-evidence conventions | Only if external recipe proves need |
+| Release | Theme | GitHub | Notes |
+| --- | --- | --- | --- |
+| **6.18.0** | Bounded preview parity for AI SDK + OpenAI Agents | #311 | Shared capture contract; metadata-only remains default |
+| **6.19.0** | Custom `TraceReader` authoring + TrueForge receipt recipe | — | Transform is not the first stage for foreign event envelopes |
+| **6.20.0** | `alternatives.anyOf` + `requiredOrderMode` | #309, #308 | Deterministic alternate valid paths and strict ordering |
+| **6.21.0** | Conditional enforcement-evidence conventions | — | Only if external recipe proves need |
+
+### 3.1 v6.18.0 — adapter capture parity (#311)
+
+**Goal:** Make `capture: "preview"` persist bounded, redacted preview fields across AI SDK, OpenAI Agents, and LangChain adapters with shared diagnostics.
+
+**Acceptance (17 bullets):**
+
+1. Shared capture contract documented (metadata-only default; preview opt-in).
+2. `capture: "preview"` persists bounded preview fields when source data is available.
+3. `capture: "metadata-only"` remains default; no behavior regression.
+4. Diagnostics history retained (`lifecycleWarnings`, `lastWarning`).
+5. Optional `onDiagnostic` callback for adapter consumers.
+6. Bounded preview helper shared across adapters (max chars, field selection).
+7. AI SDK adapter parity with shared contract.
+8. OpenAI Agents adapter parity with shared contract.
+9. LangChain adapter parity with shared contract.
+10. Functional `redactionProfile` honored when preview is enabled.
+11. Functional `maxPreviewChars` honored when preview is enabled.
+12. `AI_CAPTURE_FIELD_UNAVAILABLE` diagnostic when a requested preview field cannot be sourced.
+13. Writer flush rules unchanged; preview fields respect serialized-size limits.
+14. Conformance tests across all three adapters.
+15. No raw full-content persistence by default.
+16. No root API leak; capabilities remain on adapter subpaths.
+17. Remove or downgrade `AI_ADAPTER_PREVIEW_NOT_AVAILABLE` when preview is actually implemented.
+
+### 3.2 v6.19.0 — external persisted-event readers
+
+**Goal:** Authoring guidance and TrueForge receipt recipe for arbitrary persisted agent-event sources through the existing reader architecture.
+
+- Document custom `TraceReader` authoring patterns.
+- TrueForge receipt recipe (no official TrueForge package).
+- Transform is not the first stage for foreign event envelopes.
+
+### 3.3 v6.20.0 — alternative valid paths (#309 + #308)
+
+**Goal:** Deterministic contract composition for legitimate alternate agent paths without weakening local-first safety.
+
+**Planned APIs (document only until implementation):**
+
+#### `alternatives.anyOf` (#309)
+
+- Shape: one level of alternative path groups; each group is a deterministic valid path.
+- Evaluation: contract passes when **one** alternative group fully satisfies its rules.
+- Constraints: no nested `anyOf`, no predicates, no runtime branching DSL.
+
+#### `requiredOrderMode` (#308)
+
+| Mode | Semantics |
+| --- | --- |
+| `"first-occurrence"` (default, shipped) | Adjacent pair checks on first occurrence of each listed tool among present tools |
+| `"all-occurrences"` (planned) | Every listed tool must appear in sequence for all occurrences, not just first hits |
+
+**Contributor note:** @HsienW volunteered on #308 for `requiredOrderMode` implementation. API shape requires maintainer approval before external PR lands.
+
+### 3.4 v6.21.0 — conditional enforcement evidence
+
+Conditional on TrueForge validation proving need. Enforcement-evidence conventions only; no new hosted service.
 
 Historical `6.16.x`–`6.17.1` repository-health and Evidence UX work remains summarized in [history/ROADMAP-HISTORY.md](../history/ROADMAP-HISTORY.md) and Git tags.
 

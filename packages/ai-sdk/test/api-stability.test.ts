@@ -236,6 +236,18 @@ describe("@agent-inspect/ai-sdk scaffold", () => {
     });
   });
 
+  it("does not emit preview capability warning for metadata-only capture", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    agentInspect({
+      capture: "metadata-only",
+      runName: "metadata-only-fixture",
+    });
+
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
   it("diagnoses preview-only options when capture remains metadata-only", () => {
     const integration = agentInspect({
       redactionProfile: "strict",

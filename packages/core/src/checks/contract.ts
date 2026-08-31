@@ -46,6 +46,13 @@ export interface TraceContractRunRules {
 }
 
 export interface TraceContractToolRules {
+  /**
+   * Unconditional tool presence invariant. Every named tool must appear at least
+   * once. Do not use for cache-hit or alternate-path shortcuts — prefer
+   * `observations.required` until `alternatives.anyOf` ships (planned 6.20.0).
+   *
+   * @see docs/TRACE-CONTRACTS.md
+   */
   required?: string[];
   /** Alias of `required` (TraceContract v2 normalization). */
   requiredTools?: string[];
@@ -63,6 +70,10 @@ export interface TraceContractToolRules {
    * Missing tools are not ordering failures by themselves — use `required` /
    * `requiredTools` for presence.
    *
+   * Stricter `requiredOrderMode: "all-occurrences"` is planned for 6.20.0
+   * (GitHub #308). Do not assume it is available yet.
+   *
+   * @see docs/TRACE-CONTRACTS.md
    * @beta Available through `agent-inspect/checks`. Additive changes may ship
    * in minor releases; breaking changes require a future major.
    */

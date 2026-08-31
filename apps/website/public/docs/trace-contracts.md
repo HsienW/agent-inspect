@@ -52,6 +52,62 @@ These are **Experimental** — API names may evolve. There is no `expectTrace(..
 
 See [API.md](./API.md), [TRACE-FACTS.md](./TRACE-FACTS.md), and `packages/core/src/checks/contract.ts`.
 
+## Rule kinds (shipped vs planned)
+
+TraceContract rules fall into distinct categories. Mixing them incorrectly is a common source of false failures (see GitHub #308 and #309).
+
+### `tools.required` (shipped)
+
+Unconditional path invariant: every named tool must appear **at least once** in the trace.
+
+- Use when the tool is always part of a valid execution path.
+- **Do not** use for steps that legitimate shortcuts may skip (for example cache hits that bypass `retrieve`).
+- When a shortcut is valid but you still need evidence of the outcome, prefer `observations.required` until `alternatives.anyOf` ships (6.20.0).
+
+### `tools.requiredOrder` (shipped — first-occurrence default)
+
+Ordering among **present** tools only. The evaluator walks the trace in step order and checks that each listed tool's **first occurrence** appears after the previous tool's first occurrence.
+
+- Missing tools are **not** ordering failures — use `required` / `requiredTools` for presence.
+- Default mode is **first-occurrence** (unchanged algorithm since v6.17.5).
+- **Planned (6.20.0, GitHub #308):** `requiredOrderMode: "all-occurrences"` — opt-in strict ordering where every listed tool must appear in sequence for all occurrences, not just first hits.
+
+### `observations.required` (shipped)
+
+Requires externally observed or effect evidence (for example HTTP status, file write, cache key) rather than a specific tool call. Prefer this when the invariant is about **outcome** rather than **which tool ran**.
+
+### Planned (6.20.0 — not shipped)
+
+Document only; **do not** use these fields in contracts today:
+
+| Planned field | Purpose | GitHub |
+|---------------|---------|--------|
+| `alternatives.anyOf` | One of several deterministic valid paths (one level, no nested groups, no predicates) | #309 |
+| `requiredOrderMode: "all-occurrences"` | Strict ordering across all tool occurrences | #308 |
+
+API shape for both requires maintainer approval before external PR lands. @HsienW volunteered on #308 for `requiredOrderMode` implementation.
+
+## Workaround until 6.20.0
+
+When a legitimate shortcut skips a tool you would otherwise require:
+
+1. **Remove** unconditional `tools.required` for that step.
+2. **Express** the verified outcome via `observations.required` when possible.
+3. **Document** the cache-hit or alternate path in contract comments for reviewers.
+
+Example matching GitHub #309 (cache hit skips second `retrieve`):
+
+```yaml
+contract:
+  tools:
+    required: [generate] # not retrieve — cache may skip it
+    requiredOrder: [generate] # ordering only among tools that ran
+  observations:
+    required: [cache_hit_or_retrieve_evidence]
+```
+
+With first-occurrence ordering, `retrieve → generate → retrieve` still **passes** when both retrieves are present (see worked example below).
+
 ## What is not shipped (yet)
 
 Do **not** document these as available:
