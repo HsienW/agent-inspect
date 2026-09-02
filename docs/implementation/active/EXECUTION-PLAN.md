@@ -45,8 +45,8 @@
 | `6.17.6-7-github-stream` | done |
 | `6.17.6-8-ingest-cleanup` | done |
 | `6.17.6-9-no-egress` | done |
-| `6.17.6-10-evidence-docs` | pending |
-| `6.17.6-11-redact-residual` | pending |
+| `6.17.6-10-evidence-docs` | done |
+| `6.17.6-11-redact-residual` | done |
 | `6.17.6-12-validation` | pending |
 
 ## 6.17.6-0 audit summary (2026-09-02)

@@ -82,8 +82,9 @@ Canonical shape (fields may grow additively; unknown fields must be preserved by
 
 - **`evidenceFormatVersion`:** currently `"1.0"` for this train.
 - **`generator`:** emitting tool name + package version (never a network endpoint).
-- **`source.runIds`:** original run ids (may differ from filesystem-safe artifact names).
-- **`source.sourceHashes`:** hashes of the **input** traces as read (pre-redaction), when available.
+- **`createdAt`:** ISO-8601 timestamp. Emitters always set this (`buildEvidenceManifest` defaults to `new Date().toISOString()` when omitted). Readers treat a missing `createdAt` as non-fatal for older fixtures, but new packages must include it.
+- **`source.runIds`:** original run ids (may differ from filesystem-safe artifact names). Non-empty required.
+- **`source.sourceHashes`:** **required array** of pre-redaction input hashes (`algorithm: "sha256"` only). Each `runId` must appear in `source.runIds`. The array may be empty only when no source bytes were available to hash; normal `agent-inspect bundle` emits one entry per packaged run. This is **not** optional metadata — validators reject a missing `sourceHashes` field.
 - **`policy`:** redaction + verification profiles from [SAFETY-POLICY.md](./SAFETY-POLICY.md).
 - **`assessment.status`:** **artifact** assessment (gates share-safe write), matching CLI/MCP bundle policy.
 - **`assessment.sourceStatus`:** optional informational source assessment.
@@ -118,10 +119,10 @@ Must check:
 | Unexpected files (policy: warn or fail — default **fail** for share/strict) | fail |
 | `sha256` mismatch | fail |
 | Assessment presence | fail if missing |
-| Provenance (`source`, `generator`) | fail if missing required fields |
-| Optional external signature metadata | ignore if absent; validate shape if present |
+| Provenance (`source`, `generator`, `sourceHashes` array) | fail if missing required fields |
+| External digital signatures / key material | **not supported** — AgentInspect does not emit, require, or cryptographically verify detached signatures. Unknown signature-like fields are ignored as forward-compatible extras; there is no signature-shape validation path today |
 
-No signing / key infrastructure in 6.10.
+No signing / key infrastructure in this train. Do not treat Evidence packages as signed attestations.
 
 ## Self-contained HTML (6.10-2+)
 
