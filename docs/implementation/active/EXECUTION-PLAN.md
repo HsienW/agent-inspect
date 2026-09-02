@@ -38,7 +38,7 @@
 | `6.17.6-0-audit` | done |
 | `6.17.6-1-api-surface` | done |
 | `6.17.6-2-direct-deps` | done |
-| `6.17.6-3-website-example-deps` | pending |
+| `6.17.6-3-website-example-deps` | done |
 | `6.17.6-4-studio-limits` | pending |
 | `6.17.6-5-bundle-upload` | pending |
 | `6.17.6-6-file-drop` | pending |

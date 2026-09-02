@@ -5,8 +5,8 @@ executionMode: maintainer-reviewed
 namedTrain: agentinspect-feedback-integrity-v6.17.5-to-v6.22
 currentTrain: v6.17.6-security-containment
 trainStatus: in-progress
-currentChunk: 6.17.6-3-website-example-deps
-nextAction: Website/example dependency remediation (Next ≥15.5.21, sharp/postcss, example fast-uri/ip-address)
+currentChunk: 6.17.6-4-studio-limits
+nextAction: Shared Studio ingest limits helper used by bundle/file-drop/github paths
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/EXECUTION-PLAN.md
 pendingManualGate: ""
