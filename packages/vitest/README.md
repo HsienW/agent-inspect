@@ -22,7 +22,7 @@ Vitest reporter for local AgentInspect failure artifacts, plus **experimental** 
 npm install agent-inspect @agent-inspect/vitest vitest
 ```
 
-**Peer:** `vitest@^2.1.0`
+**Peer:** `vitest@^2.1.0 || ^3.2.6` (Vitest 2 remains supported for consumers; the monorepo test runner uses Vitest ≥3.2.6)
 
 ## Reporter example
 

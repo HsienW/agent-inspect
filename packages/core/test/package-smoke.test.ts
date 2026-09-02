@@ -174,7 +174,7 @@ describe("package manifest (experimental Vitest reporter)", () => {
     expect(rootExport?.require?.default).toContain("index.cjs");
 
     const peerDependencies = pkg.peerDependencies as Record<string, string> | undefined;
-    expect(peerDependencies?.vitest).toBe("^2.1.0");
+    expect(peerDependencies?.vitest).toBe("^2.1.0 || ^3.2.6");
 
     const dependencies = pkg.dependencies as Record<string, string> | undefined;
     expect(dependencies?.["agent-inspect"]).toBe("workspace:*");

@@ -38,13 +38,13 @@
     "test": "vitest run -c ../../vitest.config.ts"
   },
   "peerDependencies": {
-    "vitest": "^2.1.0"
+    "vitest": "^2.1.0 || ^3.2.6"
   },
   "dependencies": {
     "agent-inspect": "workspace:*"
   },
   "devDependencies": {
-    "vitest": "^2.1.8"
+    "vitest": "^3.2.7"
   },
   "publishConfig": {
     "access": "public"

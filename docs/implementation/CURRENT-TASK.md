@@ -5,8 +5,8 @@ executionMode: maintainer-reviewed
 namedTrain: agentinspect-feedback-integrity-v6.17.5-to-v6.22
 currentTrain: v6.17.6-security-containment
 trainStatus: in-progress
-currentChunk: 6.17.6-2-direct-deps
-nextAction: Direct dependency remediation (nanoid ≥5.1.16, Vitest ≥3.2.6 line)
+currentChunk: 6.17.6-3-website-example-deps
+nextAction: Website/example dependency remediation (Next ≥15.5.21, sharp/postcss, example fast-uri/ip-address)
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/EXECUTION-PLAN.md
 pendingManualGate: ""

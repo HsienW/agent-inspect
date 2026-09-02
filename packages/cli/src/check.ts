@@ -1,6 +1,10 @@
+import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
 
 import {
   TraceReadError,
@@ -666,8 +670,7 @@ async function loadConfig(configPath: string | undefined): Promise<CheckConfig> 
       return parseCheckConfig(JSON.parse(raw));
     }
 
-    const mod = await import(pathToFileURL(absolute).href);
-    return parseCheckConfig("default" in mod ? mod.default : mod);
+    return parseCheckConfig(await importJsCheckConfig(absolute));
   } catch (error) {
     if (error instanceof CheckConfigError) throw error;
     const message = error instanceof Error ? error.message : String(error);
@@ -675,6 +678,52 @@ async function loadConfig(configPath: string | undefined): Promise<CheckConfig> 
       "AI_CHECK_CONFIG_LOAD_FAILED",
       `Failed to load check config: ${message}`,
     );
+  }
+}
+
+/**
+ * Load a JS/MJS/CJS check config export.
+ *
+ * Under Vitest/Vite, absolute dynamic imports outside the workspace fail even
+ * when the file exists. Fall back to a clean Node subprocess so CLI tests and
+ * temp configs keep working without depending on Vite's module graph.
+ */
+async function importJsCheckConfig(absolute: string): Promise<unknown> {
+  const href = pathToFileURL(absolute).href;
+  if (!process.env.VITEST) {
+    const mod = await import(/* @vite-ignore */ href);
+    return "default" in mod ? mod.default : mod;
+  }
+
+  const script = `
+const mod = await import(${JSON.stringify(href)});
+const value = "default" in mod ? mod.default : mod;
+process.stdout.write(JSON.stringify({ ok: true, value }));
+`;
+  const env = { ...process.env };
+  delete env.NODE_OPTIONS;
+  delete env.VITEST;
+  delete env.VITEST_WORKER_ID;
+  const { stdout, stderr } = await execFileAsync(
+    process.execPath,
+    ["--input-type=module", "--eval", script],
+    {
+      encoding: "utf8",
+      maxBuffer: 4 * 1024 * 1024,
+      env,
+    },
+  );
+  try {
+    const parsed = JSON.parse(stdout) as { ok?: boolean; value?: unknown };
+    if (parsed.ok !== true) {
+      throw new Error(stderr.trim() || "Check config module did not return a value");
+    }
+    return parsed.value;
+  } catch (error) {
+    if (stderr.trim()) {
+      throw new Error(stderr.trim());
+    }
+    throw error instanceof Error ? error : new Error(String(error));
   }
 }
 

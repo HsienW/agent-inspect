@@ -13,11 +13,6 @@ import { spawnSync } from "node:child_process";
 
 import { describe, expect, it } from "vitest";
 
-import {
-  buildApiSurfaceSnapshot,
-  stableStringify,
-} from "../../../scripts/lib/api-surface.mjs";
-
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, "../../..");
 const snapshotPath = path.join(
@@ -30,8 +25,22 @@ const distPresent =
   existsSync(path.join(coreDist, "index.mjs")) &&
   existsSync(path.join(coreDist, "index.cjs"));
 
+type ApiSurfaceModule = {
+  buildApiSurfaceSnapshot: (
+    repoRoot: string,
+  ) => Promise<Record<string, unknown>>;
+  stableStringify: (value: unknown) => string;
+};
+
+async function loadApiSurface(): Promise<ApiSurfaceModule> {
+  return (await import(
+    pathToFileURL(path.join(repoRoot, "scripts/lib/api-surface.mjs")).href
+  )) as ApiSurfaceModule;
+}
+
 describe.skipIf(!distPresent)("published API surface snapshot (#211)", () => {
   it("locks package exports, bins, and root/subpath runtime names", async () => {
+    const { buildApiSurfaceSnapshot, stableStringify } = await loadApiSurface();
     const expected = JSON.parse(readFileSync(snapshotPath, "utf8")) as unknown;
     const actual = await buildApiSurfaceSnapshot(repoRoot);
 
