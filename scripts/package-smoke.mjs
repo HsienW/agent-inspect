@@ -1056,21 +1056,20 @@ function smokeOptionalPackages(rootTgzPath, tmpRoot) {
   );
 }
 
-// Force non-JSON output so we can reliably read the .tgz filename even when
-// the environment sets npm_config_json=true (common in CI/release tooling).
-const packProc = spawnCli("npm", ["pack", "--silent", "--ignore-scripts"], {
+// Prefer structured npm pack output over fragile --silent line parsing.
+const packProc = spawnCli("npm", ["pack", "--json", "--ignore-scripts"], {
   cwd: root,
   env: {
     ...process.env,
-    npm_config_json: "false",
-    NPM_CONFIG_JSON: "false",
+    npm_config_json: "true",
+    NPM_CONFIG_JSON: "true",
   },
 });
 const packOut = `${packProc.stdout || ""}\n${packProc.stderr || ""}`.trim();
 const tgzName = parsePackedFilename(packOut);
 
 if (!tgzName || !tgzName.endsWith(".tgz")) {
-  console.error("[pack:smoke] could not parse .tgz name from npm pack:\n", packOut);
+  console.error("[pack:smoke] could not parse .tgz name from npm pack --json:\n", packOut);
   process.exit(1);
 }
 
@@ -1174,17 +1173,15 @@ try {
   });
   assertHelp("./node_modules/.bin/agent-inspect --help", binHelp.stdout, binHelp.stderr, binHelp.status);
 
-  const npmExec = spawnSync("npm", ["exec", "--", "agent-inspect", "--help"], {
+  // Prefer the already-installed local bin; also exercise npm exec / npx without
+  // unconditional shell:true (Windows cmd shims still use spawnCli's win32 shell).
+  const npmExec = spawnCli("npm", ["exec", "--", "agent-inspect", "--help"], {
     cwd: tmpRoot,
-    encoding: "utf8",
-    shell: true,
   });
   assertHelp("npm exec -- agent-inspect --help", npmExec.stdout, npmExec.stderr, npmExec.status);
 
-  const npxNoInstall = spawnSync("npx", ["--no-install", "agent-inspect", "--help"], {
+  const npxNoInstall = spawnCli("npx", ["--no-install", "agent-inspect", "--help"], {
     cwd: tmpRoot,
-    encoding: "utf8",
-    shell: true,
   });
   assertHelp("npx --no-install agent-inspect --help", npxNoInstall.stdout, npxNoInstall.stderr, npxNoInstall.status);
 

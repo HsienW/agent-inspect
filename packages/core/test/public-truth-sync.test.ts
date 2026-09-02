@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, renameSync, unlinkSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const syncScript = path.join(repoRoot, "scripts/sync-public-truth.mjs");
+const publicTruthCheck = path.join(repoRoot, "scripts/validate-public-truth.mjs");
 const digestLib = path.join(repoRoot, "scripts/lib/claim-content-digest.mjs");
 const demoVerify = path.join(repoRoot, "scripts/demo-verify.mjs");
 
@@ -58,10 +59,9 @@ describe("public-truth sync and claim digest", () => {
     });
     expect(second.status, second.stderr || second.stdout).toBe(0);
 
-    const check = spawnSync("pnpm", ["public-truth:check"], {
+    const check = spawnSync(process.execPath, [publicTruthCheck], {
       cwd: repoRoot,
       encoding: "utf8",
-      shell: true,
     });
     expect(check.status, check.stderr || check.stdout).toBe(0);
   });
@@ -70,13 +70,19 @@ describe("public-truth sync and claim digest", () => {
 describe("demo-verify fail-closed", () => {
   it("fails with AI_DEMO_VERIFY_CLI_MISSING when CLI dist is absent", () => {
     const cli = path.join(repoRoot, "packages/cli/dist/index.cjs");
-    const backup = `${cli}.bak-demo-verify-test`;
+    const backup = path.join(
+      path.dirname(cli),
+      `index.cjs.bak-demo-verify-test-${process.pid}-${Date.now()}`,
+    );
     let moved = false;
     try {
-      if (existsSync(cli)) {
-        spawnSync("mv", [cli, backup], { cwd: repoRoot });
-        moved = true;
-      }
+      expect(existsSync(cli), `expected built CLI at ${cli}`).toBe(true);
+      expect(existsSync(backup), `backup path must be free: ${backup}`).toBe(false);
+      renameSync(cli, backup);
+      moved = true;
+      expect(existsSync(cli)).toBe(false);
+      expect(existsSync(backup)).toBe(true);
+
       const result = spawnSync(process.execPath, [demoVerify], {
         cwd: repoRoot,
         encoding: "utf8",
@@ -85,7 +91,10 @@ describe("demo-verify fail-closed", () => {
       expect(`${result.stdout}\n${result.stderr}`).toContain("AI_DEMO_VERIFY_CLI_MISSING");
     } finally {
       if (moved && existsSync(backup)) {
-        spawnSync("mv", [backup, cli], { cwd: repoRoot });
+        if (existsSync(cli)) {
+          unlinkSync(cli);
+        }
+        renameSync(backup, cli);
       }
     }
   });
