@@ -14,7 +14,7 @@ executionMode: "maintainer-reviewed"
 namedTrain: "agentinspect-feedback-integrity-v6.17.5-to-v6.22"
 branch: "main"
 currentChunk: "6.17.6-12-validation"
-lastConfirmedCommit: pending-after-gate-commit
+lastConfirmedCommit: "2a05438"
 lastValidationLevel: "core-runtime-gate"
 nextAction: "Maintainer authorization for release-readiness / Changeset / publish of 6.17.6"
 pendingManualGate: "release-readiness / Changeset for 6.17.6"
