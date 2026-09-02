@@ -200,16 +200,23 @@ describe("scan and verify-safe commands", () => {
 
 describe.skipIf(!builtCliHasSafetyCommands)("built safety CLI", () => {
   it("renders scan and verify-safe help from the built command", () => {
+    const childEnv = { ...process.env, NODE_OPTIONS: "" };
     const scan = spawnSync(process.execPath, [cliDist, "scan", "--help"], {
       encoding: "utf-8",
+      env: childEnv,
+      maxBuffer: 4 * 1024 * 1024,
     });
     const verify = spawnSync(process.execPath, [cliDist, "verify-safe", "--help"], {
       encoding: "utf-8",
+      env: childEnv,
+      maxBuffer: 4 * 1024 * 1024,
     });
 
-    expect(scan.status).toBe(0);
+    expect(scan.error, scan.stderr).toBeUndefined();
+    expect(scan.status, scan.stderr).toBe(0);
     expect(scan.stdout).toContain("Best-effort local safety scan");
-    expect(verify.status).toBe(0);
+    expect(verify.error, verify.stderr).toBeUndefined();
+    expect(verify.status, verify.stderr).toBe(0);
     expect(verify.stdout).toContain("Best-effort local trace safety verification");
   });
 });

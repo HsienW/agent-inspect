@@ -507,9 +507,12 @@ describe.skipIf(!builtCliHasCheckCommand)("built check CLI", () => {
   it("renders check help from the built command", () => {
     const result = spawnSync(process.execPath, [cliDist, "check", "--help"], {
       encoding: "utf-8",
+      env: { ...process.env, NODE_OPTIONS: "" },
+      maxBuffer: 4 * 1024 * 1024,
     });
 
-    expect(result.status).toBe(0);
+    expect(result.error, result.stderr).toBeUndefined();
+    expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toContain("Run deterministic checks");
     expect(result.stdout).toContain("--format");
     expect(result.stdout).toContain("--config");
@@ -549,10 +552,15 @@ describe.skipIf(!builtCliHasCheckCommand)("built check CLI", () => {
           "failed",
           "--json",
         ],
-        { encoding: "utf-8" },
+        {
+          encoding: "utf-8",
+          env: { ...process.env, NODE_OPTIONS: "" },
+          maxBuffer: 4 * 1024 * 1024,
+        },
       );
 
-      expect(result.status).toBe(1);
+      expect(result.error, result.stderr).toBeUndefined();
+      expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(1);
       const parsed = JSON.parse(result.stdout) as {
         status?: string;
         findings?: { ruleId?: string }[];

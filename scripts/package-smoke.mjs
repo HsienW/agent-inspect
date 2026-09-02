@@ -88,8 +88,8 @@ const optionalPackageChecks = [
   {
     dir: "packages/vitest",
     name: "@agent-inspect/vitest",
-    peerDependencies: { vitest: "^2.1.0" },
-    installPeers: ["vitest@2.1.8"],
+    peerDependencies: { vitest: "^2.1.0 || ^3.2.6" },
+    installPeers: ["vitest@3.2.7"],
     esm: `
       import { createAgentInspectVitestReporter } from "@agent-inspect/vitest";
       const reporter = createAgentInspectVitestReporter({ retainSuccessful: 1 });
