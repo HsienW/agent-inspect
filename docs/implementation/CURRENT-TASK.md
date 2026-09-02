@@ -5,8 +5,8 @@ executionMode: maintainer-reviewed
 namedTrain: agentinspect-feedback-integrity-v6.17.5-to-v6.22
 currentTrain: v6.17.6-security-containment
 trainStatus: in-progress
-currentChunk: 6.17.6-7-github-stream
-nextAction: Streamed GitHub artifact downloads with atomic promote
+currentChunk: 6.17.6-9-no-egress
+nextAction: Issue #225 no-egress default-workflow harness
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/EXECUTION-PLAN.md
 pendingManualGate: ""

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { mkdir, writeFile } from "node:fs/promises";
+import { rm, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 import type { StudioContext } from "../context.js";
 import { insertIngestFile } from "../db.js";
@@ -22,7 +23,9 @@ import {
 } from "./token.js";
 
 import {
+  promoteStagingPath,
   resolveIngestMaxBytes,
+  withAtomicStagingDir,
 } from "./limits.js";
 
 export { DEFAULT_MAX_INGEST_BYTES } from "./limits.js";
@@ -150,26 +153,34 @@ export async function handleHttpIngestRequest(
     const destPath = uniqueDestPath(destDir, fileName, contentHash);
     assertPathUnderRoot(destPath, dirs.registryDir);
 
-    await mkdir(destDir, { recursive: true });
-    await writeFile(destPath, body);
+    try {
+      await withAtomicStagingDir(destDir, async (stagingDir) => {
+        const stagedPath = path.join(stagingDir, fileName);
+        await writeFile(stagedPath, body);
+        await promoteStagingPath(stagedPath, destPath);
+      });
 
-    const sourceKey = isBundle
-      ? `http:bundle:${contentHash}`
-      : buildGitHubArtifactSourceKey({
-          owner: "http",
-          repo: "ingest",
-          runId: importedAt,
-          artifactName: fileName,
-        });
+      const sourceKey = isBundle
+        ? `http:bundle:${contentHash}`
+        : buildGitHubArtifactSourceKey({
+            owner: "http",
+            repo: "ingest",
+            runId: importedAt,
+            artifactName: fileName,
+          });
 
-    insertIngestFile(ctx.db, {
-      sourceKey,
-      sourceName: fileName,
-      destPath,
-      kind: isBundle ? "bundle" : "ci",
-      contentHash,
-      importedAt,
-    });
+      insertIngestFile(ctx.db, {
+        sourceKey,
+        sourceName: fileName,
+        destPath,
+        kind: isBundle ? "bundle" : "ci",
+        contentHash,
+        importedAt,
+      });
+    } catch (error) {
+      await rm(destPath, { force: true }).catch(() => undefined);
+      throw error;
+    }
 
     const registryImport = await importStudioRegistry({
       db: ctx.db,

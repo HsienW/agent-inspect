@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 import type Database from "better-sqlite3";
 
@@ -22,14 +23,16 @@ import {
   uniqueDestPath,
 } from "./common.js";
 import {
-  DEFAULT_MAX_INGEST_BYTES,
   IngestLimitError,
+  promoteStagingPath,
   readBoundedResponseBody,
+  resolveIngestMaxBytes,
+  withAtomicStagingDir,
 } from "./limits.js";
 
 const DEFAULT_GITHUB_TOKEN_ENV = "GITHUB_TOKEN";
 const GITHUB_API_BASE = "https://api.github.com";
-const MAX_ARTIFACT_BYTES = DEFAULT_MAX_INGEST_BYTES;
+
 
 export type StudioFetch = typeof fetch;
 
@@ -113,7 +116,9 @@ export async function downloadGitHubArtifactArchive(options: {
   artifactName: string;
   token: string;
   fetchImpl?: StudioFetch;
+  maxBytes?: number;
 }): Promise<Buffer> {
+  const maxBytes = resolveIngestMaxBytes(options.maxBytes);
   const fetchFn = options.fetchImpl ?? fetch;
   const { owner, name } = parseGitHubRepo(options.repo);
   const runId = options.runId.trim();
@@ -143,7 +148,7 @@ export async function downloadGitHubArtifactArchive(options: {
   }
   if (
     typeof artifact.size_in_bytes === "number" &&
-    artifact.size_in_bytes > MAX_ARTIFACT_BYTES
+    artifact.size_in_bytes > maxBytes
   ) {
     throw new Error("artifact exceeds size limit");
   }
@@ -156,7 +161,7 @@ export async function downloadGitHubArtifactArchive(options: {
     throw new Error(`GitHub artifact download failed (${downloadResponse.status})`);
   }
 
-  return readResponseBody(downloadResponse, MAX_ARTIFACT_BYTES);
+  return readResponseBody(downloadResponse, maxBytes);
 }
 
 export async function importGitHubArtifact(
@@ -215,18 +220,26 @@ export async function importGitHubArtifact(
     const destPath = uniqueDestPath(dirs.bundlesDir, fileName, contentHash);
     assertPathUnderRoot(destPath, dirs.registryDir);
 
-    await mkdir(dirs.bundlesDir, { recursive: true });
-    await writeFile(destPath, archive);
+    try {
+      await withAtomicStagingDir(dirs.bundlesDir, async (stagingDir) => {
+        const stagedPath = path.join(stagingDir, fileName);
+        await writeFile(stagedPath, archive);
+        await promoteStagingPath(stagedPath, destPath);
+      });
 
-    const importedAt = new Date().toISOString();
-    insertIngestFile(options.db, {
-      sourceKey,
-      sourceName: fileName,
-      destPath,
-      kind: "bundle" satisfies IngestFileKind,
-      contentHash,
-      importedAt,
-    });
+      const importedAt = new Date().toISOString();
+      insertIngestFile(options.db, {
+        sourceKey,
+        sourceName: fileName,
+        destPath,
+        kind: "bundle" satisfies IngestFileKind,
+        contentHash,
+        importedAt,
+      });
+    } catch (error) {
+      await rm(destPath, { force: true }).catch(() => undefined);
+      throw error;
+    }
 
     const registryImport = await importStudioRegistry({
       db: options.db,
