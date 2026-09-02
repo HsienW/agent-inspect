@@ -265,4 +265,62 @@ describe("@agent-inspect/redact", () => {
       Authorization: "[REDACTED]",
     });
   });
+
+  it("redacts free-text credential residuals without leaking secrets into findings", () => {
+    const result = redact(
+      {
+        authLine: "Authorization: Bearer abcdefghijklmnop",
+        openaiLine: "openai key sk-proj-abcdefghijklmnopqrstuvwxyz",
+        anthropicLine: "anthropic key sk-ant-abcdefghijklmnopqrstuvwxyz",
+        githubLine: "token ghp_abcdefghijklmnopqrstuvwxyz123456",
+        cookieLine: "cookie session=abc; csrftoken=def",
+        pem: "-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----",
+      },
+      { profile: "local" },
+    );
+
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain("abcdefghijklmnop");
+    expect(serialized).not.toContain("sk-proj-abcdefghijklmnopqrstuvwxyz");
+    expect(serialized).not.toContain("sk-ant-abcdefghijklmnopqrstuvwxyz");
+    expect(serialized).not.toContain("ghp_abcdefghijklmnopqrstuvwxyz123456");
+    expect(serialized).not.toContain("session=abc");
+    expect(serialized).not.toContain("BEGIN PRIVATE KEY");
+
+    expect(result.findings.map((finding) => finding.detector)).toEqual(
+      expect.arrayContaining([
+        "value.bearerToken",
+        "value.providerApiKey",
+        "value.githubToken",
+        "value.cookie",
+        "value.privateKey",
+      ]),
+    );
+  });
+
+  it("keeps free-text email/phone residuals profile-gated for share", () => {
+    const local = redact(
+      { transcript: "call +1 (415) 555-1212 or mail owner@example.test" },
+      { profile: "local" },
+    );
+    expect(local.value).toEqual({
+      transcript: "call +1 (415) 555-1212 or mail owner@example.test",
+    });
+
+    const shareEmail = redact(
+      { transcript: "mail owner@example.test" },
+      { profile: "share" },
+    );
+    expect(shareEmail.value).toEqual({ transcript: "[REDACTED]" });
+    expect(shareEmail.findings.some((finding) => finding.detector === "value.email")).toBe(true);
+    expect(JSON.stringify(shareEmail.findings)).not.toContain("owner@example.test");
+
+    const sharePhone = redact(
+      { transcript: "call +1 (415) 555-1212" },
+      { profile: "share" },
+    );
+    expect(sharePhone.value).toEqual({ transcript: "[REDACTED]" });
+    expect(sharePhone.findings.some((finding) => finding.detector === "value.phone")).toBe(true);
+    expect(JSON.stringify(sharePhone.findings)).not.toContain("555-1212");
+  });
 });
