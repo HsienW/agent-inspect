@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { access, copyFile, mkdir, readFile, readdir, stat } from "node:fs/promises";
+import { access, copyFile, mkdir, readFile, readdir, rm, lstat } from "node:fs/promises";
 import path from "node:path";
 
 import type Database from "better-sqlite3";
@@ -15,6 +15,14 @@ import { assertPathUnderRoot } from "../path-guards.js";
 import { readStudioRegistryFile } from "../registry.js";
 import { resolveStudioRegistryPath } from "../registry-path.js";
 import { resolveImportDirs, uniqueDestPath } from "./common.js";
+import {
+  IngestLimitError,
+  lstatRegularDirectory,
+  measureDirectoryBytes,
+  promoteStagingPath,
+  resolveIngestMaxBytes,
+  withAtomicStagingDir,
+} from "./limits.js";
 
 export interface BundleUploadImportOptions {
   db: Database.Database;
@@ -22,6 +30,8 @@ export interface BundleUploadImportOptions {
   registry: import("../registry.js").StudioRegistry;
   bundlePath: string;
   enabled: boolean;
+  /** Override registry ingest.bundleUpload.maxBytes for tests. */
+  maxBytes?: number;
 }
 
 export interface BundleUploadImportResult {
@@ -86,9 +96,16 @@ async function hashBundleContents(bundleDir: string): Promise<string> {
     for (const entry of entries) {
       const abs = path.join(dir, entry.name);
       const rel = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
-      if (entry.isDirectory()) {
+      const info = await lstat(abs);
+      if (info.isSymbolicLink()) {
+        throw new IngestLimitError(
+          "INGEST_SYMLINK_REJECTED",
+          "symbolic links are not allowed for ingest",
+        );
+      }
+      if (info.isDirectory()) {
         await walk(abs, rel);
-      } else if (entry.isFile()) {
+      } else if (info.isFile()) {
         hash.update(rel);
         hash.update("\0");
         hash.update(await readFile(abs));
@@ -106,9 +123,16 @@ async function copyDirectoryRecursive(sourceDir: string, destDir: string): Promi
   for (const entry of entries) {
     const from = path.join(sourceDir, entry.name);
     const to = path.join(destDir, entry.name);
-    if (entry.isDirectory()) {
+    const info = await lstat(from);
+    if (info.isSymbolicLink()) {
+      throw new IngestLimitError(
+        "INGEST_SYMLINK_REJECTED",
+        "symbolic links are not allowed for ingest",
+      );
+    }
+    if (info.isDirectory()) {
       await copyDirectoryRecursive(from, to);
-    } else if (entry.isFile()) {
+    } else if (info.isFile()) {
       await copyFile(from, to);
     }
   }
@@ -131,23 +155,21 @@ export async function importBundleUpload(
   }
 
   const bundlePath = path.resolve(options.bundlePath);
-  let bundleStat;
   try {
-    bundleStat = await stat(bundlePath);
-  } catch {
+    await lstatRegularDirectory(bundlePath);
+  } catch (error) {
+    if (error instanceof IngestLimitError) {
+      return {
+        skipped: false,
+        imported: false,
+        errors: [error.message],
+        registryImportWarnings,
+      };
+    }
     return {
       skipped: false,
       imported: false,
       errors: ["bundle path does not exist"],
-      registryImportWarnings,
-    };
-  }
-
-  if (!bundleStat.isDirectory()) {
-    return {
-      skipped: false,
-      imported: false,
-      errors: ["bundle path must be a directory produced by agent-inspect bundle"],
       registryImportWarnings,
     };
   }
@@ -162,7 +184,34 @@ export async function importBundleUpload(
     };
   }
 
-  const contentHash = await hashBundleContents(bundlePath);
+  let maxBytes: number;
+  try {
+    maxBytes = resolveIngestMaxBytes(
+      options.maxBytes ?? options.registry.ingest?.bundleUpload?.maxBytes,
+    );
+    await measureDirectoryBytes(bundlePath, maxBytes);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      skipped: false,
+      imported: false,
+      errors: [message],
+      registryImportWarnings,
+    };
+  }
+
+  let contentHash: string;
+  try {
+    contentHash = await hashBundleContents(bundlePath);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      skipped: false,
+      imported: false,
+      errors: [message],
+      registryImportWarnings,
+    };
+  }
   const sourceKey = `bundle:${bundlePath}`;
   const existing = findIngestFileBySourceKey(options.db, sourceKey);
   if (existing && existing.contentHash === contentHash) {
@@ -182,7 +231,11 @@ export async function importBundleUpload(
   assertPathUnderRoot(destPath, dirs.registryDir);
 
   try {
-    await copyDirectoryRecursive(bundlePath, destPath);
+    await withAtomicStagingDir(dirs.bundlesDir, async (stagingDir) => {
+      const stagedDest = path.join(stagingDir, folderName);
+      await copyDirectoryRecursive(bundlePath, stagedDest);
+      await promoteStagingPath(stagedDest, destPath);
+    });
     insertIngestFile(options.db, {
       sourceKey,
       sourceName: folderName,
@@ -206,6 +259,7 @@ export async function importBundleUpload(
       registryImportWarnings,
     };
   } catch (error) {
+    await rm(destPath, { recursive: true, force: true }).catch(() => undefined);
     const message = error instanceof Error ? error.message : String(error);
     return {
       skipped: false,

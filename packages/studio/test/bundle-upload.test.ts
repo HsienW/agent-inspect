@@ -132,4 +132,77 @@ describe("studio bundle upload importer", () => {
     expect(fourth.imported).toBe(false);
     expect(fourth.destPath).toBe(third.destPath);
   });
+
+  it("enforces maxBytes and rejects symlink members", async () => {
+    const tmp = await mkdtemp(path.join(os.tmpdir(), "bundle-limits-"));
+    const registryDir = path.join(tmp, "registry");
+    const bundleSrc = path.join(tmp, "bundle-src");
+    await mkdir(path.join(registryDir, "imports/bundles"), { recursive: true });
+    await mkdir(bundleSrc, { recursive: true });
+    await writeFile(
+      path.join(bundleSrc, "metadata.json"),
+      JSON.stringify({
+        agentInspectVersion: "6.0.0",
+        runIds: ["run-abc"],
+        files: ["trace.jsonl"],
+      }),
+      "utf8",
+    );
+    await writeFile(path.join(bundleSrc, "payload.bin"), Buffer.alloc(64));
+
+    const demoProject = path.join(registryDir, "demo-project");
+    await mkdir(path.join(demoProject, ".agent-inspect/runs"), { recursive: true });
+    await writeFile(
+      path.join(demoProject, ".agent-inspect/workspace.json"),
+      JSON.stringify({
+        schemaVersion: "1.0",
+        project: "demo",
+        traceDirs: ["runs"],
+        redactionProfile: "local",
+      }),
+      "utf8",
+    );
+
+    const registryPath = path.join(registryDir, "studio-registry.json");
+    await writeFile(
+      registryPath,
+      JSON.stringify({
+        schemaVersion: "1.0",
+        name: "bundle-limits-fixture",
+        projects: [{ id: "demo", path: "demo-project" }],
+        import: { bundlesDir: "imports/bundles" },
+        ingest: { bundleUpload: { enabled: true, maxBytes: 32 } },
+      }),
+      "utf8",
+    );
+    const parsed = parseStudioRegistry(
+      JSON.parse(await (await import("node:fs/promises")).readFile(registryPath, "utf8")) as unknown,
+    );
+    expect(parsed.ok).toBe(true);
+    const db = openStudioDb(path.join(tmp, "studio.db"));
+
+    const oversized = await importBundleUpload({
+      db,
+      registryPath,
+      registry: parsed.registry!,
+      bundlePath: bundleSrc,
+      enabled: true,
+    });
+    expect(oversized.imported).toBe(false);
+    expect(oversized.errors.join(" ")).toMatch(/exceeds size limit/);
+
+    await writeFile(path.join(bundleSrc, "payload.bin"), Buffer.alloc(8));
+    const { symlink } = await import("node:fs/promises");
+    await symlink(path.join(bundleSrc, "payload.bin"), path.join(bundleSrc, "evil"));
+    const withLink = await importBundleUpload({
+      db,
+      registryPath,
+      registry: parsed.registry!,
+      bundlePath: bundleSrc,
+      enabled: true,
+      maxBytes: 1024,
+    });
+    expect(withLink.imported).toBe(false);
+    expect(withLink.errors.join(" ")).toMatch(/symbolic links/);
+  });
 });
