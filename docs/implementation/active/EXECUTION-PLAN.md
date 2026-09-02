@@ -47,7 +47,7 @@
 | `6.17.6-9-no-egress` | done |
 | `6.17.6-10-evidence-docs` | done |
 | `6.17.6-11-redact-residual` | done |
-| `6.17.6-12-validation` | pending |
+| `6.17.6-12-validation` | in-progress |
 
 ## 6.17.6-0 audit summary (2026-09-02)
 

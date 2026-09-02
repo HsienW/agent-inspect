@@ -1,3 +1,4 @@
+import type { Stats } from "node:fs";
 import {
   lstat,
   mkdir,
@@ -5,7 +6,6 @@ import {
   readdir,
   rename,
   rm,
-  type Stats,
 } from "node:fs/promises";
 import path from "node:path";
 

@@ -97,6 +97,6 @@ describe("no-egress default local workflows (#225)", () => {
     expect(() => {
       void fetch("https://example.invalid/probe");
     }).toThrow(/AI_NO_EGRESS/);
-    expect(guard?.attempts.some((item) => item.api === "fetch")).toBe(true);
+    expect(guard?.attempts.some((item: { api: string }) => item.api === "fetch")).toBe(true);
   });
 });
