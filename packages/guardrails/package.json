@@ -1,6 +1,6 @@
 {
   "name": "@agent-inspect/guardrails",
-  "version": "6.17.5",
+  "version": "6.17.6",
   "license": "MIT",
   "type": "module",
   "description": "Deterministic local guardrail utilities for AgentInspect workflows",
