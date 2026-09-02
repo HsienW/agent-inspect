@@ -657,24 +657,37 @@ function parsePackedFilename(output) {
   const trimmed = output.trim();
   if (!trimmed) return undefined;
 
-  // Some environments set npm_config_json=true which makes npm commands emit JSON.
-  // Prefer parsing JSON when it looks like JSON.
-  if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed)) return parsed[0]?.filename;
-      if (typeof parsed === "object" && parsed && "filename" in parsed) {
-        return parsed.filename;
+  // Prefer npm pack --json payloads even when warnings share the stream.
+  const arrayStart = trimmed.indexOf("[");
+  const objectStart = trimmed.indexOf("{");
+  const jsonStart =
+    arrayStart === -1
+      ? objectStart
+      : objectStart === -1
+        ? arrayStart
+        : Math.min(arrayStart, objectStart);
+  if (jsonStart !== -1) {
+    const jsonCandidate = trimmed.slice(jsonStart);
+    const arrayEnd = jsonCandidate.lastIndexOf("]");
+    const objectEnd = jsonCandidate.lastIndexOf("}");
+    const jsonEnd = Math.max(arrayEnd, objectEnd);
+    if (jsonEnd !== -1) {
+      try {
+        const parsed = JSON.parse(jsonCandidate.slice(0, jsonEnd + 1));
+        if (Array.isArray(parsed)) return parsed[0]?.filename;
+        if (typeof parsed === "object" && parsed && "filename" in parsed) {
+          return parsed.filename;
+        }
+      } catch {
+        // Fall through to line parsing.
       }
-    } catch {
-      // Fall through to line parsing.
     }
   }
 
   return trimmed
     .split(/\r?\n/)
     .map((l) => l.trim())
-    .filter(Boolean)
+    .filter((l) => l.endsWith(".tgz"))
     .at(-1);
 }
 
@@ -1065,11 +1078,15 @@ const packProc = spawnCli("npm", ["pack", "--json", "--ignore-scripts"], {
     NPM_CONFIG_JSON: "true",
   },
 });
-const packOut = `${packProc.stdout || ""}\n${packProc.stderr || ""}`.trim();
+// Prefer stdout for structured --json output; keep stderr only as a fallback.
+const packOut = `${packProc.stdout || ""}`.trim() || `${packProc.stderr || ""}`.trim();
 const tgzName = parsePackedFilename(packOut);
 
-if (!tgzName || !tgzName.endsWith(".tgz")) {
-  console.error("[pack:smoke] could not parse .tgz name from npm pack --json:\n", packOut);
+if (packProc.status !== 0 || !tgzName || !tgzName.endsWith(".tgz")) {
+  console.error(
+    "[pack:smoke] could not parse .tgz name from npm pack --json:\n",
+    `${packProc.stdout || ""}\n${packProc.stderr || ""}`.trim(),
+  );
   process.exit(1);
 }
 
