@@ -32,7 +32,7 @@ Active maintainer program: release integrity and capability truth (`6.17.5`), th
 | **6.17.0** | Trajectory-gate and Evidence v2 workflow UX | Published |
 | **6.17.1** | Public technical proof and demos | Published |
 | **6.17.3** / **6.17.4** | Package line maintenance | Published |
-| **6.17.5** | Release integrity + visible capability truth | In progress |
+| **6.17.5** | Release integrity + visible capability truth | Published |
 | **6.18.0** | Adapter bounded preview parity | Planned |
 | **6.19.0**–**6.21.0** | Readers, alternate contract paths, conditional enforcement | Planned / conditional |
 
