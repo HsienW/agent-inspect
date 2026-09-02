@@ -1,9 +1,9 @@
 # AgentInspect Canonical Roadmap (permanent)
 
-**Baseline:** `agent-inspect@6.17.4`
-**Roadmap horizon:** `6.17.5 → 6.18.0 → 6.19.0 → 6.20.0 → 6.21.0 → conditional 6.22.0`
+**Baseline:** `agent-inspect@6.17.5`
+**Roadmap horizon:** `6.17.6 → 6.17.7 → 6.17.8 → 6.18.0 → 6.19.0 → 6.20.0 → 6.21.0 → conditional 6.22.0`
 **Status:** Active canonical roadmap (permanent path; supersedes version-named roadmap seeds)
-**Primary objective:** Close capability-truth gaps, eliminate fail-open deterministic check behavior, keep release integrity green, make framework preview capture useful without weakening local-first safety, support arbitrary persisted agent-event sources through the existing reader architecture, and make deterministic contracts flexible enough for legitimate alternate agent paths
+**Primary objective:** Close capability-truth gaps, eliminate fail-open deterministic check behavior, keep release integrity green, contain Studio ingest and dependency advisories, make framework preview capture useful without weakening local-first safety, support arbitrary persisted agent-event sources through the existing reader architecture, and make deterministic contracts flexible enough for legitimate alternate agent paths
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
 **Network policy:** no new default network behavior
@@ -19,8 +19,11 @@ The `6.16.0`–`6.17.4` line delivered repository health, Evidence UX, and publi
 The canonical release sequence is:
 
 ```text
-6.17.5  Release integrity, capability truth, and adversarial check-engine integrity  (ACTIVE)
-6.17.6  Reserved corrective patch only
+6.17.5  Release integrity, capability truth, and adversarial check-engine integrity  (published)
+6.17.6  Security containment + dependency remediation  (ACTIVE)
+6.17.7  Remote Studio / website / skill safety
+6.17.8  Workflows / scanners / SECURITY.md modernization
+6.17.9  Corrective security defects only
 
 6.18.0  Adapter capture capabilities and bounded preview parity
 6.18.1  Reserved adapter compatibility patch only
