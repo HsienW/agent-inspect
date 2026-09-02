@@ -7,16 +7,17 @@
 ```yaml
 baselineVersion: "6.17.4"
 publishedVersion: "6.17.4"
+targetVersion: "6.17.5"
 currentTrain: "v6.17.5-feedback-integrity"
-trainStatus: "in-progress"
+trainStatus: "release-pending"
 executionMode: "maintainer-reviewed"
 namedTrain: "agentinspect-feedback-integrity-v6.17.5-to-v6.22"
 branch: "main"
-currentChunk: "6.17.5-17-validation"
-lastConfirmedCommit: "e0200f5"
+currentChunk: "6.17.5-release"
+lastConfirmedCommit: "8c0e1e8"
 lastValidationLevel: "full"
-nextAction: "Maintainer review of v6.17.5 adversarial check-integrity extension; then separate release-readiness / publication prompt"
-pendingManualGate: ""
+nextAction: "Merge Version Packages PR; Trusted Publishing publishes 6.17.5 and public-truth:sync updates README/docs"
+pendingManualGate: "merge Version Packages PR for 6.17.5"
 githubIssues:
   "308": "6.17.5 docs/tests + 6.20.0 requiredOrderMode — stay open"
   "309": "6.20.0 alternatives.anyOf — stay open"
@@ -30,10 +31,10 @@ completedChunks:
   - "6.17.0 evidence UX"
   - "6.17.1 public proof (published)"
   - "6.17.3 / 6.17.4 package line published"
-  - "6.17.5-0 … 6.17.5-8 (release integrity + issue reconciliation)"
+  - "6.17.5-0 … 6.17.5-17 (release integrity + check integrity + Phase A validation)"
 remainingTrains:
-  - "v6.17.5 feedback integrity + check integrity (active)"
-  - "v6.17.6 reserved corrective patch"
+  - "v6.17.5 publication (active)"
+  - "v6.17.6 security containment"
   - "v6.18.0 adapter capture parity"
   - "v6.19.0 external persisted-source readers"
   - "v6.20.0 alternative valid contract paths + ordering modes"
@@ -42,5 +43,5 @@ remainingTrains:
 blockedTrains:
   - "v6.18.0 publication (deferred until 6.17.5 lands and is reviewed)"
   - "v7.0.0 (conditional — assessment only; not scheduled)"
-updatedAt: "2026-08-31"
+updatedAt: "2026-09-02"
 ```
