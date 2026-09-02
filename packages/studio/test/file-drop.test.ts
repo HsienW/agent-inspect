@@ -131,6 +131,29 @@ describe("studio file-drop importer", () => {
     expect(result.errors.some((error) => error.includes("escapes"))).toBe(true);
   });
 
+  it("rejects symlinks and oversized drop files", async () => {
+    const parsed = parseStudioRegistry(
+      JSON.parse(await readFile(registryPath, "utf8")) as unknown,
+    );
+    const dropDir = path.join(registryDir, "imports", "drop");
+    const real = path.join(dropDir, "real.jsonl");
+    await writeFile(real, "x".repeat(64), "utf8");
+    const { symlink } = await import("node:fs/promises");
+    await symlink(real, path.join(dropDir, "link.jsonl"));
+
+    const db = openStudioDb(dbPath);
+    const result = await importFileDrop({
+      db,
+      registryPath,
+      registry: parsed.registry!,
+      enabled: true,
+      maxBytes: 16,
+    });
+    expect(result.imported).toBe(0);
+    expect(result.errors.some((error) => error.includes("symbolic links"))).toBe(true);
+    expect(result.errors.some((error) => error.includes("exceeds size limit"))).toBe(true);
+  });
+
   it("can archive imported drop files without deleting evidence copies", async () => {
     const parsed = parseStudioRegistry(
       JSON.parse(await readFile(registryPath, "utf8")) as unknown,

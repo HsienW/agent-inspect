@@ -5,8 +5,8 @@ executionMode: maintainer-reviewed
 namedTrain: agentinspect-feedback-integrity-v6.17.5-to-v6.22
 currentTrain: v6.17.6-security-containment
 trainStatus: in-progress
-currentChunk: 6.17.6-6-file-drop
-nextAction: File-drop symlink/size hardening with lstat and maxBytes
+currentChunk: 6.17.6-7-github-stream
+nextAction: Streamed GitHub artifact downloads with atomic promote
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/EXECUTION-PLAN.md
 pendingManualGate: ""

@@ -1,12 +1,6 @@
 import { createHash } from "node:crypto";
-import {
-  copyFile,
-  mkdir,
-  readdir,
-  readFile,
-  rename,
-  stat,
-} from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { copyFile, mkdir, readdir, rename, rm } from "node:fs/promises";
 import path from "node:path";
 
 import type Database from "better-sqlite3";
@@ -22,6 +16,13 @@ import { assertPathUnderRoot, resolveUnderRoot } from "../path-guards.js";
 import { readStudioRegistryFile, type StudioRegistry } from "../registry.js";
 import { resolveStudioRegistryPath } from "../registry-path.js";
 import { resolveImportDirs, uniqueDestPath } from "./common.js";
+import {
+  IngestLimitError,
+  assertFileWithinByteLimit,
+  promoteStagingPath,
+  resolveIngestMaxBytes,
+  withAtomicStagingDir,
+} from "./limits.js";
 
 export const FILE_DROP_ARCHIVE_DIR = ".imported";
 
@@ -38,6 +39,8 @@ export interface FileDropImportOptions {
   dropDir?: string;
   /** Move successfully imported files into `dropDir/.imported/` instead of leaving copies. */
   archiveAfterImport?: boolean;
+  /** Override registry ingest.fileDrop.maxBytes for tests. */
+  maxBytes?: number;
 }
 
 export interface FileDropImportedFile {
@@ -68,8 +71,12 @@ function classifyFile(fileName: string): IngestFileKind | undefined {
 }
 
 async function hashFile(filePath: string): Promise<string> {
-  const data = await readFile(filePath);
-  return createHash("sha256").update(data).digest("hex");
+  const hash = createHash("sha256");
+  const stream = createReadStream(filePath);
+  for await (const chunk of stream) {
+    hash.update(chunk);
+  }
+  return hash.digest("hex");
 }
 
 async function importOneFile(options: {
@@ -87,17 +94,25 @@ async function importOneFile(options: {
   const destPath = uniqueDestPath(options.destDir, options.fileName, options.contentHash);
   assertPathUnderRoot(destPath, path.dirname(options.destDir));
 
-  await mkdir(options.destDir, { recursive: true });
-  await copyFile(options.sourcePath, destPath);
+  try {
+    await withAtomicStagingDir(options.destDir, async (stagingDir) => {
+      const stagedPath = path.join(stagingDir, options.fileName);
+      await copyFile(options.sourcePath, stagedPath);
+      await promoteStagingPath(stagedPath, destPath);
+    });
 
-  insertIngestFile(options.db, {
-    sourceKey: options.sourceKey,
-    sourceName: options.fileName,
-    destPath,
-    kind: options.kind,
-    contentHash: options.contentHash,
-    importedAt: options.importedAt,
-  });
+    insertIngestFile(options.db, {
+      sourceKey: options.sourceKey,
+      sourceName: options.fileName,
+      destPath,
+      kind: options.kind,
+      contentHash: options.contentHash,
+      importedAt: options.importedAt,
+    });
+  } catch (error) {
+    await rm(destPath, { force: true }).catch(() => undefined);
+    throw error;
+  }
 
   let archived = false;
   if (options.archiveAfterImport) {
@@ -132,6 +147,24 @@ export async function importFileDrop(
       imported: 0,
       skippedFiles: 0,
       errors,
+      warnings,
+      files,
+    };
+  }
+
+  let maxBytes: number;
+  try {
+    maxBytes = resolveIngestMaxBytes(
+      options.maxBytes ?? options.registry.ingest?.fileDrop?.maxBytes,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      skipped: false,
+      scanned: 0,
+      imported: 0,
+      skippedFiles: 0,
+      errors: [message],
       warnings,
       files,
     };
@@ -185,19 +218,31 @@ export async function importFileDrop(
     if (entry === FILE_DROP_ARCHIVE_DIR || entry.startsWith(".")) continue;
 
     const sourcePath = path.join(dropDir, entry);
-    let fileStat;
-    try {
-      fileStat = await stat(sourcePath);
-    } catch {
-      warnings.push(`skipped unreadable entry: ${entry}`);
-      continue;
-    }
-    if (!fileStat.isFile()) continue;
-
     const kind = classifyFile(entry);
     if (!kind) continue;
 
     scanned += 1;
+    try {
+      await assertFileWithinByteLimit(sourcePath, maxBytes);
+    } catch (error) {
+      if (error instanceof IngestLimitError && error.code === "INGEST_NOT_A_FILE") {
+        // directories and other non-files are ignored, matching prior behavior
+        scanned -= 1;
+        continue;
+      }
+      if (error instanceof IngestLimitError && error.code === "INGEST_SYMLINK_REJECTED") {
+        errors.push(`failed to import ${entry}: ${error.message}`);
+        continue;
+      }
+      if (error instanceof IngestLimitError && error.code === "INGEST_SIZE_LIMIT") {
+        errors.push(`failed to import ${entry}: ${error.message}`);
+        continue;
+      }
+      warnings.push(`skipped unreadable entry: ${entry}`);
+      scanned -= 1;
+      continue;
+    }
+
     const sourceKey = entry;
     let contentHash: string;
     try {
@@ -254,6 +299,7 @@ export async function importFileDropFromRegistry(options: {
   enabled: boolean;
   dropDir?: string;
   archiveAfterImport?: boolean;
+  maxBytes?: number;
 }): Promise<FileDropImportResult> {
   return importFileDrop({
     db: options.db,
@@ -264,6 +310,7 @@ export async function importFileDropFromRegistry(options: {
     ...(options.archiveAfterImport !== undefined
       ? { archiveAfterImport: options.archiveAfterImport }
       : {}),
+    ...(options.maxBytes !== undefined ? { maxBytes: options.maxBytes } : {}),
   });
 }
 

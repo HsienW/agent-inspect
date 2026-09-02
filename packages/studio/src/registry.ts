@@ -40,10 +40,15 @@ export interface StudioRegistryBundleUploadIngest {
   maxBytes?: number;
 }
 
+export interface StudioRegistryFileDropIngest {
+  maxBytes?: number;
+}
+
 export interface StudioRegistryIngest {
   github?: StudioRegistryGitHubIngest;
   http?: StudioRegistryHttpIngest;
   bundleUpload?: StudioRegistryBundleUploadIngest;
+  fileDrop?: StudioRegistryFileDropIngest;
 }
 
 export interface StudioRegistry {
@@ -240,7 +245,23 @@ export function parseStudioRegistry(input: unknown): StudioRegistryParseResult {
           ingestConfig.bundleUpload = bundleUpload;
         }
       }
-      const knownIngestKeys = new Set(["github", "http", "bundleUpload"]);
+      if (input.ingest.fileDrop !== undefined) {
+        if (!isPlainObject(input.ingest.fileDrop)) {
+          errors.push("ingest.fileDrop must be an object");
+        } else {
+          const fileDrop: StudioRegistryFileDropIngest = {};
+          if (input.ingest.fileDrop.maxBytes !== undefined) {
+            const maxBytes = Number(input.ingest.fileDrop.maxBytes);
+            if (!Number.isInteger(maxBytes) || maxBytes <= 0) {
+              errors.push("ingest.fileDrop.maxBytes must be a positive integer");
+            } else {
+              fileDrop.maxBytes = maxBytes;
+            }
+          }
+          ingestConfig.fileDrop = fileDrop;
+        }
+      }
+      const knownIngestKeys = new Set(["github", "http", "bundleUpload", "fileDrop"]);
       for (const key of Object.keys(input.ingest)) {
         if (!knownIngestKeys.has(key)) {
           ingestWarnings.push(`ignored unknown ingest key: ${key}`);
