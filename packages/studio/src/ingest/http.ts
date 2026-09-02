@@ -21,10 +21,14 @@ import {
   resolveIngestTokenEnv,
 } from "./token.js";
 
+import {
+  resolveIngestMaxBytes,
+} from "./limits.js";
+
+export { DEFAULT_MAX_INGEST_BYTES } from "./limits.js";
 export const DEFAULT_HTTP_INGEST_BASE_PATH = "/api/ingest";
 export const HTTP_INGEST_BUNDLE_PATH = "/api/ingest/bundle";
 export const HTTP_INGEST_ARTIFACT_PATH = "/api/ingest/artifact";
-export const DEFAULT_MAX_INGEST_BYTES = 52_428_800;
 
 export interface HttpIngestConfig {
   enabled: boolean;
@@ -48,7 +52,7 @@ export function resolveHttpIngestConfig(
     ...(options.ingestTokenEnv !== undefined ? { tokenEnv: options.ingestTokenEnv } : {}),
     ...(http?.tokenEnv !== undefined ? { registryTokenEnv: http.tokenEnv } : {}),
   });
-  const maxBytes = http?.maxBytes ?? DEFAULT_MAX_INGEST_BYTES;
+  const maxBytes = resolveIngestMaxBytes(http?.maxBytes);
   return { enabled, basePath, tokenEnv, maxBytes };
 }
 

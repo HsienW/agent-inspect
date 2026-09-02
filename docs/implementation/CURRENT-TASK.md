@@ -5,8 +5,8 @@ executionMode: maintainer-reviewed
 namedTrain: agentinspect-feedback-integrity-v6.17.5-to-v6.22
 currentTrain: v6.17.6-security-containment
 trainStatus: in-progress
-currentChunk: 6.17.6-4-studio-limits
-nextAction: Shared Studio ingest limits helper used by bundle/file-drop/github paths
+currentChunk: 6.17.6-5-bundle-upload
+nextAction: Bundle-upload containment (enforce maxBytes, symlink reject, atomic staging)
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/EXECUTION-PLAN.md
 pendingManualGate: ""

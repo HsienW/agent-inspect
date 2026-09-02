@@ -21,10 +21,15 @@ import {
   sanitizeSafeErrorMessage,
   uniqueDestPath,
 } from "./common.js";
+import {
+  DEFAULT_MAX_INGEST_BYTES,
+  IngestLimitError,
+  readBoundedResponseBody,
+} from "./limits.js";
 
 const DEFAULT_GITHUB_TOKEN_ENV = "GITHUB_TOKEN";
 const GITHUB_API_BASE = "https://api.github.com";
-const MAX_ARTIFACT_BYTES = 52_428_800;
+const MAX_ARTIFACT_BYTES = DEFAULT_MAX_INGEST_BYTES;
 
 export type StudioFetch = typeof fetch;
 
@@ -92,18 +97,14 @@ async function readResponseBody(
   response: Response,
   maxBytes: number,
 ): Promise<Buffer> {
-  const lengthHeader = response.headers.get("content-length");
-  if (lengthHeader) {
-    const length = Number(lengthHeader);
-    if (Number.isFinite(length) && length > maxBytes) {
+  try {
+    return await readBoundedResponseBody(response, maxBytes);
+  } catch (error) {
+    if (error instanceof IngestLimitError && error.code === "INGEST_SIZE_LIMIT") {
       throw new Error("artifact exceeds size limit");
     }
+    throw error;
   }
-  const arrayBuffer = await response.arrayBuffer();
-  if (arrayBuffer.byteLength > maxBytes) {
-    throw new Error("artifact exceeds size limit");
-  }
-  return Buffer.from(arrayBuffer);
 }
 
 export async function downloadGitHubArtifactArchive(options: {
