@@ -1,5 +1,13 @@
 # @agent-inspect/harness
 
+## 6.17.6
+
+### Patch Changes
+
+- 075dc87: Security containment: enforce Studio ingest byte limits, reject symlinks, stream and atomically stage imports (bundle / file-drop / GitHub / HTTP), remediate Vitest/nanoid and website/example advisories, add the default-workflow no-egress harness (#225), lock the published API surface snapshot (#211), correct Evidence format docs (no signing; required sourceHashes), and extend free-text redaction residual coverage.
+- Updated dependencies [075dc87]
+  - agent-inspect@6.17.6
+
 ## 6.17.5
 
 ### Patch Changes
