@@ -35,3 +35,20 @@ Treat this document + [NETWORK-BEHAVIOR.md](./NETWORK-BEHAVIOR.md) as the contra
 ## Trial ledger
 
 Partial trials: [adoption-evidence/NO-EGRESS-EVIDENCE-TRIAL.md](./adoption-evidence/NO-EGRESS-EVIDENCE-TRIAL.md)
+
+## Regression harness (#225)
+
+Maintainer-owned default-workflow harness:
+
+- Guard: [`scripts/lib/no-egress-guard.mjs`](../scripts/lib/no-egress-guard.mjs)
+- Test: [`packages/core/test/no-egress-default-workflows.test.ts`](../packages/core/test/no-egress-default-workflows.test.ts)
+
+```bash
+pnpm exec vitest run packages/core/test/no-egress-default-workflows.test.ts
+```
+
+### Intentional exceptions (default workflows)
+
+**None.** The harness denies `fetch`, `http(s).request/get`, and `net.connect/createConnection`. Any attempt fails the test.
+
+Explicit opt-in surfaces (Studio GitHub import, Studio HTTP ingest, MCP client to operator-owned servers, standards collector export) are documented in [NETWORK-BEHAVIOR.md](./NETWORK-BEHAVIOR.md) and are **not** covered by this default-workflow harness.
