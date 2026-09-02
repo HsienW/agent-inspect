@@ -35,8 +35,8 @@
 
 | Chunk | Status |
 | --- | --- |
-| `6.17.6-0-audit` | in-progress |
-| `6.17.6-1-api-surface` | pending |
+| `6.17.6-0-audit` | done |
+| `6.17.6-1-api-surface` | done |
 | `6.17.6-2-direct-deps` | pending |
 | `6.17.6-3-website-example-deps` | pending |
 | `6.17.6-4-studio-limits` | pending |

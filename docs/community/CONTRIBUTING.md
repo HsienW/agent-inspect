@@ -99,7 +99,8 @@ Changesets **ignores** private workspace packages — version bumps apply to `ag
 
 - Vitest across monorepo (`vitest.config.ts` at root).
 - Conformance tests under `packages/core/test/conformance/`.
-- API stability: `packages/core/test/api-stability.test.ts`.
+- API stability: `packages/core/test/api-stability.test.ts` (root value allowlist).
+- Published API surface snapshot (#211): `packages/core/test/api-surface-snapshot.test.ts` + `packages/core/test/fixtures/api-surface.snapshot.json`.
 - Schema: `packages/core/test/schema-compatibility.test.ts`.
 - CLI: `packages/cli/test/cli-stability.test.ts`.
 - Package boundaries: `packages/core/test/package-boundaries.test.ts`.

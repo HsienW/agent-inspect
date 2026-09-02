@@ -72,6 +72,30 @@ Maintainer-only historical checklists may exist under `docs-local/`; public rele
 
 Agent operating model: [docs/implementation/CODEX-MAINTAINER-GUIDE.md](../implementation/CODEX-MAINTAINER-GUIDE.md) · [AGENTS.md](../../AGENTS.md).
 
+## Published API surface snapshot (#211)
+
+The gate locks the published root package surface:
+
+- `package.json` `exports` keys and dual ESM/CJS condition basenames
+- root `bin` names
+- root ESM/CJS runtime export names (must match)
+- stable subpath runtime export name sets
+
+Source of truth:
+
+- Snapshot: `packages/core/test/fixtures/api-surface.snapshot.json`
+- Test: `packages/core/test/api-surface-snapshot.test.ts`
+- Builder: `scripts/lib/api-surface.mjs`
+
+After an **intentional** public export or `exports` map change:
+
+1. `pnpm build`
+2. `pnpm exec node scripts/update-api-surface-snapshot.mjs`
+3. Review the snapshot diff in the PR (do not silently expand the root value allowlist in `api-stability.test.ts` without API review)
+4. Keep `packages/core/test/api-stability.test.ts` root value allowlist in sync when root runtime exports change
+
+Do not add a new root export solely to satisfy the snapshot.
+
 ## Post-release follow-up
 
 After a successful npm publish:

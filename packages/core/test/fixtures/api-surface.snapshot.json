@@ -1,0 +1,482 @@
+{
+  "schemaVersion": 1,
+  "packageName": "agent-inspect",
+  "bin": [
+    "agent-inspect"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "default": "index.mjs",
+        "types": "index.d.ts"
+      },
+      "require": {
+        "default": "index.cjs",
+        "types": "index.d.cts"
+      }
+    },
+    "./advanced": {
+      "import": {
+        "default": "advanced.mjs",
+        "types": "advanced.d.ts"
+      },
+      "require": {
+        "default": "advanced.cjs",
+        "types": "advanced.d.cts"
+      }
+    },
+    "./checks": {
+      "import": {
+        "default": "checks.mjs",
+        "types": "checks.d.ts"
+      },
+      "require": {
+        "default": "checks.cjs",
+        "types": "checks.d.cts"
+      }
+    },
+    "./diff": {
+      "import": {
+        "default": "diff.mjs",
+        "types": "diff.d.ts"
+      },
+      "require": {
+        "default": "diff.cjs",
+        "types": "diff.d.cts"
+      }
+    },
+    "./exporters": {
+      "import": {
+        "default": "exporters.mjs",
+        "types": "exporters.d.ts"
+      },
+      "require": {
+        "default": "exporters.cjs",
+        "types": "exporters.d.cts"
+      }
+    },
+    "./logs": {
+      "import": {
+        "default": "logs.mjs",
+        "types": "logs.d.ts"
+      },
+      "require": {
+        "default": "logs.cjs",
+        "types": "logs.d.cts"
+      }
+    },
+    "./persisted": {
+      "import": {
+        "default": "persisted.mjs",
+        "types": "persisted.d.ts"
+      },
+      "require": {
+        "default": "persisted.cjs",
+        "types": "persisted.d.cts"
+      }
+    },
+    "./readers": {
+      "import": {
+        "default": "readers.mjs",
+        "types": "readers.d.ts"
+      },
+      "require": {
+        "default": "readers.cjs",
+        "types": "readers.d.cts"
+      }
+    },
+    "./reporters": {
+      "import": {
+        "default": "reporters.mjs",
+        "types": "reporters.d.ts"
+      },
+      "require": {
+        "default": "reporters.cjs",
+        "types": "reporters.d.cts"
+      }
+    },
+    "./workspace": {
+      "import": {
+        "default": "workspace.mjs",
+        "types": "workspace.d.ts"
+      },
+      "require": {
+        "default": "workspace.cjs",
+        "types": "workspace.d.cts"
+      }
+    },
+    "./writers": {
+      "import": {
+        "default": "writers.mjs",
+        "types": "writers.d.ts"
+      },
+      "require": {
+        "default": "writers.cjs",
+        "types": "writers.d.cts"
+      }
+    }
+  },
+  "rootEsm": [
+    "createInspector",
+    "getCurrentCorrelationMetadata",
+    "inspectRun",
+    "maybeInspectRun",
+    "observe",
+    "observeOutcome",
+    "step"
+  ],
+  "rootCjs": [
+    "createInspector",
+    "getCurrentCorrelationMetadata",
+    "inspectRun",
+    "maybeInspectRun",
+    "observe",
+    "observeOutcome",
+    "step"
+  ],
+  "stableSubpaths": [
+    "advanced",
+    "checks",
+    "diff",
+    "exporters",
+    "logs",
+    "persisted",
+    "readers",
+    "reporters",
+    "workspace",
+    "writers"
+  ],
+  "experimentalSubpaths": [],
+  "subpaths": {
+    "advanced": [
+      "COHORT_METRIC_IDS",
+      "DEFAULT_MAX_EVENT_BYTES",
+      "DEFAULT_MAX_METADATA_VALUE_LENGTH",
+      "DEFAULT_MAX_PREVIEW_LENGTH",
+      "DEFAULT_SUITE_ARTIFACTS_DIR",
+      "DEFAULT_SUITE_CONFIG_NAMES",
+      "DEFAULT_TRACE_DIR_NAME",
+      "EVIDENCE_ASSESSMENT_NOTE",
+      "EVIDENCE_FORMAT_VERSION",
+      "EVIDENCE_HTML_FILENAME",
+      "EVIDENCE_MANIFEST_FILENAME",
+      "EVIDENCE_VIEW_CSS",
+      "EVIDENCE_VIEW_IDS",
+      "FALLBACK_TRACE_DIR",
+      "MAX_NAME_LENGTH",
+      "MAX_TERMINAL_DEPTH",
+      "MAX_TERMINAL_NAME_LENGTH",
+      "RUNS_DIR_NAME",
+      "SESSION_WORKFLOW_KEYS",
+      "SUITE_TEMPLATE_IDS",
+      "TERMINAL_INDENT",
+      "TraceDirectory",
+      "aggregateBundleSafeStatus",
+      "aggregateSessionCheckResults",
+      "analyzeCohort",
+      "assertBundlePathContained",
+      "assertEvidenceRelativePath",
+      "buildActivitySummary",
+      "buildBundleMetadata",
+      "buildBundleSummaryMarkdown",
+      "buildEvidenceCausalFailureViewHtml",
+      "buildEvidenceCiPackage",
+      "buildEvidenceCircuitViewHtml",
+      "buildEvidenceContractsViewHtml",
+      "buildEvidenceDiffViewHtml",
+      "buildEvidenceFileEntries",
+      "buildEvidenceHtmlShell",
+      "buildEvidenceHtmlShellFromManifest",
+      "buildEvidenceManifest",
+      "buildEvidenceOutcomesViewHtml",
+      "buildEvidenceProvenanceViewHtml",
+      "buildEvidenceSafetyViewHtml",
+      "buildEvidenceTimelineViewHtml",
+      "buildEvidenceToolsLlmViewHtml",
+      "buildEvidenceTreeViewHtml",
+      "buildLocalExplanation",
+      "buildPlaceholderArtifact",
+      "buildRunSummary",
+      "buildRunTimeline",
+      "buildRunWhatSummary",
+      "buildSessionIndex",
+      "buildTraceStats",
+      "buildZipArchive",
+      "bundleFailsOnSafety",
+      "bundleRunAssetRelativePath",
+      "collectTraceSchemaVersions",
+      "compareCohortAggregates",
+      "createInspector",
+      "createInspectorRuntime",
+      "createRunId",
+      "createStepId",
+      "defaultBundleOutputPath",
+      "defaultSuiteConfigTemplate",
+      "deriveSessionStatus",
+      "encodeEmbeddedEvidenceJson",
+      "enrichSessionRunRecord",
+      "enrichSessionSummary",
+      "ensureTraceDir",
+      "extractMetadata",
+      "extractOutcomesFromPersistedEvents",
+      "extractOutcomesFromTraceEvents",
+      "extractSessionWorkflowMetadata",
+      "filterMetasBySessionScope",
+      "filterTraces",
+      "findFirstCausalFailure",
+      "formatDuration",
+      "formatError",
+      "formatStepLabel",
+      "formatTerminalName",
+      "formatTimestamp",
+      "gateHasThresholds",
+      "getCurrentContext",
+      "getCurrentCorrelationMetadata",
+      "getCurrentDepth",
+      "getCurrentRunId",
+      "getCurrentRunName",
+      "getCurrentStepId",
+      "getDefaultTraceDir",
+      "getIndent",
+      "getParentStepId",
+      "getRunIdFromTraceFileName",
+      "getSuiteTemplate",
+      "getTraceDirFromContext",
+      "getTraceFilePath",
+      "getTraceSafetyFromContext",
+      "groupSessionCohorts",
+      "hasActiveContext",
+      "inferEvidenceFileRole",
+      "initializeTraceFile",
+      "isAgentInspectEnabled",
+      "isAgentInspectTrace",
+      "isSha256Hex",
+      "isSilentContext",
+      "isStepStatus",
+      "isStepType",
+      "isTraceEvent",
+      "listSuiteTemplates",
+      "listTraceFiles",
+      "loadSessionRunRecords",
+      "loadSuiteConfig",
+      "loadTraceMetadataList",
+      "maybeInspectRun",
+      "normalizeBundleOutputPath",
+      "normalizeSuiteConfig",
+      "parseCohortMetricList",
+      "parseDuration",
+      "parseDurationFilter",
+      "parseEvidenceManifestJson",
+      "parseGateList",
+      "parseGateNumber",
+      "parseGroupBySpec",
+      "parseTraceJsonl",
+      "prepareMetadataForDisk",
+      "prepareTraceEventForDisk",
+      "printError",
+      "printFailedAt",
+      "printRunComplete",
+      "printRunStart",
+      "printStepComplete",
+      "printStepStart",
+      "readTraceEvents",
+      "readTraceFile",
+      "renderActivitySummaryHuman",
+      "renderCohortReport",
+      "renderCohortSummaryMarkdown",
+      "renderErrorLine",
+      "renderGateGithubStepSummary",
+      "renderGateJUnit",
+      "renderGateReport",
+      "renderGateSummaryMarkdown",
+      "renderRunSummary",
+      "renderRunWhat",
+      "renderStepLine",
+      "renderSuiteReport",
+      "renderSuiteReportMarkdown",
+      "renderTimeline",
+      "renderTraceStats",
+      "resolveBundleRunIds",
+      "resolveRedactionProfile",
+      "resolveSuiteCaseTrace",
+      "resolveSuiteConfigPath",
+      "resolveSuiteTemplate",
+      "resolveTraceDir",
+      "resolveTraceSafetyOptions",
+      "runGate",
+      "runSuite",
+      "runWithContext",
+      "runWithStepContext",
+      "sanitizeBundleRunId",
+      "searchTraces",
+      "serializeEvent",
+      "serializeEvidenceManifest",
+      "sessionKeyForRun",
+      "sha256Equals",
+      "sha256Hex",
+      "toMetadataSafeStatus",
+      "traceMetasToSessionRunRecords",
+      "truncateName",
+      "unknownTraceFormatMessage",
+      "validateEvent",
+      "validateEvidenceManifest",
+      "validateSuiteConfig",
+      "verifyEvidenceDirectory",
+      "warn",
+      "writeTraceEvent"
+    ],
+    "persisted": [
+      "inspectEventToPersistedInspectEvent",
+      "inspectEventsToPersistedInspectEvents",
+      "isPersistedInspectEvent",
+      "isPersistedInspectEventV02",
+      "isPersistedInspectEventV10",
+      "persistedInspectEventToInspectEvent",
+      "persistedInspectEventToTraceEvents",
+      "persistedInspectEventsToInspectEvents",
+      "persistedInspectEventsToRunTrees",
+      "persistedInspectEventsToTraceEvents",
+      "traceEventToPersistedInspectEvent",
+      "traceEventsToPersistedInspectEvents",
+      "traceEventsToPersistedRunTrees"
+    ],
+    "logs": [
+      "DEFAULT_LOG_INGEST_CONFIG",
+      "DEFAULT_REDACT_KEYS",
+      "EventNormalizer",
+      "JsonLogParser",
+      "LiveLogAccumulator",
+      "Log4jsParser",
+      "Redactor",
+      "TreeBuilder",
+      "loadLogIngestConfig",
+      "matchMapping",
+      "mergeLogIngestConfig",
+      "parseLogLine",
+      "parseLogsToTrees",
+      "renderRunTree",
+      "renderRunTrees",
+      "wildcardMatch"
+    ],
+    "exporters": [
+      "EXPORT_PAYLOAD_VERSION",
+      "OTEL_GEN_AI_SEMCONV_PIN",
+      "buildRunReport",
+      "compactAttributes",
+      "escapeHtml",
+      "escapeMarkdown",
+      "exportHtml",
+      "exportMarkdown",
+      "exportOpenInference",
+      "exportOtlpJson",
+      "exportRunTree",
+      "flattenTree",
+      "manualTraceEventsToRunTree",
+      "mergeExportDefaults",
+      "redactRunTreeForExport",
+      "safeString",
+      "stableJson",
+      "summarizeTree",
+      "validateExport",
+      "validateExportContent",
+      "validateOpenInferenceFixture",
+      "validateOpenInferenceSemanticFixture",
+      "validateOtlpJsonFixture",
+      "validateOtlpJsonSemanticFixture"
+    ],
+    "diff": [
+      "diffRuns",
+      "diffTraceEvents",
+      "manualTraceEventsToComparableRun",
+      "renderRunDiff"
+    ],
+    "writers": [
+      "bufferedFileWriter",
+      "compositeWriter",
+      "fileWriter",
+      "memoryWriter",
+      "nullWriter"
+    ],
+    "readers": [
+      "DEFAULT_TRACE_READERS",
+      "PROGRAMMATIC_DIAGNOSTIC_SPECS",
+      "TraceReadError",
+      "agentInspectJsonlReader",
+      "assertTraceInput",
+      "detectTraceFormat",
+      "formatProgrammaticDiagnostic",
+      "openInferenceJsonReader",
+      "openTrace",
+      "openTraceDirectory",
+      "openTraceFile",
+      "openTraceText",
+      "otlpJsonReader",
+      "readTrace"
+    ],
+    "checks": [
+      "PROGRAMMATIC_DIAGNOSTIC_SPECS",
+      "buildTraceFacts",
+      "createBaselineRegressionRule",
+      "createDecisionRule",
+      "createGuardrailRule",
+      "createLlmUsageRule",
+      "createMaxStepDurationRule",
+      "createObservedOutcomeRule",
+      "createRequireCompletedRule",
+      "createRetrievalRule",
+      "createRunDepthRule",
+      "createRunDurationRule",
+      "createRunEventCountRule",
+      "createRunStatusRule",
+      "createSafetyOversizedAttributeRule",
+      "createSafetyRawContentRule",
+      "createSafetyRedactionRule",
+      "createSafetySecretPatternRule",
+      "createStallDetectionRule",
+      "createStructureCycleRule",
+      "createStructureIncompleteRule",
+      "createStructureOrphanRule",
+      "createStructureParallelWidthRule",
+      "createStructureRelationshipRule",
+      "createToolFailureRule",
+      "createToolOrderingRule",
+      "createToolUsageRule",
+      "defineTraceContract",
+      "evaluateTraceContract",
+      "evaluateTraceContractRead",
+      "formatProgrammaticDiagnostic",
+      "projectLogicalEvents",
+      "resolveCanonicalToolName",
+      "runTraceChecks",
+      "summarizeSemanticParity"
+    ],
+    "reporters": [
+      "EVIDENCE_CI_ARTIFACT_FILES",
+      "TRACE_ARTIFACT_MANIFEST_SCHEMA_VERSION",
+      "createEvidenceCiArtifacts",
+      "createReporterArtifactPath",
+      "createReporterFailureDiagnostic",
+      "createTraceArtifactManifest",
+      "validateReporterArtifactPath"
+    ],
+    "workspace": [
+      "DEFAULT_WORKSPACE_LAYOUT",
+      "MAX_WORKSPACE_MANIFEST_BYTES",
+      "WORKSPACE_DIR_NAME",
+      "WORKSPACE_MANIFEST_FILENAME",
+      "WORKSPACE_SCHEMA_VERSION",
+      "cleanWorkspace",
+      "createDefaultWorkspaceManifest",
+      "createWorkspace",
+      "doctorWorkspace",
+      "getWorkspaceStatus",
+      "isSafeRelativeWorkspacePath",
+      "parseWorkspaceManifest",
+      "readWorkspaceManifestFile",
+      "resolveInsideWorkspace",
+      "resolveWorkspaceLocation",
+      "serializeWorkspaceManifest",
+      "validateWorkspaceManifest"
+    ]
+  }
+}
