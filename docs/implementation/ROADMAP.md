@@ -20,7 +20,7 @@ The canonical release sequence is:
 
 ```text
 6.17.5  Release integrity, capability truth, and adversarial check-engine integrity  (published)
-6.17.6  Security containment + dependency remediation  (release-pending)
+6.17.6  Security containment + dependency remediation  (published)
 6.17.7  Remote Studio / website / skill safety
 6.17.8  Workflows / scanners / SECURITY.md modernization
 6.17.9  Corrective security defects only

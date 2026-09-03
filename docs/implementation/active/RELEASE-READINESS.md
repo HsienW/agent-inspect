@@ -16,7 +16,7 @@ Security containment: Studio ingest bounds/atomic staging, dependency remediatio
 [x] git diff --check
 [x] 6.17.6-0 … 6.17.6-12 implementation + validation on main
 [x] Changeset (.changeset/v6176-security-containment.md)
-[ ] Version Packages PR merge
-[ ] Trusted Publishing → npm 6.17.6
-[ ] npm 6.17.6 verified
+[x] Version Packages PR merge (#318)
+[x] Trusted Publishing → npm 6.17.6
+[x] npm 6.17.6 verified
 ```

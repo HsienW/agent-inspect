@@ -48,7 +48,7 @@
 | `6.17.6-10-evidence-docs` | done |
 | `6.17.6-11-redact-residual` | done |
 | `6.17.6-12-validation` | done |
-| `6.17.6-release` | in-progress (Changeset on main → Version Packages → Trusted Publishing) |
+| `6.17.6-release` | done (Version Packages #318 → Trusted Publishing) |
 
 ## 6.17.6-0 audit summary (2026-09-02)
 
@@ -95,4 +95,4 @@ Key paths: `packages/studio/src/registry.ts`, `ingest/bundle-upload.ts`, `ingest
 
 ## Stop rule
 
-Validation complete; Changeset authorized. Do **not** run local `changeset publish` / `npm publish`. Publication is Version Packages PR → `publish.yml` Trusted Publishing only.
+6.17.6 published via Version Packages #318 and `publish.yml` Trusted Publishing. Do **not** run local `changeset publish` / `npm publish`.
