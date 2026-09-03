@@ -1,0 +1,4 @@
+{"schemaVersion":"0.1","event":"run_started","timestamp":1735689600000,"runId":"repair-example-run","name":"synthetic-repair-validation","startTime":1735689600000,"metadata":{"fixture":"reproducible-repair-evidence","synthetic":true}}
+{"schemaVersion":"0.1","event":"step_started","timestamp":1735689600010,"runId":"repair-example-run","stepId":"validate-repair","name":"validate-repair","type":"tool","startTime":1735689600010,"metadata":{"command":"node scripts/validate-repair.mjs"}}
+{"schemaVersion":"0.1","event":"step_completed","timestamp":1735689600020,"runId":"repair-example-run","stepId":"validate-repair","status":"error","endTime":1735689600020,"durationMs":10,"error":{"message":"Synthetic validation observed an incorrect result"}}
+{"schemaVersion":"0.1","event":"run_completed","timestamp":1735689600030,"runId":"repair-example-run","status":"error","endTime":1735689600030,"durationMs":30,"error":{"message":"Synthetic repair validation failed"}}

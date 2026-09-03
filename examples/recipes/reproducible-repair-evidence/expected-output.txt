@@ -1,0 +1,8 @@
+Reproducible repair evidence: pass
+Run: repair-example-run
+Files checked: 4
+Bound artifacts: check-output.txt, failed-trace.jsonl, repair.patch, reproduction.json
+Revision binding: pass
+Environment allowlist: 0 variables
+Replay executed: no
+Evidence directory: .generated-evidence

@@ -36,6 +36,7 @@ const RECIPES = [
   "harness-adapter-local",
   "eval-local-checks",
   "redact-share-safe-file",
+  "reproducible-repair-evidence",
   "eval-ci-artifacts",
   "mcp-client-tracing",
   "guardrails-basic",

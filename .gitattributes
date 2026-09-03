@@ -2,3 +2,7 @@
 examples/evidence/**/evidence/*.json text eol=lf
 examples/evidence/**/evidence/*.jsonl text eol=lf
 examples/evidence/**/evidence/*.html text eol=lf
+examples/recipes/reproducible-repair-evidence/fixtures/*.json text eol=lf
+examples/recipes/reproducible-repair-evidence/fixtures/*.jsonl text eol=lf
+examples/recipes/reproducible-repair-evidence/fixtures/*.txt text eol=lf
+examples/recipes/reproducible-repair-evidence/fixtures/*.patch text eol=lf

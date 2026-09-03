@@ -1,0 +1,30 @@
+{
+  "repository": {
+    "commit": "0123456789abcdef0123456789abcdef01234567",
+    "workingTree": {
+      "dirty": false
+    }
+  },
+  "validation": {
+    "command": "node",
+    "args": [
+      "scripts/validate-repair.mjs"
+    ],
+    "cwd": ".",
+    "exitCode": 0,
+    "timeoutMs": 30000
+  },
+  "toolchain": {
+    "node": "22.14.0",
+    "packageManager": "pnpm@9.15.0"
+  },
+  "lockfile": {
+    "path": "pnpm-lock.yaml",
+    "sha256": "d8a0b5cb41f969e2d33dc10769aececdcc0ae694b6222f7fc7ba2153a5dd1f91"
+  },
+  "environment": {
+    "allowlist": [],
+    "values": {}
+  },
+  "sandbox": null
+}
