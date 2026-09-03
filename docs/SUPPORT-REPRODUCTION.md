@@ -21,6 +21,8 @@ Use these sources in order of preference:
 
 Remove unrelated runs, prompts, tool calls, and metadata before creating the bundle. The existing [shareable bundle recipe](../examples/recipes/shareable-bundle-basic/README.md) demonstrates the same Evidence v2 workflow; no separate support script is required.
 
+For repository repair or debugging handoffs, the [reproducible repair evidence recipe](../examples/recipes/reproducible-repair-evidence/README.md) shows how callers can integrity-bind a repository revision, validation procedure, proposed patch, and recorded validation output as Evidence v2 files. This caller-owned envelope is optional and does not make Evidence verification a replay or repair-correctness check.
+
 ## Create the reproduction bundle
 
 List local runs and identify the minimized reproduction:
