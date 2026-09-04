@@ -6,6 +6,14 @@ import { defineConfig } from "vitest/config";
 /** Config file lives at repo root so Vitest resolves `include` the same when cwd is a package. */
 const repoRoot = path.dirname(fileURLToPath(import.meta.url));
 
+/** Coverage + many parallel `npm install <repo>` workers hang on CI; run those suites separately. */
+const coverageRun = process.argv.includes("--coverage");
+const npmInstallCompatTests = [
+  "**/consumer-compat.test.ts",
+  "**/package-exports-compat.test.ts",
+  "**/api-surface-snapshot.test.ts",
+] as const;
+
 const coreEntry = fileURLToPath(
   new URL("./packages/core/src/index.ts", import.meta.url),
 );
@@ -201,8 +209,18 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    // Consumer/compat fixtures run npm install + tsc; local installs currently
+    // take ~40s+ each, so the Vitest 5s/60s defaults flake on CI.
+    testTimeout: 180_000,
+    hookTimeout: 180_000,
     include: ["packages/**/*.test.ts"],
-    exclude: ["**/dist/**", "**/node_modules/**", "docs/**", "examples/**"],
+    exclude: [
+      "**/dist/**",
+      "**/node_modules/**",
+      "docs/**",
+      "examples/**",
+      ...(coverageRun ? [...npmInstallCompatTests] : []),
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text", "json-summary"],
