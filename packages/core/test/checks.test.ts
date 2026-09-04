@@ -422,11 +422,15 @@ describe("built-in run, tool, and LLM checks", () => {
       { read },
       { rules: [createToolOrderingRule({ before: "retrieve", after: "generate" })] },
     );
-    const explicitFirst = runTraceChecks(
+    const explicitFirstOccurrence = runTraceChecks(
       { read },
       {
         rules: [
-          createToolOrderingRule({ before: "retrieve", after: "generate", mode: "first" }),
+          createToolOrderingRule({
+            before: "retrieve",
+            after: "generate",
+            mode: "first-occurrence",
+          }),
         ],
       },
     );
@@ -445,7 +449,7 @@ describe("built-in run, tool, and LLM checks", () => {
 
     expect(defaultResult.status).toBe("pass");
     expect(defaultResult.findings[0]?.actual).toMatchObject({ code: "tool.order.overlap" });
-    expect(explicitFirst.findings).toEqual(defaultResult.findings);
+    expect(explicitFirstOccurrence.findings).toEqual(defaultResult.findings);
     expect(happensBefore.status).toBe("fail");
     expect(happensBefore.findings[0]).toMatchObject({
       ruleId: "tool.order",

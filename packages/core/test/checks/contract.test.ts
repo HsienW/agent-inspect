@@ -213,7 +213,7 @@ describe("trace contract", () => {
       "2026-07-11T00:00:05.000Z",
     );
 
-    it("preserves omitted-mode and explicit first semantics for repeated calls", () => {
+    it("preserves omitted-mode and explicit first-occurrence semantics for repeated calls", () => {
       const read = readResult("ok", [retrieve1, generate, retrieve2]);
       const omitted = evaluateTraceContract(
         { read },
@@ -222,7 +222,10 @@ describe("trace contract", () => {
       const explicit = evaluateTraceContract(
         { read },
         defineTraceContract({
-          tools: { requiredOrder: ["retrieve", "generate"], requiredOrderMode: "first" },
+          tools: {
+            requiredOrder: ["retrieve", "generate"],
+            requiredOrderMode: "first-occurrence",
+          },
         }),
       );
 
@@ -271,7 +274,11 @@ describe("trace contract", () => {
     });
 
     it("keeps requiredOrder implied presence in every mode", () => {
-      for (const mode of ["first", "happens-before", "all-occurrences"] as const) {
+      for (const mode of [
+        "first-occurrence",
+        "happens-before",
+        "all-occurrences",
+      ] as const) {
         const result = evaluateTraceContract(
           { read: readResult("ok", [generate]) },
           defineTraceContract({
