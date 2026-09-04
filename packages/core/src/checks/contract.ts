@@ -72,10 +72,10 @@ export interface TraceContractToolRules {
    * added to the effective required-tool set. Low-level `createToolOrderingRule`
    * alone may still pass vacuously when an endpoint is missing.
    *
-   * The default `first` mode preserves first-occurrence encounter ordering;
-   * overlapping intervals emit a non-failing warning. `happens-before`
-   * requires the first before event to finish before the first after event
-   * starts. `all-occurrences` applies that causal boundary to every occurrence.
+   * The default `first-occurrence` mode preserves first-occurrence encounter
+   * ordering; overlapping intervals emit a non-failing warning. `happens-before`
+   * requires the first before event to finish before the first after event starts.
+   * `all-occurrences` applies that causal boundary to every occurrence.
    *
    * @see docs/TRACE-CONTRACTS.md
    * @beta Available through `agent-inspect/checks`. Additive changes may ship
@@ -86,10 +86,10 @@ export interface TraceContractToolRules {
    * Ordering semantics applied to every adjacent pair in `requiredOrder`.
    * Causal modes fail closed when a required interval boundary is unavailable.
    *
-   * @defaultValue `"first"`
+   * @defaultValue `"first-occurrence"`
    * @beta Available through `agent-inspect/checks`.
    */
-  requiredOrderMode?: "first" | "happens-before" | "all-occurrences";
+  requiredOrderMode?: "first-occurrence" | "happens-before" | "all-occurrences";
 }
 
 export interface TraceContractLlmRules {
@@ -204,7 +204,7 @@ function contractToRules(contract: TraceContract): TraceCheckRule[] {
 
   if (contract.tools) {
     const order = contract.tools.requiredOrder ?? [];
-    const requiredOrderMode = contract.tools.requiredOrderMode ?? "first";
+    const requiredOrderMode = contract.tools.requiredOrderMode ?? "first-occurrence";
     const required = [
       ...new Set([
         ...(contract.tools.required ?? []),

@@ -28,7 +28,7 @@ Contracts compile to deterministic check rules for common cases:
 
 - unlisted intermediate tools are allowed;
 - TraceContract `requiredOrder` **implies presence** — every listed name is added to the effective required-tool set;
-- `first` (default) compares first occurrences in start/encounter order; later repetitions do not invalidate an earlier valid order, and interval overlap emits a non-failing `tool.order.overlap` warning;
+- `first-occurrence` (default) compares first occurrences in start/encounter order; later repetitions do not invalidate an earlier valid order, and interval overlap emits a non-failing `tool.order.overlap` warning;
 - `happens-before` requires the first `before` occurrence to finish before the first `after` occurrence starts;
 - `all-occurrences` requires every `before` occurrence to finish before every `after` occurrence starts (`max(before.end) <= min(after.start)`);
 - causal modes fail when a required interval boundary cannot be resolved instead of falling back to encounter order.
@@ -45,9 +45,11 @@ Examples for `requiredOrder: ["retrieve", "generate"]`:
 
 Low-level `createToolOrderingRule({ before, after })` alone may still pass when an endpoint is missing (compositional). TraceContract `requiredOrder` does not.
 
-For the repeated trace `retrieve → generate → retrieve`, omitted mode and explicit `first` pass, while `all-occurrences` fails because the last `retrieve` does not finish before the earliest `generate` starts. For overlapping first calls, `first` warns while `happens-before` fails.
+For the repeated trace `retrieve → generate → retrieve`, omitted mode and explicit `first-occurrence` pass, while `all-occurrences` fails because the last `retrieve` does not finish before the earliest `generate` starts. For overlapping first calls, `first-occurrence` warns while `happens-before` fails.
 
 Immediate or positional `all-pairs` matching is not implemented. It requires separate occurrence-pairing and cardinality semantics.
+
+These modes do not introduce a general temporal DSL, persisted schema changes, or network behavior.
 
 ### Experimental Vitest / Jest matchers (shipped)
 
@@ -77,7 +79,7 @@ Unconditional path invariant: every named tool must appear **at least once** in 
 The evaluator expands each list into adjacent pairs and applies one `requiredOrderMode` to every pair.
 
 - TraceContract `requiredOrder` **implies presence** of every listed tool (unioned into `tools.required`).
-- `requiredOrderMode: "first"` is the default first-occurrence start/encounter relation; overlapping intervals emit a non-failing warning.
+- `requiredOrderMode: "first-occurrence"` is the default first-occurrence start/encounter relation; overlapping intervals emit a non-failing warning.
 - `requiredOrderMode: "happens-before"` requires the first before to **end** before the first after **starts**; overlap fails.
 - `requiredOrderMode: "all-occurrences"` requires every before to end before every after starts; any cross-boundary overlap or later before fails.
 - Missing interval boundaries fail closed in the two causal modes.
@@ -115,7 +117,7 @@ contract:
     required: [cache_hit_or_retrieve_evidence]
 ```
 
-With `requiredOrderMode: "first"`, `retrieve → generate → retrieve` still **passes** when both retrieves are present (see the ordering example above). Use `all-occurrences` when every retrieve must complete before generation starts.
+With `requiredOrderMode: "first-occurrence"`, `retrieve → generate → retrieve` still **passes** when both retrieves are present (see the ordering example above). Use `all-occurrences` when every retrieve must complete before generation starts.
 
 ## What is not shipped (yet)
 

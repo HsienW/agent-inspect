@@ -356,15 +356,15 @@ export interface ToolOrderingRuleOptions {
    */
   id?: string;
   /**
-   * Ordering semantics. `first` preserves first-occurrence encounter ordering,
-   * `happens-before` requires the first before event to finish before the first
-   * after event starts, and `all-occurrences` applies that causal boundary to
-   * every matching occurrence.
+   * Ordering semantics. `first-occurrence` preserves first-occurrence encounter
+   * ordering, `happens-before` requires the first before event to finish before
+   * the first after event starts, and `all-occurrences` applies that causal
+   * boundary to every matching occurrence.
    *
-   * @defaultValue `"first"`
+   * @defaultValue `"first-occurrence"`
    * @experimental Available through `agent-inspect/checks`.
    */
-  mode?: "first" | "happens-before" | "all-occurrences";
+  mode?: "first-occurrence" | "happens-before" | "all-occurrences";
 }
 
 /**
@@ -1764,7 +1764,7 @@ export function createToolUsageRule(options: ToolUsageRuleOptions): TraceCheckRu
  */
 export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceCheckRule {
   const ruleId = options.id ?? "tool.order";
-  const mode = options.mode ?? "first";
+  const mode = options.mode ?? "first-occurrence";
   return {
     id: ruleId,
     category: "tool",
@@ -1778,7 +1778,7 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
         return [];
       }
 
-      if (mode === "first" && beforeIndex >= afterIndex) {
+      if (mode === "first-occurrence" && beforeIndex >= afterIndex) {
         return [
           failFinding(
             ruleId,
