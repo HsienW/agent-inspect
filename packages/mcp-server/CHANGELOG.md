@@ -1,5 +1,13 @@
 # @agent-inspect/mcp-server
 
+## 6.20.0
+
+### Patch Changes
+
+- Updated dependencies [43a4481]
+  - agent-inspect@6.20.0
+  - @agent-inspect/redact@6.20.0
+
 ## 6.19.1
 
 ### Patch Changes
