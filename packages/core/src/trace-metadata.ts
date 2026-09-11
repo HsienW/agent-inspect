@@ -173,8 +173,85 @@ type StepAgg = {
   tokensCached?: number;
 };
 
+const ROOT_STEP_DEPTH = 0;
+const MAX_RUN_SUMMARY_DEPTH = 1000;
+
 function isNonNegativeFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function resolveParentStepId(
+  step: StepAgg,
+  steps: ReadonlyMap<string, StepAgg>,
+): string | undefined {
+  const parentId = step.parentId;
+  if (typeof parentId !== "string" || parentId.trim() === "") {
+    return undefined;
+  }
+
+  return steps.has(parentId) ? parentId : undefined;
+}
+
+// Resolve ancestry iteratively so malformed cycles and deeply nested
+// valid traces cannot overflow the JavaScript call stack.
+function computeStepDepth(
+  stepId: string,
+  steps: ReadonlyMap<string, StepAgg>,
+  depthCache: Map<string, number>,
+): number {
+  const cached = depthCache.get(stepId);
+  if (cached !== undefined) return cached;
+
+  const ancestry: string[] = [];
+  const ancestryIndexes = new Map<string, number>();
+  let currentStepId = stepId;
+  let resolvedDepth: number | undefined;
+
+  while (resolvedDepth === undefined) {
+    const cachedDepth = depthCache.get(currentStepId);
+    if (cachedDepth !== undefined) {
+      resolvedDepth = cachedDepth;
+      continue;
+    }
+
+    const cycleStart = ancestryIndexes.get(currentStepId);
+    if (cycleStart !== undefined) {
+      const cycleStepIds = ancestry.splice(cycleStart);
+      for (const cycleStepId of cycleStepIds) {
+        depthCache.set(cycleStepId, ROOT_STEP_DEPTH);
+      }
+      resolvedDepth = ROOT_STEP_DEPTH;
+      continue;
+    }
+
+    const currentStep = steps.get(currentStepId);
+    if (!currentStep) {
+      resolvedDepth = ROOT_STEP_DEPTH;
+      continue;
+    }
+
+    ancestryIndexes.set(currentStepId, ancestry.length);
+    ancestry.push(currentStepId);
+
+    const parentStepId = resolveParentStepId(currentStep, steps);
+    if (parentStepId === undefined) {
+      ancestry.pop();
+      depthCache.set(currentStepId, ROOT_STEP_DEPTH);
+      resolvedDepth = ROOT_STEP_DEPTH;
+      continue;
+    }
+
+    currentStepId = parentStepId;
+  }
+
+  // Depth is parent depth + 1. Cap at a sane limit after cycles are resolved.
+  ancestry.reverse();
+  for (const ancestorStepId of ancestry) {
+    resolvedDepth = Math.min(MAX_RUN_SUMMARY_DEPTH, resolvedDepth + 1);
+    depthCache.set(ancestorStepId, resolvedDepth);
+  }
+
+  return depthCache.get(stepId) ?? ROOT_STEP_DEPTH;
 }
 
 export function buildRunSummary(events: TraceEvent[]): RunSummary {
@@ -264,21 +341,6 @@ export function buildRunSummary(events: TraceEvent[]): RunSummary {
   let hasCachedTokens = false;
 
   const depthCache = new Map<string, number>();
-  const computeDepth = (stepId: string): number => {
-    const cached = depthCache.get(stepId);
-    if (cached !== undefined) return cached;
-    const node = steps.get(stepId);
-    if (!node) return 0;
-    const parent = node.parentId;
-    if (typeof parent !== "string" || parent.trim() === "" || !steps.has(parent)) {
-      depthCache.set(stepId, 0);
-      return 0;
-    }
-    // Depth is parent depth + 1. Cap at a sane limit to avoid cycles.
-    const d = Math.min(1000, computeDepth(parent) + 1);
-    depthCache.set(stepId, d);
-    return d;
-  };
 
   for (const [id, s] of steps.entries()) {
     totalSteps += 1;
@@ -287,7 +349,7 @@ export function buildRunSummary(events: TraceEvent[]): RunSummary {
     else logicSteps += 1;
 
     if (s.status === "error") errorSteps += 1;
-    const depth = computeDepth(id);
+    const depth = computeStepDepth(id, steps, depthCache);
     if (depth > maxDepth) maxDepth = depth;
 
     if (typeof s.durationMs === "number" && Number.isFinite(s.durationMs)) {

@@ -203,6 +203,135 @@ describe("buildRunSummary", () => {
     expect(s.longestStep?.durationMs).toBe(50);
   });
 
+  it("handles self-parent cycles without overflowing", () => {
+    const events: TraceEvent[] = [
+      runStarted(),
+      stepStarted("run_a", "cycle-a", "logic", "cycle-a"),
+      runCompleted(),
+    ];
+
+    const summary = buildRunSummary(events);
+
+    expect(summary.totalSteps).toBe(1);
+    expect(summary.maxDepth).toBe(0);
+  });
+
+  it("handles two-step parent cycles without overflowing", () => {
+    const events: TraceEvent[] = [
+      runStarted(),
+      stepStarted("run_a", "cycle-a", "logic", "cycle-b"),
+      stepStarted("run_a", "cycle-b", "logic", "cycle-a"),
+      runCompleted(),
+    ];
+
+    const summary = buildRunSummary(events);
+
+    expect(summary.totalSteps).toBe(2);
+    expect(summary.maxDepth).toBe(0);
+  });
+
+  it("handles three-step parent cycles without overflowing", () => {
+    const events: TraceEvent[] = [
+      runStarted(),
+      stepStarted("run_a", "cycle-a", "logic", "cycle-b"),
+      stepStarted("run_a", "cycle-b", "logic", "cycle-c"),
+      stepStarted("run_a", "cycle-c", "logic", "cycle-a"),
+      runCompleted(),
+    ];
+
+    const summary = buildRunSummary(events);
+
+    expect(summary.totalSteps).toBe(3);
+    expect(summary.maxDepth).toBe(0);
+  });
+
+  it("preserves descendant depth above a cyclic ancestry boundary", () => {
+    const events: TraceEvent[] = [
+      runStarted(),
+      stepStarted("run_a", "grandchild", "logic", "child"),
+      stepStarted("run_a", "child", "logic", "cycle-a"),
+      stepStarted("run_a", "cycle-a", "logic", "cycle-b"),
+      stepStarted("run_a", "cycle-b", "logic", "cycle-a"),
+      runCompleted(),
+    ];
+
+    const summary = buildRunSummary(events);
+
+    expect(summary.totalSteps).toBe(4);
+    expect(summary.maxDepth).toBe(2);
+  });
+
+  it("preserves descendant depth after a cyclic boundary is cached", () => {
+    const events: TraceEvent[] = [
+      runStarted(),
+      stepStarted("run_a", "cycle-a", "logic", "cycle-b"),
+      stepStarted("run_a", "cycle-b", "logic", "cycle-a"),
+      stepStarted("run_a", "child", "logic", "cycle-a"),
+      stepStarted("run_a", "grandchild", "logic", "child"),
+      runCompleted(),
+    ];
+
+    const summary = buildRunSummary(events);
+
+    expect(summary.totalSteps).toBe(4);
+    expect(summary.maxDepth).toBe(2);
+  });
+
+  it("isolates cyclic ancestry from valid depth calculation", () => {
+    const events: TraceEvent[] = [
+      runStarted(),
+      stepStarted("run_a", "root", "logic"),
+      stepStarted("run_a", "tool", "tool", "root"),
+      stepStarted("run_a", "llm", "llm", "tool"),
+      stepStarted("run_a", "cycle-a", "logic", "cycle-b"),
+      stepStarted("run_a", "cycle-b", "logic", "cycle-a"),
+      runCompleted(),
+    ];
+
+    const summary = buildRunSummary(events);
+
+    expect(summary.totalSteps).toBe(5);
+    expect(summary.maxDepth).toBe(2);
+  });
+
+  it("preserves the max-depth cap for deeply nested traces", () => {
+    const runId = "run_deep";
+    const deepestStep = 20_000;
+    const steps = Array.from({ length: deepestStep + 1 }, (_, index) => {
+      const depth = deepestStep - index;
+
+      return stepStarted(
+        runId,
+        `step-${depth}`,
+        "logic",
+        depth === 0 ? undefined : `step-${depth - 1}`,
+      );
+    });
+
+    const summary = buildRunSummary([
+      runStarted(runId),
+      ...steps,
+      runCompleted(runId),
+    ]);
+
+    expect(summary.totalSteps).toBe(deepestStep + 1);
+    expect(summary.maxDepth).toBe(1000);
+  });
+
+  it.each([
+    ["missing", undefined],
+    ["blank", "   "],
+    ["unknown", "missing-step"],
+  ])("keeps %s parents at the root depth boundary", (_case, parentId) => {
+    const events: TraceEvent[] = [
+      runStarted(),
+      stepStarted("run_a", "root", "logic", parentId),
+      runCompleted(),
+    ];
+
+    expect(buildRunSummary(events).maxDepth).toBe(0);
+  });
+
   it("aggregates supplied and derived totals without adding cached twice", () => {
     const events: TraceEvent[] = [
       runStarted(),
