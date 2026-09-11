@@ -82,6 +82,8 @@ For a practical pre-share workflow, see `docs/SAFE-TRACE-SHARING.md`. For schema
 
 Pull requests run GitHub **Dependency review** (`.github/workflows/dependency-review.yml`) and fail on newly introduced **high** or **critical** advisory severity. Routine unit/typecheck/size CI also exercises redaction, path containment, and Evidence safety tests. These scanners do **not** replace manual review of share profiles or Evidence packages before you disclose traces.
 
+For synthetic fixtures, dynamic-import boundaries, and an explicit “what scanners verify vs not” table, see [docs/SECURITY-SCANNERS.md](docs/SECURITY-SCANNERS.md).
+
 ## Optional surfaces (v2.6)
 
 ### Local viewer (`agent-inspect serve`)

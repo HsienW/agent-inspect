@@ -6,8 +6,10 @@ Internal reference for repository maintainers. Not shipped as primary user docum
 
 - **Changesets** for version bumps (`agent-inspect`, `@agent-inspect/langchain`, `@agent-inspect/tui`, `@agent-inspect/ai-sdk`).
 - **Do not** version-bump in unrelated PRs.
-- **`publish.yml`** — `changesets/action` opens Version Packages PRs and runs `pnpm run release` (`changeset publish`) via npm Trusted Publishing (OIDC). Requires `id-token: write` and `publish: pnpm run release` on the action step.
+- **`version-packages.yml`** — on changeset pushes to `main` (or `workflow_dispatch`), `changesets/action` opens/updates the Version Packages PR only (`version: pnpm run version:packages`). Permissions: `contents: write`, `pull-requests: write`. No `id-token`, no `NPM_TOKEN`.
+- **`publish.yml`** — after a Version Packages merge (commit message contains `Version Packages`) or `workflow_dispatch`, runs release-train gates then `publish: pnpm run release` (`changeset publish`) via npm Trusted Publishing (OIDC). Permissions: `contents: write` (tags/releases), `id-token: write`. No `pull-requests: write`. Routine path does **not** use `NPM_TOKEN`.
 - **`prepublishOnly`** runs full gate locally on `npm publish` — contributors should not publish manually without running checks.
+- Settings checklist: [MAINTAINER-SETTINGS-CHECKLIST-6191.md](../implementation/MAINTAINER-SETTINGS-CHECKLIST-6191.md).
 
 ### npm Trusted Publishing
 
@@ -32,8 +34,8 @@ On each package: **Settings → Trusted Publisher → GitHub Actions**
 
 **Recovery after partial publish:**
 
-1. Add Trusted Publishers on the failed scoped packages (or set repo secret `NPM_TOKEN` with publish access on every published package).
-2. Re-run the **Publish** workflow on `main` (`workflow_dispatch` or push). `changeset publish` skips versions already on npm and retries the rest.
+1. Add Trusted Publishers on the failed scoped packages (preferred). Break-glass only: temporarily set repo secret `NPM_TOKEN` with publish access on every published package, then remove it after recovery.
+2. Re-run the **Publish** workflow on `main` (`workflow_dispatch`). If temporarily using break-glass, uncomment/`NPM_TOKEN` env in `publish.yml` for that run only. `changeset publish` skips versions already on npm and retries the rest.
 3. Confirm versions: `npm view agent-inspect version`, `npm view @agent-inspect/ai-sdk version`, `npm view @agent-inspect/langchain version`, `npm view @agent-inspect/tui version`.
 4. Create or update the GitHub Release if tags are incomplete.
 
