@@ -38,7 +38,7 @@ Pick by the job you are doing. Every cell below is derived from the recipe's own
 [NETWORK-BEHAVIOR.md](../../docs/NETWORK-BEHAVIOR.md) — nothing here is asserted
 independently of those sources.
 
-**All 44 recipes need no API key and make no network calls.** They are mocks-only and
+**All 46 recipes need no API key and make no network calls.** They are mocks-only and
 local by construction; the two MCP rows note where network enters once a recipe is
 pointed at something real, per NETWORK-BEHAVIOR.md.
 
@@ -64,6 +64,7 @@ pointed at something real, per NETWORK-BEHAVIOR.md.
 | [langgraph-gate-evidence](langgraph-gate-evidence) | Gate LangGraph on Evidence | `agent-inspect` (CLI only) | No | No network | Beta <sup>TraceFacts programmatic API; Suites / cohorts / gates</sup> | `pnpm --filter agent-inspect-recipe-langgraph-gate-evidence start` |
 | [langgraph-swarm-local](langgraph-swarm-local) | LangGraph swarm tracing | `@agent-inspect/langchain`<br>`agent-inspect` | No | No network | Supported | `pnpm --filter agent-inspect-recipe-langgraph-swarm-local start` |
 | [log4js-json-layout](log4js-json-layout) | Turn existing logs into a tree | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-log4js-json-layout start` |
+| [mcp-expected-rejection](mcp-expected-rejection) | Assert an expected MCP rejection without rewriting history | `@agent-inspect/mcp`<br>`agent-inspect` | No | Recipe is offline; fixture client only | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-mcp-expected-rejection start` |
 | [mcp-client-tracing](mcp-client-tracing) | MCP client tracing | `@agent-inspect/mcp`<br>`agent-inspect` | No | Recipe is offline; the adapter calls **your** MCP servers when pointed at a real one | Supported | `pnpm --filter agent-inspect-recipe-mcp-client-tracing start` |
 | [multi-agent-handoff](multi-agent-handoff) | Follow a multi-agent handoff | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-multi-agent-handoff start` |
 | [nestjs-json-logging](nestjs-json-logging) | Turn existing logs into a tree | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-nestjs-json-logging start` |
@@ -73,6 +74,7 @@ pointed at something real, per NETWORK-BEHAVIOR.md.
 | [parallel-tools](parallel-tools) | Inspect parallel tool calls | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-parallel-tools start` |
 | [phoenix-openinference-import](phoenix-openinference-import) | OpenInference interop | `agent-inspect` | No | No network | Preview <sup>Standards round-trip / Collector-Phoenix external proof</sup> | `pnpm --filter agent-inspect-recipe-phoenix-openinference-import start` |
 | [pino-json-logs](pino-json-logs) | Turn existing logs into a tree | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-pino-json-logs start` |
+| [promptfoo-use-together](promptfoo-use-together) | Local Promptfoo + TraceContract pattern | `agent-inspect` | No | No network | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-promptfoo-use-together start` |
 | [proactive-agent-logs](proactive-agent-logs) | Turn existing logs into a tree | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-proactive-agent-logs start` |
 | [rag-pipeline](rag-pipeline) | Debug a RAG pipeline | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-rag-pipeline start` |
 | [read-only-mcp-server](read-only-mcp-server) | Read evidence through MCP | `@agent-inspect/mcp-server`<br>`agent-inspect` | No | Exposes local evidence to a connected client (share-profile boundary) | Preview | `pnpm --filter agent-inspect-recipe-read-only-mcp-server start` |
@@ -100,6 +102,7 @@ each package README's `**Support level:**` line, except where a recipe uses a fe
 | [rag-pipeline](rag-pipeline) | Mock RAG-style pipeline | `inspectRun`, `step`, `step.tool`, `step.llm`, `traceDir` | yes | no |
 | [tool-failure-retry](tool-failure-retry) | Flaky tool → retry succeeds | `step.tool`, error then success in trace | yes | no |
 | [multi-agent-handoff](multi-agent-handoff) | Coordinator + specialist steps | Nested steps, `metadata` for handoff | yes | no |
+| [promptfoo-use-together](promptfoo-use-together) | Local Promptfoo + TraceContract pattern | `agent-inspect` | No | No network | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-promptfoo-use-together start` |
 | [proactive-agent-logs](proactive-agent-logs) | Advanced log ingest + tail | `logs`, `tail`, config mapping, redaction | yes (CLI + samples) | no |
 | [pino-json-logs](pino-json-logs) | pino-shaped JSON logs | `logs`, `tail`, `time`/`msg` field mapping | yes (CLI + samples) | no |
 | [winston-json-logs](winston-json-logs) | Winston-shaped JSON logs | `logs`, `tail`, `timestamp`/`message` field mapping | yes (CLI + samples) | no |
@@ -126,6 +129,7 @@ each package README's `**Support level:**` line, except where a recipe uses a fe
 | [github-actions-gate](github-actions-gate) | Retained broken → fixed CI gate pilot | `suite`, `gate`, TraceContract, Evidence v2 | yes | no |
 | [harness-basic](harness-basic) | v1.9 fixture harness basics | `@agent-inspect/harness`, fixture JSON, expected output | yes | no |
 | [harness-adapter-local](harness-adapter-local) | Adapter-shaped local harness target | `@agent-inspect/harness`, bootstrap/resolve/invoke, expected output | yes | no |
+| [mcp-expected-rejection](mcp-expected-rejection) | Assert an expected MCP rejection without rewriting history | `@agent-inspect/mcp`<br>`agent-inspect` | No | Recipe is offline; fixture client only | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-mcp-expected-rejection start` |
 | [mcp-client-tracing](mcp-client-tracing) | v2.4 MCP client wrap with mock client | `@agent-inspect/mcp`, `inspectRun`, `sessions` / `session` CLI | yes | no |
 | [browser-mcp-observed-outcomes](browser-mcp-observed-outcomes) | Successful Browser/MCP-style action with a failed independent state observation | `step.tool`, `observeOutcome`, observation CLI filters | yes | no |
 | [guardrails-basic](guardrails-basic) | v2.5 deterministic guardrail samples | `@agent-inspect/guardrails`, phrase/PII/injection rules | yes | no |

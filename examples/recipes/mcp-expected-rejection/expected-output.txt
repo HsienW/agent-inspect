@@ -1,0 +1,3 @@
+MCP expected-rejection recipe complete
+Contract status: pass
+Negative test keeps the rejection event in history (no rewrite).
