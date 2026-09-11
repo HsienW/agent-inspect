@@ -180,16 +180,17 @@ A TraceTransform is **not** the decoder for raw vendor JSON. No official TrueFor
 - Shape: one level of alternative path groups; each group is a deterministic valid path.
 - Evaluation: contract passes when **one** alternative group fully satisfies its rules.
 - Constraints: no nested `anyOf`, no predicates, no runtime branching DSL.
+- **Status (6.20):** implemented on `feat/620-flexible-contracts`.
 
 #### `requiredOrderMode` (#308)
 
 | Mode | Semantics |
 | --- | --- |
-| `"first-occurrence"` (default, shipped) | Legacy first-start / encounter ordering among present tools |
-| `"happens-before"` (planned) | First matching before-event must **end** before first matching after-event **starts** |
-| `"all-occurrences"` (planned) | Every before-event must end before every after-event starts |
+| `"first-occurrence"` (default) | Legacy first-start / encounter ordering among present tools |
+| `"happens-before"` | First matching before-event must **end** before first matching after-event **starts** |
+| `"all-occurrences"` | Every before-event must end before every after-event starts |
 
-**Contributor note:** @HsienW volunteered on #308 for `requiredOrderMode` implementation. API shape requires maintainer approval before external PR lands.
+**Contributor note:** @HsienW PR #315 commits are preserved with authorship on the 6.20 feature branch.
 
 ### 3.4 v6.21.0 — actor-scoped contracts and outcome provenance
 

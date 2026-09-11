@@ -1,0 +1,3 @@
+Promptfoo use-together recipe complete
+Contract status: pass
+Use the same evaluateTraceContractRead() call from a Promptfoo assert.

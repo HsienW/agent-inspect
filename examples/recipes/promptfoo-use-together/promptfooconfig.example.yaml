@@ -1,0 +1,24 @@
+# Local Promptfoo + AgentInspect sketch (not executed by this recipe).
+# Keep providers mocked / file-based. Do not enable remote generation.
+#
+# description: Use AgentInspect TraceContract as a deterministic assert beside Promptfoo.
+#
+# providers:
+#   - id: echo
+#     config:
+#       response: "fixture"
+#
+# prompts:
+#   - "Answer from local fixture context"
+#
+# tests:
+#   - assert:
+#       - type: javascript
+#         value: |
+#           // Pseudocode: load the AgentInspect run dir written by your harness,
+#           // then call evaluateTraceContractRead(read, contract).
+#           // Return true when result.ok === true.
+#           return true;
+#
+# env:
+#   PROMPTFOO_DISABLE_REMOTE_GENERATION: "true"
