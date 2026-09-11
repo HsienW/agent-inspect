@@ -30,7 +30,7 @@ npx agent-inspect stats --dir fixtures/performance
 
 All three are validated by `pnpm fixtures:check` and small enough for git (the largest is well under 1 MB).
 
-## Comfortable ranges (v3.4)
+## Comfortable ranges
 
 | Workload | Comfortable | Warning | Not designed for |
 | -------- | ----------- | ------- | ---------------- |

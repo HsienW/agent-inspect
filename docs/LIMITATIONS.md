@@ -13,10 +13,10 @@ This document states what AgentInspect **does not** provide today. It complement
 
 - **`list` / `view` / `export`** do not filter by correlation fields yet — `stats --correlation-id` / `--group-id` and `search` provide targeted read paths; full CLI filtering remains incremental.
 
-## Persisted event model (v1.2.0 foundation)
+## Persisted event model
 
 - **Manual global tracing remains v0.1.** `inspectRun()` / `step()` still write `schemaVersion: "0.1"` JSONL for compatibility.
-- **Persisted writer/runtime output targets schema 1.0.** `createInspector()` with built-in writers emits schema 1.0 persisted rows; v0.2 remains a readable compatibility foundation.
+- **Persisted writer/runtime output targets schema 1.0.** `createInspector()` with built-in writers emits schema 1.0 persisted rows; v0.1 and v0.2 remain readable.
 - **Migration is explicit, not automatic.** `agent-inspect migrate <input> --to 1.0 --dry-run` reports what would change, and `--output <file>` writes a separate file. AgentInspect does not rewrite old traces in place.
 
 ## Runtime writers and universal readers (v1.6)
@@ -32,7 +32,7 @@ This document states what AgentInspect **does not** provide today. It complement
 
 - **AI SDK integration is explicit telemetry wiring.** Use `@agent-inspect/ai-sdk` through AI SDK `experimental_telemetry.integrations`; AgentInspect does not wrap providers, patch fetch, or enable telemetry globally.
 - **AI SDK privacy settings are caller-owned.** Examples set `recordInputs: false` and `recordOutputs: false`; leaving those enabled in user code can cause the AI SDK telemetry layer to include richer data before AgentInspect receives events.
-- **OpenAI Agents JS support is experimental.** `@agent-inspect/openai-agents` maps metadata-only runtime spans through the safe `setTraceProcessors()` boundary and does not capture raw payloads by default. The v1.9 package publication retry is a separate maintainer npm automation task, not part of the v2 contract work.
+- **OpenAI Agents JS support is Supported (metadata-first).** `@agent-inspect/openai-agents` maps runtime spans through the safe `setTraceProcessors()` boundary and does not capture raw payloads by default. Bounded `capture: "preview"` is available through the shared adapter capture contract.
 - **LangGraph support is a boundary decision, not a separate package.** Initial support is expected through `@agent-inspect/langchain` callbacks unless no-network fixtures prove a separate package is needed.
 - **No root/core adapter dependencies.** AI SDK, OpenAI Agents, LangGraph, OpenTelemetry, and LangChain remain outside the root/core runtime dependency graph.
 - **Preview capture is bounded, not sanitized.** `capture: "preview"` persists truncated, key-redacted previews of framework-provided input/output fields. Key-based redaction cannot detect a secret embedded in free text, and there is no full-content capture mode. Fields the framework never exposes are reported as `AI_CAPTURE_FIELD_UNAVAILABLE` rather than reconstructed.
@@ -53,7 +53,8 @@ This document states what AgentInspect **does not** provide today. It complement
 
 - **Redaction profiles** (`local`, `share`, `strict`) are key-based presets — not compliance-grade PII detection. Review exports before sharing even with `--redaction-profile strict`.
 - **`@agent-inspect/redact` and `agent-inspect redact` create redacted copies.** They do not encrypt source traces, mutate originals, certify compliance, or guarantee every sensitive value is detected.
-- **Default metadata redaction** covers common sensitive keys only (exact key match, case-insensitive). Custom secret field names are not redacted unless you add rules via `redact: { rules: [...] }`.
+- **Default metadata redaction** covers common sensitive keys (exact key match, case-insensitive). Custom secret field names are not redacted unless you add rules via `redact: { rules: [...] }`.
+- **Error-message free text** also runs high-confidence credential detectors before disk (provider API keys, bearer tokens, JWTs, GitHub tokens, PEM private keys, and high-confidence `key=value` secrets). This is still not compliance-grade detection; `redact: false` opts out.
 - **Metadata truncation** applies to string values and nested structures; very large metadata may be replaced with a truncation marker when `maxEventBytes` is exceeded (default 64 KiB per JSONL line).
 - **Redaction is not encryption.** Local trace files remain readable on disk; treat `.agent-inspect-runs/` like any developer artifact that may contain operational data.
 

@@ -1,4 +1,5 @@
 import { Redactor } from "./logs/redactor.js";
+import { redactHighConfidenceCredentialsInString } from "./safety/credential-value-patterns.js";
 import {
   applyProfileMetadataCaps,
   resolveRedactionProfile,
@@ -338,12 +339,56 @@ function getEventMetadata(event: TraceEvent): Record<string, unknown> | undefine
  * Applies redaction, metadata truncation, and final serialized size bounds.
  * Never throws; returns a schema-valid event or a minimally truncated variant.
  */
+function prepareTraceEventErrorForDisk(
+  event: TraceEvent,
+  opts: TraceSafetyOptions,
+): TraceEvent {
+  if (
+    (event.event !== "run_completed" && event.event !== "step_completed") ||
+    !event.error
+  ) {
+    return event;
+  }
+  if (!opts.redactEnabled) return event;
+
+  const redactor = new Redactor({
+    rules: opts.redactionRules,
+    extraKeys: opts.profileExtraKeys,
+  });
+  const nextError = { ...event.error };
+  let changed = false;
+
+  if (typeof nextError.message === "string") {
+    const keyRedacted = redactor.redactValue("message", nextError.message);
+    const message =
+      typeof keyRedacted === "string"
+        ? redactHighConfidenceCredentialsInString(keyRedacted)
+        : "[REDACTED]";
+    if (message !== nextError.message) {
+      nextError.message = message.length > 0 ? message : "Unknown error";
+      changed = true;
+    }
+  }
+
+  // Stack frames often echo error.message; scrub credential-bearing stacks too.
+  if (typeof nextError.stack === "string") {
+    const scrubbedStack = redactHighConfidenceCredentialsInString(nextError.stack);
+    if (scrubbedStack !== nextError.stack) {
+      nextError.stack = scrubbedStack;
+      changed = true;
+    }
+  }
+
+  if (!changed) return event;
+  return { ...event, error: nextError };
+}
+
 export function prepareTraceEventForDisk(
   event: TraceEvent,
   opts: TraceSafetyOptions,
 ): TraceEvent {
   try {
-    let working: TraceEvent = { ...event };
+    let working: TraceEvent = prepareTraceEventErrorForDisk({ ...event }, opts);
 
     const rawMetadata = getEventMetadata(working);
     if (rawMetadata !== undefined) {
@@ -468,12 +513,19 @@ function preparePersistedErrorForDisk(
       extraKeys: opts.profileExtraKeys,
     });
     const rawMessage = safeGet(value, "message");
-    const redactedMessage = opts.redactEnabled
-      ? redactor.redactValue("message", rawMessage)
-      : rawMessage;
+    // Key-based redactValue("message", ...) does not catch free-text secrets;
+    // apply the same high-confidence value detectors as @agent-inspect/redact.
+    let messageForBound: unknown = rawMessage;
+    if (opts.redactEnabled) {
+      const keyRedacted = redactor.redactValue("message", rawMessage);
+      messageForBound =
+        typeof keyRedacted === "string"
+          ? redactHighConfidenceCredentialsInString(keyRedacted)
+          : keyRedacted;
+    }
     const boundedMessage = boundMetadataValue(
       "message",
-      redactedMessage,
+      messageForBound,
       opts,
       new WeakSet<object>(),
       0,

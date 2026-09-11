@@ -28,10 +28,10 @@ AgentInspect is **local-first** and **CLI-first**. These behaviors are intention
 ## Integrations
 
 - **Vendor sinks** (hosted dashboards, Langfuse/Braintrust/New Relic/Datadog native uploads, OTLP gRPC streaming, etc.) are **not implemented** in the core packages described here.
-- **AI SDK adapter** (`@agent-inspect/ai-sdk`) is experimental and metadata-first. It depends on explicit AI SDK telemetry configuration and requires `recordInputs: false` / `recordOutputs: false` for the documented safe path.
-- **OpenAI Agents JS adapter** (`@agent-inspect/openai-agents`) is experimental and metadata-first. Runtime metadata mapping is local-only; the safe install path is `setTraceProcessors()` rather than `addTraceProcessor()`. The v1.9 package publication retry is pending maintainer-side npm auto-publish setup and is separate from v2 contract work.
+- **AI SDK adapter** (`@agent-inspect/ai-sdk`) is Supported and metadata-first by default. It depends on explicit AI SDK telemetry configuration and requires `recordInputs: false` / `recordOutputs: false` for the documented safe path. Opt-in `capture: "preview"` uses the shared bounded preview helper.
+- **OpenAI Agents JS adapter** (`@agent-inspect/openai-agents`) is Supported and metadata-first. Runtime metadata mapping is local-only; the safe install path is `setTraceProcessors()` rather than `addTraceProcessor()`. Bounded `capture: "preview"` parity ships with the other official adapters.
 - **LangGraph support** is currently a documented boundary through `@agent-inspect/langchain`, not a dedicated package.
-- **LangChain adapter** captures **metadata-oriented** signals by default; it does not replace full framework observability.
+- **LangChain adapter** (`@agent-inspect/langchain`) is Supported; it captures **metadata-oriented** signals by default and shares the same preview contract when `capture: "preview"` is set.
 - **LangChain `stream: true`** records chunk counts and timing only — not a full token replay. Per-token JSONL events are not emitted.
 - **Deep swarm / nested RunnableSequence (6.14.2+):** capture resolves parents before registering child indexes and rejects `parentId === stepId`. Legacy traces that still contain self-parent edges are normalized in logical projection (`AI_LOGICAL_SELF_PARENT_REMOVED`) and rendered with visibility-first, cycle-safe trees so nested LLM/tool steps remain visible.
 - **Correlation metadata** (`correlationId`, `requestId`, `decisionId`, `groupId`) is written on `run_started` but **CLI list/view does not filter by correlation fields** yet.
