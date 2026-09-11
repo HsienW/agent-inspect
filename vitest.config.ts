@@ -213,7 +213,7 @@ export default defineConfig({
     // take ~40s+ each, so the Vitest 5s/60s defaults flake on CI.
     testTimeout: 180_000,
     hookTimeout: 180_000,
-    include: ["packages/**/*.test.ts"],
+    include: ["packages/**/*.test.ts", "scripts/**/*.test.mjs"],
     exclude: [
       "**/dist/**",
       "**/node_modules/**",
