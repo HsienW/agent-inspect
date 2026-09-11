@@ -1,5 +1,13 @@
 # @agent-inspect/langchain
 
+## 6.19.1
+
+### Patch Changes
+
+- e23b94b: 6.19.1 trust restoration: redact free-text credentials in persisted error messages before disk, refresh shipped docs to match 6.19.0 reality, and enforce all 18 fixed-group package READMEs (including root `agent-inspect`) via `package-readmes:check`.
+- Updated dependencies [e23b94b]
+  - agent-inspect@6.19.1
+
 ## 6.19.0
 
 ### Minor Changes
