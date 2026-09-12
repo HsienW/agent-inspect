@@ -594,6 +594,10 @@ describe.skipIf(!builtCliHasCheckCommand)("built check CLI", () => {
 
       expect(result.error, result.stderr).toBeUndefined();
       expect(result.status, `${result.stdout}\n${result.stderr}`).toBe(1);
+      expect(
+        result.stdout.trim().length > 0,
+        `expected JSON stdout from packed check CLI\nstdout=${JSON.stringify(result.stdout)}\nstderr=${result.stderr}`,
+      ).toBe(true);
       const parsed = JSON.parse(result.stdout) as {
         status?: string;
         findings?: { ruleId?: string }[];
