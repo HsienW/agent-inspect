@@ -43,6 +43,7 @@ const RECIPES = [
   "planner-verifier-actor-scope",
   "w3c-mcp-propagation",
   "guardrail-refusal-non-action",
+  "structured-control-contracts",
   "guardrails-basic",
   "circuit-breaker-basic",
   "read-only-mcp-server",

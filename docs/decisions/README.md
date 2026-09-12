@@ -11,5 +11,6 @@
 | [ADR-0007](./ADR-0007-package-tiers.md) | Package tiers |
 | [ADR-0008](./ADR-0008-canonical-docs-source.md) | Canonical docs source |
 | [ADR-0009](./ADR-0009-swarm-relationship-invariants.md) | Swarm relationship invariants |
+| [ADR-0010](./ADR-0010-structured-control-contracts.md) | Structured control contracts (6.23) |
 
 Detailed historical RFCs live in Git history after `6.16.1` proposal cleanup.
