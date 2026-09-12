@@ -1,30 +1,29 @@
-# Active execution plan — next releases (6.17.8 → 6.19.0)
+# Active execution plan — post-6.25 reliability program
 
-**Train:** `v6.17.8-closeout-trust`  
-**Named:** `agentinspect-feedback-integrity-v6.17.5-to-v6.22`  
-**Target:** patch `6.17.8`, then minors `6.18.0` and `6.19.0` via Changesets Trusted Publishing  
-**Baseline:** published `6.17.7` + main after contributor batch `#338`  
-**Authority:** [../ROADMAP.md](../ROADMAP.md) · [NEXT-RELEASES.md](./NEXT-RELEASES.md)
+**Train:** `agentinspect-reliability-evidence-v6.25.1-to-v6.30`  
+**Authority:** [../ROADMAP.md](../ROADMAP.md) · [NEXT-RELEASES.md](./NEXT-RELEASES.md)  
+**Baseline:** published `agent-inspect@6.25.0`
 
 ## Scope
 
-1. Closeout 6.17.8: `#340` clean `--keep`; MCP untrusted-trace boundary; tracker truth
-2. Publish 6.17.8 (Trusted Publishing only)
-3. Implement and publish 6.18.0 and 6.19.0 per NEXT-RELEASES chunks
-4. Roadmap/label hygiene for 6.20–6.22 only (no implementation in this train)
+1. Immediate repository/release-truth gate (docs + Settings instructions + Dependabot triage)
+2. Publish `6.25.1` correctness patch (retry/omitted-payload)
+3. Continue through eligible minors `6.26.0`–`6.29.0`
+4. Conditional `6.30.0` only with external evidence
+5. v7 assessment only — no implementation in this train
 
-## Explicit non-goals / deferrals
+## Explicit non-goals
 
-- Email-send / outreach gates (removed from repo state)
-- `6.17.7b` / vague Studio deferral naming (retired; optional-surface assessment in 6.17.8 closeout)
-- `6.17.9` unless a verified post-ship security/compat defect appears
-- Implementing 6.20–6.22 content in this run
-- Local `npm publish`; Mastra-from-interest; schema 1.1; full-content capture; ADPA `#142` before external gate
+- Local `npm publish`
+- Schema 1.1 / hosted SaaS / default network / CoT capture / pricing engine
+- Merging grouped Dependabot majors (#372/#373) or Changesets Action v2 (#368) without dedicated migrations
+- Fabricating retained-use or external conformance evidence
+- Implementing v7
 
 ## Chunks
 
-See [NEXT-RELEASES.md](./NEXT-RELEASES.md). Historical 6.17.7 chunks are complete (Version Packages `#326`; npm `6.17.7`).
+See [NEXT-RELEASES.md](./NEXT-RELEASES.md). Historical 6.17–6.25 adoption-first work is complete.
 
 ## Stop rule
 
-Trusted Publish each train when Changesets/npm/tags agree. Continue through 6.19.0. Stop only on CI/publication gates or material plan conflict.
+Trusted Publish each release when Changesets/npm/tags agree. Stop at `BLOCKED_ON_EXTERNAL_EVIDENCE` before inventing 6.30.0.

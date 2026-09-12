@@ -2,34 +2,33 @@
 
 ```yaml
 executionMode: maintainer-reviewed
-namedTrain: agentinspect-adoption-first-v6.19-to-v6.25
-currentTrain: v6.25.0-stability-baseline
-trainStatus: complete
-currentChunk: program-closeout
-nextAction: "Program complete. Maintenance 6.25.x only; do not implement v7; retained-use remains BLOCKED_ON_EXTERNAL_EVIDENCE"
+namedTrain: agentinspect-reliability-evidence-v6.25.1-to-v6.30
+currentTrain: repository-and-release-truth-gate
+trainStatus: in-progress
+currentChunk: immediate-gate
+nextAction: "Finish release-truth gate docs → EXECUTE 6.25.1 (retry/omitted-payload). Manual: protect main; triage Dependabot PRs."
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/NEXT-RELEASES.md
-pendingManualGate: null
+pendingManualGate: "GitHub branch protection on main + Dependabot close/split (#372/#373) + defer #368"
 ```
 
 ## Published baseline
 
-**6.25.0** on npm (Trusted Publish [34698294028](https://github.com/rajudandigam/agent-inspect/actions/runs/34698294028)). Persisted schema **1.0**.
+**6.25.0** on npm. Persisted schema **1.0**.
 
-## Adoption-first program — closed
+## Program focus
 
-| Release | Status |
-| --- | --- |
-| 6.22.0 Cross-runtime causal fidelity | published |
-| 6.23.0 Structured control contracts | published |
-| 6.24.0 Production adoption / distribution | published |
-| 6.25.0 Stability baseline | published (#386 feature, #387 Version Packages) |
+| Release | Theme | Status |
+| --- | --- | --- |
+| Immediate gate | Release truth + Settings/Dependabot instructions | in progress |
+| 6.25.1 | Retry + omitted-payload correctness | next |
+| 6.26.0 | Behavioral sessions (#362) | planned |
+| 6.27.0–6.29.0 | Recovery / Evidence / usage | planned |
+| 6.30.0 | External conformance | conditional |
+| v7 | Assessment only | NO-GO |
 
-## Remaining (not part of this train)
+## Manual maintainer gates
 
-| Item | Status |
-| --- | --- |
-| Retained-use / “adoption” claim | `BLOCKED_ON_EXTERNAL_EVIDENCE` |
-| v7 | assessment only — [active/V7-READINESS-ASSESSMENT.md](./active/V7-READINESS-ASSESSMENT.md) |
-| #209 packed-consumer matrix | PARTIAL — keep open |
-| #295 VS Code Marketplace | deferred (6.24 Option A) |
+- [BRANCH-PROTECTION-INSTRUCTIONS.md](./active/BRANCH-PROTECTION-INSTRUCTIONS.md)
+- [DEPENDABOT-TRIAGE.md](./active/DEPENDABOT-TRIAGE.md)
+- [ISSUE-PR-PARK-LIST.md](./active/ISSUE-PR-PARK-LIST.md)
