@@ -1,5 +1,15 @@
 # @agent-inspect/eval
 
+## 6.24.0
+
+### Patch Changes
+
+- 2fa9d46: Production adoption distribution: lifecycle guidance, init/doctor CLI docs, gate compact JSON and GitHub annotations, VS Code Marketplace deferral confirmed.
+- Updated dependencies [2fa9d46]
+  - agent-inspect@6.24.0
+  - @agent-inspect/guardrails@6.24.0
+  - @agent-inspect/circuit@6.24.0
+
 ## 6.23.0
 
 ### Patch Changes

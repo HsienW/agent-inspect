@@ -5,8 +5,8 @@
 > **Canonical roadmap:** [ROADMAP.md](./ROADMAP.md)
 
 ```yaml
-baselineVersion: "6.23.0"
-publishedVersion: "6.23.0"
+baselineVersion: "6.24.0"
+publishedVersion: "6.24.0"
 pendingPublishVersion: "6.22.0"
 currentTrain: "v6.23.0-structured-control-contracts"
 trainStatus: "in-progress"
