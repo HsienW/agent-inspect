@@ -12,6 +12,8 @@ Contracts compile to deterministic check rules for common cases:
 - tool required / forbidden / allowed / maxCalls / order (`requiredTools` / `forbiddenTools` aliases)
 - selectable `requiredOrderMode` (`first-occurrence` | `happens-before` | `all-occurrences`)
 - `alternatives.anyOf` for one level of legitimate alternate paths
+- actor `scope` selectors (`runId`, `subAgentId`, `groupId`, `workflowStep`, `rootEventId`)
+- observation `requireProvenance` (structural method / evidence / same-run event references)
 - `lintTraceContract` / `explainTraceContract` for brittle-contract diagnostics
 - LLM maxCalls / maxTotalTokens / allowedModels
 - evidence-bearing findings on failures
@@ -125,6 +127,43 @@ Constraints:
 ### `observations.required` (shipped)
 
 Requires externally observed or effect evidence (for example HTTP status, file write, cache key) rather than a specific tool call. Prefer this when the invariant is about **outcome** rather than **which tool ran**.
+
+### `scope` (shipped — experimental)
+
+Select one actor before evaluation using **explicit** metadata only:
+
+```ts
+defineTraceContract({
+  scope: { subAgentId: "verifier-agent" },
+  tools: { required: ["run_tests"] },
+});
+```
+
+Supported selectors: `runId`, `subAgentId`, `groupId`, `workflowStep`, `rootEventId` (subtree projection).
+
+- zero matches → error (no whole-session fallback)
+- singular selector matching multiple runs → error
+- no timestamp, prose, or display-name inference
+- successful selection reports the actor and evidence event count
+
+### `observations.requireProvenance` (shipped — experimental)
+
+Structural provenance for named outcomes. These checks prove method/evidence linkage was recorded; they do **not** prove the claim is semantically true, authorized, complete, or externally trusted.
+
+```ts
+defineTraceContract({
+  observations: {
+    required: ["refund-confirmed"],
+    requireProvenance: {
+      method: true,
+      evidence: true,
+      sameRunEventReference: true,
+    },
+  },
+});
+```
+
+Bounded evidence shapes: string event id, `{ eventId }`, or `{ eventIds }` (max 16). Method must be in the `ObservedOutcomeMethod` vocabulary. Omitting `requireProvenance` leaves prior observation behavior unchanged.
 
 ### Lint and explain (shipped)
 

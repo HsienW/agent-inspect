@@ -3122,6 +3122,8 @@ export {
   evaluateTraceContractRead,
   explainTraceContract,
   lintTraceContract,
+  resolveTraceContractScope,
+  workflowMetadataForRun,
   type TraceContract,
   type TraceContractAlternativeBranch,
   type TraceContractAlternatives,
@@ -3129,7 +3131,9 @@ export {
   type TraceContractInput,
   type TraceContractLintDiagnostic,
   type TraceContractLlmRules,
+  type TraceContractObservationProvenance,
   type TraceContractObservationRules,
   type TraceContractRunRules,
+  type TraceContractScope,
   type TraceContractToolRules,
 } from "./contract.js";

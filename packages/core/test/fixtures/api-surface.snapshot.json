@@ -455,8 +455,10 @@
       "lintTraceContract",
       "projectLogicalEvents",
       "resolveCanonicalToolName",
+      "resolveTraceContractScope",
       "runTraceChecks",
-      "summarizeSemanticParity"
+      "summarizeSemanticParity",
+      "workflowMetadataForRun"
     ],
     "reporters": [
       "EVIDENCE_CI_ARTIFACT_FILES",

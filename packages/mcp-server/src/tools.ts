@@ -90,7 +90,7 @@ export const FLAGSHIP_TOOLS: McpToolDefinition[] = [
   {
     name: "get_contract_failures",
     description: withUntrustedTraceWarning(
-      "Deterministic contract/check failures for one run.",
+      "Deterministic run-status check failures for one run. Actor-scoped TraceContracts and observation provenance (scope / requireProvenance) are evaluated via the TypeScript agent-inspect/checks API (evaluateTraceContract), not this MCP tool.",
     ),
     inputSchema: RUN_ID_SCHEMA,
   },

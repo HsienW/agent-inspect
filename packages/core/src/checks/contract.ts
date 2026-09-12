@@ -15,8 +15,19 @@ import {
   createToolUsageRule,
   runTraceChecks,
 } from "./index.js";
-import { extractOutcomesFromPersistedEvents } from "../outcomes/index.js";
+import {
+  resolveTraceContractScope,
+  type TraceContractScope,
+} from "./contract-scope.js";
+import {
+  OBSERVED_OUTCOME_METHODS,
+  extractOutcomesFromPersistedEvents,
+  type ObservedOutcome,
+} from "../outcomes/index.js";
 import type { TraceReadResult } from "../readers/index.js";
+
+export type { TraceContractScope } from "./contract-scope.js";
+export { resolveTraceContractScope, workflowMetadataForRun } from "./contract-scope.js";
 
 function contractFailFinding(
   ruleId: string,
@@ -99,9 +110,36 @@ export interface TraceContractLlmRules {
   allowedModels?: string[];
 }
 
+/**
+ * Structural provenance requirements for named observed outcomes (#321).
+ *
+ * These checks prove method/evidence linkage was recorded. They do **not**
+ * prove the claim is semantically true, authorized, complete, or externally
+ * trusted.
+ *
+ * @experimental
+ */
+export interface TraceContractObservationProvenance {
+  /** Require a non-empty method from the bounded ObservedOutcomeMethod vocabulary. */
+  method?: boolean;
+  /**
+   * Require bounded evidence references. Supported shapes:
+   * `string` event id, `{ eventId }`, or `{ eventIds: string[] }` (max 16 ids).
+   */
+  evidence?: boolean;
+  /** When true with evidence, each referenced event id must exist in the same run. */
+  sameRunEventReference?: boolean;
+}
+
 export interface TraceContractObservationRules {
   required?: string[];
   failOn?: Array<"failed" | "unknown" | "skipped">;
+  /**
+   * Structural provenance gates for `required` observation names.
+   *
+   * @experimental
+   */
+  requireProvenance?: TraceContractObservationProvenance;
 }
 
 /**
@@ -140,10 +178,22 @@ export type TraceContractBody = {
 };
 
 export interface TraceContractInput extends TraceContractBody {
+  /**
+   * Optional actor/run projection applied before evaluation (#320).
+   *
+   * @experimental
+   */
+  scope?: TraceContractScope;
   alternatives?: TraceContractAlternatives;
 }
 
 export interface TraceContract extends TraceContractBody {
+  /**
+   * Optional actor/run projection applied before evaluation (#320).
+   *
+   * @experimental
+   */
+  scope?: TraceContractScope;
   alternatives?: TraceContractAlternatives;
 }
 
@@ -171,7 +221,16 @@ function cloneBody(body: TraceContractBody): TraceContractBody {
     ...(body.run ? { run: { ...body.run } } : {}),
     ...(body.tools ? { tools: { ...body.tools } } : {}),
     ...(body.llm ? { llm: { ...body.llm } } : {}),
-    ...(body.observations ? { observations: { ...body.observations } } : {}),
+    ...(body.observations
+      ? {
+          observations: {
+            ...body.observations,
+            ...(body.observations.requireProvenance
+              ? { requireProvenance: { ...body.observations.requireProvenance } }
+              : {}),
+          },
+        }
+      : {}),
   };
 }
 
@@ -182,6 +241,145 @@ function bodyHasRules(body: TraceContractBody): boolean {
     body.llm !== undefined ||
     body.observations !== undefined
   );
+}
+
+const MAX_EVIDENCE_EVENT_IDS = 16;
+const METHOD_VOCABULARY = new Set<string>(OBSERVED_OUTCOME_METHODS);
+
+type EvidenceRefParse =
+  | { status: "missing" }
+  | { status: "invalid"; reason: string }
+  | { status: "ok"; eventIds: string[] };
+
+function parseEvidenceEventIds(evidence: unknown): EvidenceRefParse {
+  if (evidence === undefined || evidence === null) {
+    return { status: "missing" };
+  }
+  if (typeof evidence === "string") {
+    const trimmed = evidence.trim();
+    if (trimmed === "") {
+      return { status: "invalid", reason: "empty evidence string" };
+    }
+    return { status: "ok", eventIds: [trimmed] };
+  }
+  if (typeof evidence !== "object" || Array.isArray(evidence)) {
+    return {
+      status: "invalid",
+      reason: "evidence must be a string event id or { eventId } / { eventIds }",
+    };
+  }
+  const record = evidence as Record<string, unknown>;
+  if (typeof record.eventId === "string") {
+    const trimmed = record.eventId.trim();
+    if (trimmed === "") {
+      return { status: "invalid", reason: "empty evidence.eventId" };
+    }
+    return { status: "ok", eventIds: [trimmed] };
+  }
+  if (Array.isArray(record.eventIds)) {
+    if (record.eventIds.length === 0) {
+      return { status: "invalid", reason: "empty evidence.eventIds" };
+    }
+    if (record.eventIds.length > MAX_EVIDENCE_EVENT_IDS) {
+      return {
+        status: "invalid",
+        reason: `evidence.eventIds exceeds bound of ${MAX_EVIDENCE_EVENT_IDS}`,
+      };
+    }
+    const eventIds: string[] = [];
+    for (const item of record.eventIds) {
+      if (typeof item !== "string" || item.trim() === "") {
+        return { status: "invalid", reason: "evidence.eventIds contains a non-string id" };
+      }
+      eventIds.push(item.trim());
+    }
+    return { status: "ok", eventIds };
+  }
+  return {
+    status: "invalid",
+    reason: "evidence must include eventId or eventIds",
+  };
+}
+
+function provenanceFindingsForOutcome(
+  outcome: ObservedOutcome,
+  requireProvenance: TraceContractObservationProvenance,
+  knownEventIds: ReadonlySet<string>,
+): TraceCheckFinding[] {
+  const findings: TraceCheckFinding[] = [];
+  const evidenceBase: TraceCheckEvidence[] = [
+    {
+      runId: outcome.runId,
+      eventId: outcome.outcomeId,
+      kind: "OUTCOME",
+      name: outcome.name,
+      path: `outcome.${outcome.name}`,
+    },
+  ];
+
+  if (requireProvenance.method) {
+    if (outcome.method === undefined || outcome.method.trim() === "") {
+      findings.push(
+        contractFailFinding(
+          "contract.observation.provenance.method",
+          `Observation ${outcome.name} is missing a structural method.`,
+          evidenceBase,
+          { method: true },
+          { name: outcome.name, method: outcome.method ?? null },
+        ),
+      );
+    } else if (!METHOD_VOCABULARY.has(outcome.method)) {
+      findings.push(
+        contractFailFinding(
+          "contract.observation.provenance.method",
+          `Observation ${outcome.name} method ${outcome.method} is outside the bounded ObservedOutcomeMethod vocabulary.`,
+          evidenceBase,
+          { methodVocabulary: [...OBSERVED_OUTCOME_METHODS] },
+          { name: outcome.name, method: outcome.method },
+        ),
+      );
+    }
+  }
+
+  if (requireProvenance.evidence || requireProvenance.sameRunEventReference) {
+    const parsed = parseEvidenceEventIds(outcome.evidence);
+    if (parsed.status === "missing") {
+      findings.push(
+        contractFailFinding(
+          "contract.observation.provenance.evidence",
+          `Observation ${outcome.name} is missing bounded evidence references.`,
+          evidenceBase,
+          { evidence: true },
+          { name: outcome.name, evidence: null },
+        ),
+      );
+    } else if (parsed.status === "invalid") {
+      findings.push(
+        contractFailFinding(
+          "contract.observation.provenance.evidence",
+          `Observation ${outcome.name} evidence is not a bounded event reference (${parsed.reason}).`,
+          evidenceBase,
+          { evidence: true },
+          { name: outcome.name, reason: parsed.reason },
+        ),
+      );
+    } else if (requireProvenance.sameRunEventReference) {
+      const missing = parsed.eventIds.filter((eventId) => !knownEventIds.has(eventId));
+      if (missing.length > 0) {
+        findings.push(
+          contractFailFinding(
+            "contract.observation.provenance.same-run",
+            `Observation ${outcome.name} references event ids missing from the same run: ${missing.join(", ")}.`,
+            evidenceBase,
+            { sameRunEventReference: true, eventIds: parsed.eventIds },
+            { name: outcome.name, missing },
+          ),
+        );
+      }
+    }
+  }
+
+  return findings;
 }
 
 function contractToRules(contract: TraceContractBody): TraceCheckRule[] {
@@ -344,9 +542,96 @@ function contractToRules(contract: TraceContractBody): TraceCheckRule[] {
         }),
       );
     }
+    const requireProvenance = contract.observations.requireProvenance;
+    if (
+      requireProvenance &&
+      (requireProvenance.method ||
+        requireProvenance.evidence ||
+        requireProvenance.sameRunEventReference)
+    ) {
+      rules.push({
+        id: "contract.observation.provenance",
+        category: "run",
+        defaultSeverity: "error",
+        evaluate(context) {
+          const outcomes = extractOutcomesFromPersistedEvents(context.events);
+          const knownEventIds = new Set(context.events.map((event) => event.eventId));
+          const targets =
+            required.length > 0
+              ? outcomes.filter((outcome) => required.includes(outcome.name))
+              : outcomes;
+          return targets.flatMap((outcome) =>
+            provenanceFindingsForOutcome(outcome, requireProvenance, knownEventIds),
+          );
+        },
+      });
+    }
   }
 
   return rules;
+}
+
+function validateScopeShape(
+  scope: TraceContractScope | undefined,
+): TraceContractLintDiagnostic[] {
+  if (scope === undefined) return [];
+  const hasSelector =
+    (typeof scope.runId === "string" && scope.runId.trim() !== "") ||
+    (typeof scope.subAgentId === "string" && scope.subAgentId.trim() !== "") ||
+    (typeof scope.groupId === "string" && scope.groupId.trim() !== "") ||
+    (typeof scope.workflowStep === "string" && scope.workflowStep.trim() !== "") ||
+    (typeof scope.rootEventId === "string" && scope.rootEventId.trim() !== "");
+  if (!hasSelector) {
+    return [
+      {
+        code: "contract.scope.empty",
+        severity: "error",
+        message:
+          "scope requires at least one explicit selector (runId, subAgentId, groupId, workflowStep, or rootEventId).",
+        path: "scope",
+      },
+    ];
+  }
+  return [];
+}
+
+function validateProvenanceShape(
+  observations: TraceContractObservationRules | undefined,
+): TraceContractLintDiagnostic[] {
+  const diagnostics: TraceContractLintDiagnostic[] = [];
+  const provenance = observations?.requireProvenance;
+  if (!provenance) return diagnostics;
+  const enabled =
+    provenance.method === true ||
+    provenance.evidence === true ||
+    provenance.sameRunEventReference === true;
+  if (!enabled) {
+    diagnostics.push({
+      code: "contract.observation.provenance.empty",
+      severity: "warning",
+      message: "observations.requireProvenance is set but no flags are enabled.",
+      path: "observations.requireProvenance",
+    });
+  }
+  if (provenance.sameRunEventReference === true && provenance.evidence !== true) {
+    diagnostics.push({
+      code: "contract.observation.provenance.same-run-without-evidence",
+      severity: "info",
+      message:
+        "sameRunEventReference implies evidence checking; set requireProvenance.evidence: true for clarity.",
+      path: "observations.requireProvenance.sameRunEventReference",
+    });
+  }
+  if (enabled && (observations?.required?.length ?? 0) === 0) {
+    diagnostics.push({
+      code: "contract.observation.provenance.without-required",
+      severity: "warning",
+      message:
+        "requireProvenance without observations.required applies to every observed outcome in scope.",
+      path: "observations.requireProvenance",
+    });
+  }
+  return diagnostics;
 }
 
 function validateAlternativesShape(
@@ -477,9 +762,11 @@ function evaluateBody(
  * @experimental
  */
 export function defineTraceContract(input: TraceContractInput): TraceContract {
-  const shapeErrors = validateAlternativesShape(input.alternatives).filter(
-    (item) => item.severity === "error",
-  );
+  const shapeErrors = [
+    ...validateAlternativesShape(input.alternatives),
+    ...validateScopeShape(input.scope),
+    ...validateProvenanceShape(input.observations),
+  ].filter((item) => item.severity === "error");
   if (shapeErrors.length > 0) {
     throw new TypeError(shapeErrors.map((item) => item.message).join(" "));
   }
@@ -493,8 +780,22 @@ export function defineTraceContract(input: TraceContractInput): TraceContract {
         })),
       }
     : undefined;
+  const scope = input.scope
+    ? {
+        ...(input.scope.runId !== undefined ? { runId: input.scope.runId } : {}),
+        ...(input.scope.subAgentId !== undefined ? { subAgentId: input.scope.subAgentId } : {}),
+        ...(input.scope.groupId !== undefined ? { groupId: input.scope.groupId } : {}),
+        ...(input.scope.workflowStep !== undefined
+          ? { workflowStep: input.scope.workflowStep }
+          : {}),
+        ...(input.scope.rootEventId !== undefined
+          ? { rootEventId: input.scope.rootEventId }
+          : {}),
+      }
+    : undefined;
   return {
     ...body,
+    ...(scope ? { scope } : {}),
     ...(alternatives ? { alternatives } : {}),
   };
 }
@@ -512,9 +813,11 @@ export function evaluateTraceContract(
   contract: TraceContract,
   options: { runId?: string } = {},
 ): TraceCheckResult {
-  const shapeErrors = validateAlternativesShape(contract.alternatives).filter(
-    (item) => item.severity === "error",
-  );
+  const shapeErrors = [
+    ...validateAlternativesShape(contract.alternatives),
+    ...validateScopeShape(contract.scope),
+    ...validateProvenanceShape(contract.observations),
+  ].filter((item) => item.severity === "error");
   if (shapeErrors.length > 0) {
     return {
       ok: false,
@@ -539,14 +842,67 @@ export function evaluateTraceContract(
     };
   }
 
-  const base = evaluateBody(input, contract, options);
+  const scoped = resolveTraceContractScope(input, contract.scope);
+  if (scoped.diagnostics.length > 0) {
+    return {
+      ok: false,
+      status: "error",
+      format: input.read.format,
+      ...(options.runId !== undefined ? { runId: options.runId } : {}),
+      ...(scoped.resolved?.runId !== undefined ? { runId: scoped.resolved.runId } : {}),
+      summary: {
+        passed: 0,
+        failed: 0,
+        warnings: 0,
+        errors: scoped.diagnostics.length,
+        rulesEvaluated: 0,
+      },
+      findings: [],
+      diagnostics: scoped.diagnostics,
+      ruleExecutions: [],
+    };
+  }
+
+  const effectiveInput = scoped.resolved?.input ?? input;
+  const effectiveRunId = scoped.resolved?.runId ?? options.runId;
+  const base = evaluateBody(effectiveInput, contract, {
+    ...(effectiveRunId !== undefined ? { runId: effectiveRunId } : {}),
+  });
+  const scopeFinding: TraceCheckFinding | undefined = scoped.resolved
+    ? {
+        ruleId: "contract.scope.selected",
+        severity: "info",
+        status: "pass",
+        message: `Selected actor ${scoped.resolved.runId} with ${scoped.resolved.evidenceEventCount} evidence event(s).`,
+        expected: scoped.resolved.matchedSelectors,
+        actual: {
+          runId: scoped.resolved.runId,
+          evidenceEventCount: scoped.resolved.evidenceEventCount,
+          ...(scoped.resolved.rootEventId !== undefined
+            ? { rootEventId: scoped.resolved.rootEventId }
+            : {}),
+        },
+        evidence: [
+          {
+            runId: scoped.resolved.runId,
+            kind: "RUN",
+            path: "scope",
+          },
+        ],
+      }
+    : undefined;
+
   const branches = contract.alternatives?.anyOf ?? [];
   if (branches.length === 0) {
-    return base;
+    return scopeFinding
+      ? mergeContractResults(effectiveInput, [base], [scopeFinding])
+      : base;
   }
 
   const branchEvaluations = branches.map((branch) => {
-    const result = evaluateBody(input, branch.contract, options);
+    const result = evaluateBody(effectiveInput, branch.contract, {
+      ...(effectiveRunId !== undefined ? { runId: effectiveRunId } : {}),
+    });
     return { branch, result };
   });
   const satisfied = branchEvaluations
@@ -569,7 +925,11 @@ export function evaluateTraceContract(
       },
       evidence: [],
     };
-    return mergeContractResults(input, [base], [passFinding]);
+    return mergeContractResults(
+      effectiveInput,
+      [base],
+      [...(scopeFinding ? [scopeFinding] : []), passFinding],
+    );
   }
 
   const noneFinding: TraceCheckFinding = {
@@ -601,7 +961,11 @@ export function evaluateTraceContract(
         ruleId: `contract.alternatives.${item.branch.id}.${finding.ruleId}`,
       })),
   );
-  return mergeContractResults(input, [base], [noneFinding, ...prefixedBranchFindings]);
+  return mergeContractResults(
+    effectiveInput,
+    [base],
+    [...(scopeFinding ? [scopeFinding] : []), noneFinding, ...prefixedBranchFindings],
+  );
 }
 
 /**
@@ -623,7 +987,11 @@ export function evaluateTraceContractRead(
  * @experimental
  */
 export function lintTraceContract(contract: TraceContract): TraceContractLintDiagnostic[] {
-  const diagnostics = validateAlternativesShape(contract.alternatives);
+  const diagnostics = [
+    ...validateAlternativesShape(contract.alternatives),
+    ...validateScopeShape(contract.scope),
+    ...validateProvenanceShape(contract.observations),
+  ];
   const branches = contract.alternatives?.anyOf ?? [];
   if (branches.length === 1) {
     diagnostics.push({
@@ -667,6 +1035,14 @@ export function lintTraceContract(contract: TraceContract): TraceContractLintDia
  */
 export function explainTraceContract(contract: TraceContract): string[] {
   const lines: string[] = [];
+  if (contract.scope) {
+    const parts = Object.entries(contract.scope)
+      .filter(([, value]) => typeof value === "string" && value.trim() !== "")
+      .map(([key, value]) => `${key}=${value}`);
+    if (parts.length > 0) {
+      lines.push(`Scope: select actor by [${parts.join(", ")}] before evaluation.`);
+    }
+  }
   if (contract.run?.requireCompleted !== false) {
     lines.push("Base: run must complete (no running events).");
   }
@@ -717,6 +1093,20 @@ export function explainTraceContract(contract: TraceContract): string[] {
   }
   if (contract.observations?.failOn?.length) {
     lines.push(`Base: fail on observations [${contract.observations.failOn.join(", ")}].`);
+  }
+  if (contract.observations?.requireProvenance) {
+    const flags = [
+      contract.observations.requireProvenance.method ? "method" : undefined,
+      contract.observations.requireProvenance.evidence ? "evidence" : undefined,
+      contract.observations.requireProvenance.sameRunEventReference
+        ? "sameRunEventReference"
+        : undefined,
+    ].filter((item): item is string => item !== undefined);
+    if (flags.length > 0) {
+      lines.push(
+        `Base: require structural observation provenance [${flags.join(", ")}] (not semantic truth).`,
+      );
+    }
   }
   const branches = contract.alternatives?.anyOf ?? [];
   if (branches.length > 0) {

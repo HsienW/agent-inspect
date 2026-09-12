@@ -40,6 +40,7 @@ const RECIPES = [
   "eval-ci-artifacts",
   "mcp-client-tracing",
   "mcp-expected-rejection",
+  "planner-verifier-actor-scope",
   "guardrails-basic",
   "circuit-breaker-basic",
   "read-only-mcp-server",
