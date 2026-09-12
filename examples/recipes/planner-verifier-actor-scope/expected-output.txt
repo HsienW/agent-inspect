@@ -1,0 +1,5 @@
+verifier scope PASS
+planner-as-verifier FAIL
+missing actor ERROR
+provenance PASS
+fabricated provenance FAIL

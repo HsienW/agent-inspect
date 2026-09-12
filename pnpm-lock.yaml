@@ -476,6 +476,15 @@ importers:
         specifier: ^4.19.0
         version: 4.21.0
 
+  examples/recipes/planner-verifier-actor-scope:
+    dependencies:
+      agent-inspect:
+        specifier: workspace:*
+        version: link:../../..
+      tsx:
+        specifier: ^4.19.0
+        version: 4.21.0
+
   examples/recipes/proactive-agent-logs:
     dependencies:
       agent-inspect:

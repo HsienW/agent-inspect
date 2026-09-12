@@ -4,29 +4,27 @@
 executionMode: maintainer-reviewed
 namedTrain: agentinspect-feedback-integrity-v6.17.5-to-v6.22
 currentTrain: v6.21.0-multi-agent-evidence-precision
-trainStatus: ready
-currentChunk: none
-nextAction: "Start 6.21.0 when authorized — #320 actor-scoped contracts; #321 outcome provenance"
+trainStatus: in-progress
+currentChunk: actor-scope-and-outcome-provenance
+nextAction: "Land feat/621-actor-provenance when CI green; then Version Packages + Trusted Publish for 6.21.0"
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/NEXT-RELEASES.md
-pendingManualGate: "maintainer authorization to begin 6.21.0"
+pendingManualGate: "green CI on 6.21 PR; merge to main; do not create Version Packages manually"
 ```
 
 ## Published baseline
 
-**6.20.0** published on npm (all 18 fixed-group packages). Persisted schema **1.0**.
+**6.20.0** published on npm. Persisted schema **1.0**.
 
-## Completed — 6.20.0 Flexible Deterministic Contracts
+## Active focus — 6.21.0 Multi-agent evidence precision
 
 | Chunk | Status |
 | --- | --- |
-| #315 causal `requiredOrderMode` (HsienW authorship preserved) | published |
-| #309 `alternatives.anyOf` | published |
-| Contract lint / explain | published |
-| MCP expected-rejection + Promptfoo use-together recipes | published |
-| #375 feature PR + #376 Version Packages + Trusted Publish | done |
+| #320 actor `scope` selectors | implemented on `feat/621-actor-provenance` |
+| #321 `observations.requireProvenance` | implemented |
+| planner/verifier recipe | implemented |
+| Merge to main + Trusted Publish | pending |
 
-## Next
+## Later
 
-- **6.21.0** — #320 actor scope; #321 outcome provenance (roadmap-next)
 - **6.22.0** — #331 design confirmed; conditional; existing APIs only; not implemented (roadmap-future)
