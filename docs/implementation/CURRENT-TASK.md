@@ -3,10 +3,10 @@
 ```yaml
 executionMode: maintainer-reviewed
 namedTrain: agentinspect-reliability-evidence-v6.25.1-to-v6.30
-currentTrain: repository-and-release-truth-gate
+currentTrain: v6.25.1-critical-correctness
 trainStatus: in-progress
-currentChunk: immediate-gate
-nextAction: "Finish release-truth gate docs → EXECUTE 6.25.1 (retry/omitted-payload). Manual: protect main; triage Dependabot PRs."
+currentChunk: retry-omitted-payload-fix
+nextAction: "Land 6.25.1 PR → Version Packages → Trusted Publish; then 6.26.0. Manual: protect main; Dependabot triage."
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/NEXT-RELEASES.md
 pendingManualGate: "GitHub branch protection on main + Dependabot close/split (#372/#373) + defer #368"
@@ -14,18 +14,7 @@ pendingManualGate: "GitHub branch protection on main + Dependabot close/split (#
 
 ## Published baseline
 
-**6.25.0** on npm. Persisted schema **1.0**.
-
-## Program focus
-
-| Release | Theme | Status |
-| --- | --- | --- |
-| Immediate gate | Release truth + Settings/Dependabot instructions | in progress |
-| 6.25.1 | Retry + omitted-payload correctness | next |
-| 6.26.0 | Behavioral sessions (#362) | planned |
-| 6.27.0–6.29.0 | Recovery / Evidence / usage | planned |
-| 6.30.0 | External conformance | conditional |
-| v7 | Assessment only | NO-GO |
+**6.25.0** on npm. Persisted schema **1.0**. Gate docs + 6.25.1 correctness in flight.
 
 ## Manual maintainer gates
 
