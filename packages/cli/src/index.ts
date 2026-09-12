@@ -1059,6 +1059,8 @@ export function createCliProgram(): Command {
         "langchain",
         "langgraph",
         "custom",
+        "observe",
+        "manual",
       ]),
     )
     .addOption(new Option("--ci <provider>", "optional CI snippet").choices(["github"]))

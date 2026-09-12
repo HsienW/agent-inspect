@@ -1,6 +1,8 @@
-# AgentInspect recipes (v0.9)
+# AgentInspect recipes
 
-Runnable workflows that show **adoption patterns** for manual tracing, framework adapters, advanced structured-log ingestion, deterministic evals, redaction, retries, and parallelism. Each recipe is **local**, **deterministic**, and uses **mocks only**—no API keys, no external services, no vendor SDKs.
+Runnable workflows that show **adoption patterns** for manual tracing, framework adapters, structured-log ingestion, deterministic evals, redaction, retries, and parallelism. Each recipe is **local**, **deterministic**, and uses **mocks only**—no API keys, no external services, no vendor SDKs.
+
+**Adoption path:** `init --framework` → `doctor` → recipe/`gate` → Evidence (see [GOLDEN-PATH.md](../../docs/GOLDEN-PATH.md), [LIFECYCLE.md](../../docs/LIFECYCLE.md), [INSTALL-KITS.md](../../docs/INSTALL-KITS.md)).
 
 ## How to run
 

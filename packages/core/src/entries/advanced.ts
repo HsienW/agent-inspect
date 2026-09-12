@@ -433,6 +433,7 @@ export {
   gateHasThresholds,
   parseGateList,
   parseGateNumber,
+  renderGateGithubAnnotations,
   renderGateGithubStepSummary,
   renderGateJUnit,
   renderGateReport,

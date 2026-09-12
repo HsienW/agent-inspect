@@ -14,6 +14,7 @@ export {
 } from "./evaluate.js";
 export { runGate } from "./run.js";
 export {
+  renderGateGithubAnnotations,
   renderGateGithubStepSummary,
   renderGateJUnit,
   renderGateReport,

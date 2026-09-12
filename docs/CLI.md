@@ -1026,9 +1026,9 @@ Options:
 - `--max-p95-duration <ms>` — maximum allowed p95 run duration
 - `--forbid-tool <name>` — forbidden tool (repeatable or comma-separated)
 - `--require-observation <name>` — required passed observation (repeatable or comma-separated)
-- `--format <format>` — `markdown`, `json`, `html`, `junit`, or `github` (default: `markdown`)
-- `-o, --output <dir>` — write `gate-results.json`, `gate-summary.md`, `gate-report.html`, `junit.xml`, `github-step-summary.md`
-- `--json` — print deterministic JSON result
+- `--format <format>` — `markdown`, `json`, `json-compact`, `html`, `junit`, `github`, or `github-annotations` (default: `markdown`)
+- `-o, --output <dir>` — write `gate-results.json`, `gate-summary.md`, `gate-report.html`, `junit.xml`, `github-step-summary.md`, `github-annotations.txt`
+- `--json` — print deterministic JSON result (pretty); use `--format json-compact` for CI logs
 - `--evidence-on <fail|always|never>` — write local Evidence v2 (no upload); omitted = never
 - `--evidence-dir <path>` — Evidence output directory or base path
 - `--evidence-profile <local|share|strict>` — redaction profile (default `share`)
@@ -1042,6 +1042,8 @@ Example:
 npx agent-inspect gate --suite fixtures/configs/outcome-suite.suite.json --output ./gate-artifacts
 npx agent-inspect gate --dir fixtures/cohorts/before-after --max-error-rate 5 --forbid-tool deleteAccount
 npx agent-inspect gate --suite agent-inspect.suite.ts --evidence-on fail --evidence-profile share
+npx agent-inspect gate --suite agent-inspect.suite.ts --format github-annotations
+npx agent-inspect gate --suite agent-inspect.suite.ts --format json-compact
 ```
 
 Recipe: [github-actions-gate](../examples/recipes/github-actions-gate/README.md).
@@ -1068,6 +1070,36 @@ Example:
 npx agent-inspect viewer --suite --config fixtures/configs/outcome-suite.suite.json
 npx agent-inspect viewer --workspace
 ```
+
+### 6.29 `init`
+
+Scaffold local AgentInspect config and a metadata-only demo (v3.1+). Does **not** install packages or rewrite application source unless you opt in later.
+
+```bash
+agent-inspect init [--framework <name>] [--ci github] [--dry-run] [--yes] [--json]
+```
+
+`--framework` values (adoption order):
+
+| Value | Meaning |
+| --- | --- |
+| `ai-sdk` | AI SDK kit pointer + demo |
+| `langchain` / `langgraph` | LangChain/LangGraph kit pointer + demo |
+| `openai-agents` | OpenAI Agents kit pointer + demo |
+| `custom` | Manual `inspectRun` / `step` demo |
+| `observe` / `manual` | Aliases of `custom` (`observe(...)` demo) |
+
+Also writes `.agent-inspect/.gitkeep` and optional GitHub Actions workflow when `--ci github` is set. See [ADOPTION.md](./ADOPTION.md), [INSTALL-KITS.md](./INSTALL-KITS.md), and [LIFECYCLE.md](./LIFECYCLE.md).
+
+### 6.30 `doctor`
+
+Diagnose local setup **without network probes or installs** (v3.1+).
+
+```bash
+agent-inspect doctor [--framework <name>] [--trace-dir <path>] [--check-imports] [--json]
+```
+
+Reports version alignment, peer/package resolution, capture posture hints, writer path, redaction profile reminders, and no-default-egress expectations. Failures exit non-zero. Prefer `workspace doctor` when using a managed workspace layout.
 
 ## 7. Optional TUI behavior
 

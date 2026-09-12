@@ -41,5 +41,12 @@ export interface RunGateOptions {
 }
 
 export interface RenderGateReportOptions {
-  format?: "markdown" | "json" | "html" | "junit" | "github";
+  format?:
+    | "markdown"
+    | "json"
+    | "json-compact"
+    | "html"
+    | "junit"
+    | "github"
+    | "github-annotations";
 }

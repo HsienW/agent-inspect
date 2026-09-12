@@ -4,11 +4,16 @@ Read-only sidebar for local trace directories. The extension shells out to the p
 
 **Support level:** Experimental (unpublished). Ignored by Changesets; not part of the fixed npm release group.
 
-## Product scope decision (6.18.0-H)
+## Product scope decision (6.24.0)
 
-**Disposition: defer (Option A).** Keep the in-repo extension unpublished. Core, official adapters, CLI, and Evidence take precedence over Marketplace packaging. Open PR #295 (sample trace command) and related issues (#66, #65) stay out of the active 6.18 implementation train until a later capacity window revisits VS Code.
+**Disposition: close without Marketplace publish (Option A, confirmed).**
 
-Do not merge #295 merely to clear the contributor queue.
+- Keep the in-repo extension unpublished.
+- Do **not** publish to the VS Code Marketplace in this train (credentials + product priority).
+- Open PR [#295](https://github.com/rajudandigam/agent-inspect/pull/295) (sample trace command) remains **out of the adoption train** — close or park as contributor-optional; do not merge solely to clear the queue while CI is red.
+- Related issues (#66, #65) stay deferred until a later capacity window revisits VS Code.
+
+Core, official adapters, CLI, Evidence, and TraceContract remain the adoption surface.
 
 ## Develop
 

@@ -27,7 +27,14 @@ export interface GateCommandOptions {
   forbidTool?: string | string[];
   requireObservation?: string | string[];
   json?: boolean;
-  format?: "markdown" | "json" | "html" | "junit" | "github";
+  format?:
+    | "markdown"
+    | "json"
+    | "json-compact"
+    | "html"
+    | "junit"
+    | "github"
+    | "github-annotations";
   output?: string;
   cwd?: string;
   /** Local Evidence v2 emit mode: fail | always | never. */
@@ -37,7 +44,15 @@ export interface GateCommandOptions {
   evidenceFormat?: string;
 }
 
-const SUPPORTED_FORMATS = new Set(["markdown", "json", "html", "junit", "github"]);
+const SUPPORTED_FORMATS = new Set([
+  "markdown",
+  "json",
+  "json-compact",
+  "html",
+  "junit",
+  "github",
+  "github-annotations",
+]);
 
 function collectList(value: string | string[] | undefined): string[] {
   if (value === undefined) return [];
@@ -80,6 +95,7 @@ async function writeArtifacts(
     htmlPath: path.join(outputDir, "gate-report.html"),
     junitPath: path.join(outputDir, "junit.xml"),
     githubPath: path.join(outputDir, "github-step-summary.md"),
+    annotationsPath: path.join(outputDir, "github-annotations.txt"),
   };
   await writeFile(
     paths.jsonPath,
@@ -104,6 +120,11 @@ async function writeArtifacts(
   await writeFile(
     paths.githubPath,
     `${renderGateReport(result, { format: "github" })}\n`,
+    "utf-8",
+  );
+  await writeFile(
+    paths.annotationsPath,
+    `${renderGateReport(result, { format: "github-annotations" })}\n`,
     "utf-8",
   );
   return paths;

@@ -14,6 +14,8 @@ AgentInspect is **local-first**: traces stay on disk, checks run in CI, and shar
 
 See [FIRST-TRACE-IN-5-MINUTES.md](./FIRST-TRACE-IN-5-MINUTES.md) or the [docs site getting started](https://agentinspect.vercel.app/docs/getting-started/).
 
+Lifecycle (flush/close by runtime): [LIFECYCLE.md](./LIFECYCLE.md).
+
 ```bash
 npm install agent-inspect
 npx agent-inspect init --yes

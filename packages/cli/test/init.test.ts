@@ -61,4 +61,11 @@ describe("init CLI", () => {
     expect(workflow).toContain("verify-safe . --dir .agent-inspect");
     expect(workflow).not.toContain("OPENAI_API_KEY");
   });
+
+  it("aliases observe and manual frameworks to custom", async () => {
+    const observe = await planInit({ framework: "observe", cwd: tmpDir });
+    const manual = await planInit({ framework: "manual", cwd: tmpDir });
+    expect(observe.framework).toBe("custom");
+    expect(manual.framework).toBe("custom");
+  });
 });
