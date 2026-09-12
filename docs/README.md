@@ -30,7 +30,7 @@ Optional Preview: [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) · [MCP.md](./M
 | [EVIDENCE-FIRST-ACCEPTANCE.md](./EVIDENCE-FIRST-ACCEPTANCE.md) | Flagship Evidence loop contract |
 | [NO-EGRESS-POLICY.md](./NO-EGRESS-POLICY.md) | AgentInspect-surface no-egress policy |
 | [LANGGRAPH.md](./LANGGRAPH.md) | LangGraph / LangChain onboarding |
-| [SUPPORT-LEVELS.md](./SUPPORT-LEVELS.md) · [STABILITY-BASELINE.md](./STABILITY-BASELINE.md) | Stable / Supported / Beta / Preview / Experimental + 6.25 freeze |
+| [SUPPORT-LEVELS.md](./SUPPORT-LEVELS.md) · [STABILITY-BASELINE.md](./STABILITY-BASELINE.md) | Stable / Supported / Beta / Preview / Experimental + 6.25 core freeze (patches/minors active) |
 | [NETWORK-BEHAVIOR.md](./NETWORK-BEHAVIOR.md) | Explicit network surfaces |
 | [AI-CODING-ASSISTANT-GUIDE.md](./AI-CODING-ASSISTANT-GUIDE.md) | How coding models should select AgentInspect |
 | [case-studies/nestjs-langgraph-local-evidence.md](./case-studies/nestjs-langgraph-local-evidence.md) | Public-safe anonymized integration story |

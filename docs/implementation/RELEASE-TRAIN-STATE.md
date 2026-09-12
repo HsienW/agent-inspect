@@ -7,29 +7,33 @@
 ```yaml
 baselineVersion: "6.25.0"
 publishedVersion: "6.25.0"
-pendingPublishVersion: null
-currentTrain: "v6.25.0-stability-baseline"
-trainStatus: "complete"
+pendingPublishVersion: "6.25.1"
+currentTrain: "repository-and-release-truth-gate"
+trainStatus: "in-progress"
 executionMode: "maintainer-reviewed"
-namedTrain: "agentinspect-adoption-first-v6.19-to-v6.25"
+namedTrain: "agentinspect-reliability-evidence-v6.25.1-to-v6.30"
 branch: "main"
-currentChunk: "program-closeout"
+currentChunk: "immediate-gate"
 lastConfirmedCommit: "origin/main"
-lastValidationLevel: "npm-6.25.0-published; Trusted Publish run 34698294028 success; GitHub release agent-inspect@6.25.0"
-nextAction: "Maintenance only (6.25.x). Retained-use claim remains BLOCKED_ON_EXTERNAL_EVIDENCE. v7 = assessment only (active/V7-READINESS-ASSESSMENT.md)."
-pendingManualGate: null
+lastValidationLevel: "npm-6.25.0-published; post-6.25 program planned"
+nextAction: "Complete release-truth gate → implement and publish 6.25.1"
+pendingManualGate: "main branch protection; Dependabot #372/#373 close-or-split; #368 defer; Actions PRs #367/#369/#370/#371 rebase independently"
 githubIssues:
   "209": "keep open — cross-platform packed-consumer matrix PARTIAL"
-  "295": "deferred — VS Code Marketplace not publishing (Option A confirmed in 6.24)"
-  "331": "closed — guardrail refusal recipe in 6.22"
-  "386": "closed — 6.25 stability baseline feature"
-  "387": "closed — 6.25.0 Version Packages + Trusted Publish"
+  "295": "park — VS Code Marketplace unpublished (Option A)"
+  "362": "scheduled — 6.26.0 outcome-aware behavioral sessions"
+  "115": "park/close unless active ADPA partner"
 canonicalRoadmap: "docs/implementation/ROADMAP.md"
 activePlan: "docs/implementation/active/NEXT-RELEASES.md"
 completedChunks:
-  - "6.19.1 through 6.25.0 published"
-  - "adoption-first program 6.19→6.25 complete"
-remainingTrains: []
+  - "adoption-first 6.19→6.25 published"
+remainingTrains:
+  - "v6.25.1 critical correctness"
+  - "v6.26.0 behavioral sessions"
+  - "v6.27.0 bounded recovery"
+  - "v6.28.0 Evidence binding"
+  - "v6.29.0 usage/adapters"
+  - "v6.30.0 conditional external conformance"
 blockedTrains:
   - "retained-use adoption claim (BLOCKED_ON_EXTERNAL_EVIDENCE)"
   - "v7.0.0 (assessment only — docs/implementation/active/V7-READINESS-ASSESSMENT.md)"

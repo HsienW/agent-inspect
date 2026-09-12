@@ -149,10 +149,43 @@ const unsafeRetry = [
       operationId: "op-1",
       attemptId: "a2",
       attemptNumber: 2,
-      // missing idempotencyKey on retry
+      // missing idempotencyKey on retry after ok
     },
     startedAt: "2026-09-12T10:00:05.000Z",
     endedAt: "2026-09-12T10:00:06.000Z",
+  }),
+];
+
+/** error → success without idempotency evidence (must FAIL under requireIdempotencyEvidenceForRetry). */
+const recoveredWithoutEvidence = [
+  event("run", { kind: "RUN", name: "run-controls" }),
+  event("charge-err", {
+    kind: "TOOL",
+    name: "tool:charge",
+    status: "error",
+    attributes: {
+      toolName: "charge",
+      arguments: { dryRun: true },
+      operationId: "op-recover",
+      attemptId: "r1",
+      attemptNumber: 1,
+    },
+    startedAt: "2026-09-12T10:00:01.000Z",
+    endedAt: "2026-09-12T10:00:02.000Z",
+  }),
+  event("charge-ok", {
+    kind: "TOOL",
+    name: "tool:charge",
+    attributes: {
+      toolName: "charge",
+      arguments: { dryRun: true },
+      operationId: "op-recover",
+      attemptId: "r2",
+      attemptNumber: 2,
+      // missing idempotencyKey on error→success retry
+    },
+    startedAt: "2026-09-12T10:00:03.000Z",
+    endedAt: "2026-09-12T10:00:04.000Z",
   }),
 ];
 
@@ -164,4 +197,7 @@ console.log(
 );
 console.log(
   `unsafe-retry ${evaluateTraceContract({ read: read(unsafeRetry) }, contract).status.toUpperCase()}`,
+);
+console.log(
+  `recovered-without-evidence ${evaluateTraceContract({ read: read(recoveredWithoutEvidence) }, contract).status.toUpperCase()}`,
 );

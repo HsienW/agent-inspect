@@ -2,6 +2,11 @@
 
 AgentInspect is **local-first** and **CLI-first**. These behaviors are intentional constraints or best-effort areas—not silent guarantees.
 
+## Contracts and safety
+
+- **Retry / side-effect rules (6.23+; chronology fixed in 6.25.1):** `requireIdempotencyEvidenceForRetry` applies to genuine retries including `error → success`, not only retries after a prior `ok`. Ambiguous attempt identity fails closed under that rule. Write timeouts remain **unknown completion** — safe write retry is not claimed.
+- **Omitted-payload digests:** inputs larger than 1 MiB are rejected after a length preflight; oversized rejection must not be treated as a free full-buffer copy path.
+
 ## Logs
 
 - **log4js-style parsing** is **best-effort**: embedded JSON must be recoverable from the line; unusual layouts may lose fields or warn.

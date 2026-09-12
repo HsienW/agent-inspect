@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## 6.25.0
 
 ### Minor Changes
@@ -134,12 +136,6 @@
 ### Patch Changes
 
 - 9aa0a80: Repository health and public-truth patch: permanent roadmap/active-plan structure, aggressive cleanup of archives/trains/proposals, ADRs, package-docs manifest, and repo:health CI gate. Docs/validators only — no schema or runtime product change.
-
-## Unreleased
-
-### Patch
-
-- Repository health and public-truth cleanup toward 6.16.1 (in progress).
 
 ## 6.16.0
 

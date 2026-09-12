@@ -10,41 +10,29 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ---
 
-## Current — post-6.19 external evidence; next contracts (`6.20.x`)
+## Current — post-6.25 reliability program (`6.25.1` → `6.30`)
 
-**Current release line:** **6.19.0** (eighteen fixed-group public packages; Version Packages `#357` on `main`). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
+**Current release line:** **6.25.0** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
 
-Active maintainer program: flexible deterministic contracts (`6.20.0`), then multi-agent precision (`6.21.0`) and conditional design-partner recipes (`6.22.0`) — before any conditional v7 assessment.
+Core boundary remains frozen. Evidence-backed **patches and minors** continue for correctness, safe recovery contracts, Evidence reviewability, and adapter/usage fidelity. Retained-use / conformance claims stay `BLOCKED_ON_EXTERNAL_EVIDENCE` until real external fixtures exist. **v7 is not scheduled** (assessment only).
 
 | Release | Theme | Status |
 | ------- | ----- | ------ |
-| **6.7.4**–**6.12.1** | Prior Stability and Focus program | Published |
-| **6.12.2** | Logical lifecycle projection for checks | Published |
-| **6.12.3** / **6.13.0** | TraceFacts, semantic parity, experimental matchers | Published |
-| **6.14.0** / **6.14.1** | Evidence-first CI + public positioning | Published |
-| **6.14.2** | Swarm self-parent + safety precision | Published |
-| **6.14.3** | Reserved corrective patch | Skipped |
-| **6.15.0** | Fidelity classes A–E + reader APIs | Published |
-| **6.15.1** | Reserved corrective patch | Skipped |
-| **6.16.0** | Evidence-first CI / verified moderate + swarm gates | Published |
-| **6.16.1** | Repository health and public truth | Published |
-| **6.16.2** | Canonical docs / website single-source | Published |
-| **6.17.0** | Trajectory-gate and Evidence v2 workflow UX | Published |
-| **6.17.1** | Public technical proof and demos | Published |
-| **6.17.3** / **6.17.4** | Package line maintenance | Published |
-| **6.17.5** | Release integrity + visible capability truth | Published |
-| **6.17.8** | Closeout + trust-boundary | Published |
-| **6.18.0** | Adapter bounded preview parity | Published |
-| **6.19.0** | External evidence + derived failure semantics | Version Packages `#357` (confirm npm) |
-| **6.20.0** | Alternate contract paths + ordering modes | Next (`#308`/`#315`/`#309`) |
-| **6.21.0** | Actor-scoped contracts + outcome provenance | Planned (`#320`/`#321`) |
-| **6.22.0** | Conditional design-partner recipes | Conditional (`#331`) |
+| **6.19.0**–**6.25.0** | Adoption-first contracts, fidelity, distribution, stability baseline | Published |
+| **6.25.1** | Critical retry / omitted-payload correctness | Next |
+| **6.25.2** | Reserved corrective patch | Skip unless needed |
+| **6.26.0** | Outcome-aware behavioral sessions (#362) | Planned |
+| **6.27.0** | Bounded safe recovery contracts | Planned |
+| **6.28.0** | Reviewer-reproducible Evidence | Planned |
+| **6.29.0** | Provider usage fidelity and adapter compatibility | Planned |
+| **6.30.0** | Conditional external conformance | Conditional |
+| **7.0.0** | Major | Assessment only / NO-GO unless all gates pass |
 
-Train state: [docs/implementation/RELEASE-TRAIN-STATE.md](docs/implementation/RELEASE-TRAIN-STATE.md).
+Train state: [docs/implementation/RELEASE-TRAIN-STATE.md](docs/implementation/RELEASE-TRAIN-STATE.md).  
 Canonical maintainer roadmap: [docs/implementation/ROADMAP.md](docs/implementation/ROADMAP.md).
 
 ---
 
 ## Later — conditional major
 
-A major `v7` is **not scheduled**. Scheduling requires maintainer readiness criteria in the canonical roadmap.
+A major `v7` is **not scheduled**. Scheduling requires maintainer readiness criteria in the canonical roadmap and [docs/implementation/active/V7-READINESS-ASSESSMENT.md](docs/implementation/active/V7-READINESS-ASSESSMENT.md).

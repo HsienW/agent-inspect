@@ -305,6 +305,169 @@ describe("6.23 structured control contracts", () => {
     expect(evaluateTraceContract({ read: readOf(events) }, contract).ok).toBe(true);
   });
 
+  it("fails error→success retry without idempotency evidence", () => {
+    const events = [
+      runEvent("run-1"),
+      tool("t1", "run-1", "charge", "2026-09-12T00:00:01.000Z", "2026-09-12T00:00:02.000Z", {
+        operationId: "op-1",
+        attemptId: "a1",
+        attemptNumber: 1,
+      }),
+      tool("t2", "run-1", "charge", "2026-09-12T00:00:03.000Z", "2026-09-12T00:00:04.000Z", {
+        operationId: "op-1",
+        attemptId: "a2",
+        attemptNumber: 2,
+      }),
+    ];
+    events[1]!.status = "error";
+    const contract = defineTraceContract({
+      retry: {
+        requireIdempotencyEvidenceForRetry: true,
+        requireRecoveredFailureVisible: true,
+        maxAttempts: 2,
+      },
+    });
+    const result = evaluateTraceContract({ read: readOf(events) }, contract);
+    expect(result.ok).toBe(false);
+    expect(
+      result.findings.some((finding) => finding.ruleId === "contract.retry.idempotency-evidence"),
+    ).toBe(true);
+  });
+
+  it("allows error→success retry with noSideEffect evidence", () => {
+    const events = [
+      runEvent("run-1"),
+      tool("t1", "run-1", "search", "2026-09-12T00:00:01.000Z", "2026-09-12T00:00:02.000Z", {
+        operationId: "op-1",
+        attemptId: "a1",
+        attemptNumber: 1,
+      }),
+      tool("t2", "run-1", "search", "2026-09-12T00:00:03.000Z", "2026-09-12T00:00:04.000Z", {
+        operationId: "op-1",
+        attemptId: "a2",
+        attemptNumber: 2,
+        noSideEffect: true,
+      }),
+    ];
+    events[1]!.status = "error";
+    const contract = defineTraceContract({
+      retry: {
+        requireIdempotencyEvidenceForRetry: true,
+        requireRecoveredFailureVisible: true,
+        maxAttempts: 2,
+      },
+    });
+    expect(evaluateTraceContract({ read: readOf(events) }, contract).ok).toBe(true);
+  });
+
+  it("does not group unrelated same-name tools across operations", () => {
+    const events = [
+      runEvent("run-1"),
+      tool("t1", "run-1", "charge", "2026-09-12T00:00:01.000Z", "2026-09-12T00:00:02.000Z", {
+        operationId: "op-a",
+        attemptId: "a1",
+        attemptNumber: 1,
+      }),
+      tool("t2", "run-1", "charge", "2026-09-12T00:00:03.000Z", "2026-09-12T00:00:04.000Z", {
+        operationId: "op-b",
+        attemptId: "b1",
+        attemptNumber: 1,
+      }),
+    ];
+    events[1]!.status = "error";
+    const contract = defineTraceContract({
+      retry: {
+        requireIdempotencyEvidenceForRetry: true,
+        maxAttempts: 1,
+      },
+    });
+    expect(evaluateTraceContract({ read: readOf(events) }, contract).ok).toBe(true);
+  });
+
+  it("requires fallback to follow an earlier failure in the related operation", () => {
+    const events = [
+      runEvent("run-1"),
+      tool("t1", "run-1", "primary", "2026-09-12T00:00:03.000Z", "2026-09-12T00:00:04.000Z", {
+        operationId: "op-primary",
+        attemptId: "p1",
+      }),
+      tool("t2", "run-1", "backup", "2026-09-12T00:00:01.000Z", "2026-09-12T00:00:02.000Z", {
+        operationId: "op-fallback",
+        attemptId: "f1",
+        fallbackOf: "op-primary",
+      }),
+    ];
+    events[1]!.status = "error";
+    const contract = defineTraceContract({
+      retry: {
+        fallbackOnlyAfterFailure: true,
+      },
+    });
+    const result = evaluateTraceContract({ read: readOf(events) }, contract);
+    expect(result.ok).toBe(false);
+    expect(
+      result.findings.some((finding) => finding.ruleId === "contract.retry.fallback-after-failure"),
+    ).toBe(true);
+  });
+
+  it("fails recovered-failure visibility for success→error order", () => {
+    const events = [
+      runEvent("run-1"),
+      tool("t1", "run-1", "search", "2026-09-12T00:00:01.000Z", "2026-09-12T00:00:02.000Z", {
+        operationId: "op-1",
+        attemptId: "a1",
+        attemptNumber: 1,
+      }),
+      tool("t2", "run-1", "search", "2026-09-12T00:00:03.000Z", "2026-09-12T00:00:04.000Z", {
+        operationId: "op-1",
+        attemptId: "a2",
+        attemptNumber: 2,
+      }),
+    ];
+    events[2]!.status = "error";
+    const contract = defineTraceContract({
+      retry: {
+        requireRecoveredFailureVisible: true,
+      },
+    });
+    const result = evaluateTraceContract({ read: readOf(events) }, contract);
+    expect(result.ok).toBe(false);
+    expect(
+      result.findings.some(
+        (finding) => finding.ruleId === "contract.retry.recovered-failure-visible",
+      ),
+    ).toBe(true);
+  });
+
+  it("fails invalid retryOf targets under strict idempotency evidence", () => {
+    const events = [
+      runEvent("run-1"),
+      tool("t1", "run-1", "search", "2026-09-12T00:00:01.000Z", "2026-09-12T00:00:02.000Z", {
+        operationId: "op-1",
+        attemptId: "a1",
+        attemptNumber: 1,
+      }),
+      tool("t2", "run-1", "search", "2026-09-12T00:00:03.000Z", "2026-09-12T00:00:04.000Z", {
+        operationId: "op-1",
+        attemptId: "a2",
+        attemptNumber: 2,
+        retryOf: "missing-attempt",
+        idempotencyKey: "k1",
+      }),
+    ];
+    events[1]!.status = "error";
+    const contract = defineTraceContract({
+      retry: {
+        requireIdempotencyEvidenceForRetry: true,
+      },
+    });
+    const result = evaluateTraceContract({ read: readOf(events) }, contract);
+    expect(result.ok).toBe(false);
+    expect(
+      result.findings.some((finding) => finding.ruleId === "contract.retry.ambiguous-identity"),
+    ).toBe(true);
+  });
+
   it("lints duplicate orderRules and explains new surfaces", () => {
     const contract = defineTraceContract({
       tools: {

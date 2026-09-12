@@ -1,5 +1,5 @@
 /**
- * Retry / side-effect safety checks for TraceContract (6.23).
+ * Retry / side-effect safety checks for TraceContract (6.23+; corrected in 6.25.1).
  *
  * Uses explicit attempt identity from session workflow metadata.
  * AgentInspect evaluates; it does not perform retries.
@@ -16,7 +16,8 @@ import type { SessionWorkflowMetadata } from "../sessions/types.js";
 export interface TraceContractRetryRules {
   /**
    * Maximum attempts per `operationId` (or `attemptOf` grouping).
-   * Counts distinct `attemptId` values when present, else finished tool/LLM events.
+   * Prefers distinct `attemptId` values, else validated contiguous `attemptNumber`s,
+   * else finished tool/LLM events in the operation.
    */
   maxAttempts?: number;
   /**
@@ -24,7 +25,8 @@ export interface TraceContractRetryRules {
    */
   requireTerminalResult?: boolean;
   /**
-   * Fail when `fallbackOf` is set without a prior error attempt for the referenced operation.
+   * Fail when `fallbackOf` is set without an earlier failure for the referenced operation
+   * that chronologically precedes the fallback event.
    */
   fallbackOnlyAfterFailure?: boolean;
   /**
@@ -33,11 +35,14 @@ export interface TraceContractRetryRules {
    */
   nonIdempotentTools?: string[];
   /**
-   * When true, retries require `idempotencyKey` or `attributes.noSideEffect === true`.
+   * When true, genuine retries (including error→success) require `idempotencyKey`
+   * or `attributes.noSideEffect === true` / `sideEffect === false`.
+   * A client key alone is not proof of exactly-once mutation.
    */
   requireIdempotencyEvidenceForRetry?: boolean;
   /**
-   * When true, recovered success paths must still retain at least one error attempt event.
+   * When true, recovered success paths must retain an earlier error attempt in the
+   * same operation/retry chain (not merely coexistence of ok+error).
    */
   requireRecoveredFailureVisible?: boolean;
 }
@@ -92,6 +97,137 @@ function eventEvidence(event: PersistedInspectEvent): TraceCheckEvidence {
   };
 }
 
+function eventTime(event: PersistedInspectEvent): string {
+  return event.startedAt ?? event.timestamp ?? "";
+}
+
+function sortByTime(events: readonly PersistedInspectEvent[]): PersistedInspectEvent[] {
+  return [...events].sort((a, b) => eventTime(a).localeCompare(eventTime(b)));
+}
+
+function attemptNumberOf(event: PersistedInspectEvent): number | undefined {
+  const workflow = workflowFor(event);
+  const value = workflow.attemptNumber ?? workflow.attempt;
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function attemptIdOf(event: PersistedInspectEvent): string | undefined {
+  const value = workflowFor(event).attemptId;
+  return typeof value === "string" && value.trim() !== "" ? value : undefined;
+}
+
+/**
+ * Count attempts with identity preference (6.25.1).
+ * Does not use Math.max(attemptNumber) without validating contiguous identity.
+ */
+export function countOperationAttempts(members: readonly PersistedInspectEvent[]): number {
+  const attemptIds = new Set(
+    members
+      .map((event) => attemptIdOf(event))
+      .filter((value): value is string => value !== undefined),
+  );
+  if (attemptIds.size > 0) {
+    return attemptIds.size;
+  }
+
+  const numbers = members
+    .map((event) => attemptNumberOf(event))
+    .filter((value): value is number => value !== undefined)
+    .sort((a, b) => a - b);
+  if (numbers.length > 0) {
+    const unique = [...new Set(numbers)];
+    const min = unique[0]!;
+    const max = unique[unique.length - 1]!;
+    const contiguous =
+      unique.length === max - min + 1 && unique.every((value, index) => value === min + index);
+    if (contiguous) {
+      return unique.length;
+    }
+    return unique.length;
+  }
+
+  return members.filter((event) => event.kind === "TOOL" || event.kind === "LLM").length;
+}
+
+type RetryClassification =
+  | { kind: "first" }
+  | { kind: "retry" }
+  | { kind: "unknown"; reason: string };
+
+/**
+ * Classify whether an event is a retry within an ordered same-tool/operation group.
+ */
+export function classifyRetryAttempt(
+  event: PersistedInspectEvent,
+  priorOrdered: readonly PersistedInspectEvent[],
+  allMembers: readonly PersistedInspectEvent[],
+): RetryClassification {
+  const workflow = workflowFor(event);
+  const attemptNumber = attemptNumberOf(event);
+  const attemptId = attemptIdOf(event);
+  const retryOf = workflow.retryOf;
+
+  if (typeof retryOf === "string" && retryOf.trim() !== "") {
+    const target = allMembers.find(
+      (candidate) =>
+        candidate.eventId === retryOf ||
+        attemptIdOf(candidate) === retryOf ||
+        workflowFor(candidate).operationId === retryOf,
+    );
+    if (!target) {
+      return { kind: "unknown", reason: "retryOf target missing" };
+    }
+    if (eventTime(target) > eventTime(event)) {
+      return { kind: "unknown", reason: "retryOf target does not precede retry" };
+    }
+    return { kind: "retry" };
+  }
+
+  if (attemptNumber !== undefined) {
+    if (attemptNumber > 1) {
+      return { kind: "retry" };
+    }
+    if (attemptNumber === 1) {
+      return { kind: "first" };
+    }
+  }
+
+  if (attemptId !== undefined) {
+    const priorDistinct = priorOrdered.some((candidate) => {
+      const priorId = attemptIdOf(candidate);
+      return priorId !== undefined && priorId !== attemptId;
+    });
+    if (priorDistinct) {
+      return { kind: "retry" };
+    }
+    if (priorOrdered.length === 0) {
+      return { kind: "first" };
+    }
+  }
+
+  const priorFinished = priorOrdered.filter(
+    (candidate) => candidate.status === "ok" || candidate.status === "error",
+  );
+  if (priorFinished.length > 0) {
+    return { kind: "retry" };
+  }
+  if (priorOrdered.length === 0) {
+    return { kind: "first" };
+  }
+  return { kind: "unknown", reason: "ambiguous attempt identity" };
+}
+
+function hasDuplicateAttemptIds(members: readonly PersistedInspectEvent[]): boolean {
+  const seen = new Set<string>();
+  for (const event of members) {
+    const id = attemptIdOf(event);
+    if (!id) continue;
+    if (seen.has(id)) return true;
+    seen.add(id);
+  }
+  return false;
+}
+
 /**
  * Evaluate retry / side-effect safety invariants.
  */
@@ -114,20 +250,18 @@ export function evaluateRetrySafetyRules(
 
   if (rules.maxAttempts !== undefined) {
     for (const [operationId, members] of byOperation) {
-      const attemptIds = new Set(
-        members
-          .map((event) => workflowFor(event).attemptId)
-          .filter((value): value is string => typeof value === "string" && value.trim() !== ""),
-      );
-      const attemptNumbers = members
-        .map((event) => workflowFor(event).attemptNumber ?? workflowFor(event).attempt)
-        .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
-      const count =
-        attemptIds.size > 0
-          ? attemptIds.size
-          : attemptNumbers.length > 0
-            ? Math.max(...attemptNumbers)
-            : members.filter((event) => event.kind === "TOOL" || event.kind === "LLM").length;
+      if (hasDuplicateAttemptIds(members)) {
+        findings.push(
+          fail(
+            "contract.retry.duplicate-attempt-id",
+            `Operation ${operationId} has duplicate attemptId values.`,
+            members.slice(0, 4).map(eventEvidence),
+            "unique attemptId",
+            "duplicate",
+          ),
+        );
+      }
+      const count = countOperationAttempts(members);
       if (count > rules.maxAttempts) {
         findings.push(
           fail(
@@ -164,18 +298,22 @@ export function evaluateRetrySafetyRules(
       const workflow = workflowFor(event);
       const fallbackOf = workflow.fallbackOf;
       if (!fallbackOf) continue;
-      const prior = byOperation.get(fallbackOf) ?? events.filter((candidate) => {
-        const meta = workflowFor(candidate);
-        return meta.operationId === fallbackOf || candidate.runId === fallbackOf;
-      });
-      const priorFailure = prior.some((candidate) => candidate.status === "error");
-      if (!priorFailure) {
+      const prior = byOperation.get(fallbackOf) ?? [];
+      const fallbackStart = eventTime(event);
+      const earlierFailure = prior.some(
+        (candidate) =>
+          candidate.status === "error" &&
+          eventTime(candidate) !== "" &&
+          fallbackStart !== "" &&
+          eventTime(candidate) < fallbackStart,
+      );
+      if (!earlierFailure) {
         findings.push(
           fail(
             "contract.retry.fallback-after-failure",
-            `Fallback for ${fallbackOf} appeared without a prior failure.`,
+            `Fallback for ${fallbackOf} appeared without an earlier failure in the related operation.`,
             [eventEvidence(event)],
-            "prior error attempt",
+            "earlier error attempt",
             { fallbackOf },
           ),
         );
@@ -198,71 +336,107 @@ export function evaluateRetrySafetyRules(
       byToolOp.set(key, list);
     }
     for (const [, members] of byToolOp) {
-      const ordered = [...members].sort((a, b) => {
-        const aTime = a.startedAt ?? a.timestamp ?? "";
-        const bTime = b.startedAt ?? b.timestamp ?? "";
-        return aTime.localeCompare(bTime);
-      });
+      const ordered = sortByTime(members);
       let sawOk = false;
       let sawSideEffectOk = false;
+      const prior: PersistedInspectEvent[] = [];
       for (const event of ordered) {
         const name = resolveCanonicalToolName(event);
-        const isRetry = sawOk;
-        if (isRetry) {
-          if (rules.requireIdempotencyEvidenceForRetry && !hasIdempotencyEvidence(event)) {
-            findings.push(
-              fail(
-                "contract.retry.idempotency-evidence",
-                `Retry of tool ${name} lacks idempotencyKey / noSideEffect evidence.`,
-                [eventEvidence(event)],
-                "idempotencyKey|noSideEffect",
-                { code: "AI_CHECK_RETRY_EVIDENCE_UNAVAILABLE" },
-              ),
-            );
-          }
-          if (nonIdempotent.has(name) && sawSideEffectOk && !hasIdempotencyEvidence(event)) {
-            findings.push(
-              fail(
-                "contract.retry.non-idempotent-side-effect",
-                `Retry of non-idempotent tool ${name} after a confirmed ok side effect.`,
-                [eventEvidence(event)],
-                "no retry after side effect",
-                name,
-              ),
-            );
-          }
+        const classification = classifyRetryAttempt(event, prior, members);
+
+        if (classification.kind === "unknown" && rules.requireIdempotencyEvidenceForRetry) {
+          findings.push(
+            fail(
+              "contract.retry.ambiguous-identity",
+              `Ambiguous attempt identity for tool ${name}; strict retry evidence cannot pass.`,
+              [eventEvidence(event)],
+              "explicit attempt identity",
+              classification.reason,
+            ),
+          );
         }
+
+        const isRetry = classification.kind === "retry";
+        if (isRetry && rules.requireIdempotencyEvidenceForRetry && !hasIdempotencyEvidence(event)) {
+          findings.push(
+            fail(
+              "contract.retry.idempotency-evidence",
+              `Retry of tool ${name} lacks idempotencyKey / noSideEffect evidence.`,
+              [eventEvidence(event)],
+              "idempotencyKey|noSideEffect",
+              { code: "AI_CHECK_RETRY_EVIDENCE_UNAVAILABLE" },
+            ),
+          );
+        }
+
+        if (sawOk && nonIdempotent.has(name) && sawSideEffectOk && !hasIdempotencyEvidence(event)) {
+          findings.push(
+            fail(
+              "contract.retry.non-idempotent-side-effect",
+              `Retry of non-idempotent tool ${name} after a confirmed ok side effect.`,
+              [eventEvidence(event)],
+              "no retry after side effect",
+              name,
+            ),
+          );
+        }
+
         if (event.status === "ok") {
           sawOk = true;
           if (nonIdempotent.has(name) && !hasIdempotencyEvidence(event)) {
             sawSideEffectOk = true;
           }
         }
+        prior.push(event);
       }
     }
   }
 
   if (rules.requireRecoveredFailureVisible) {
     for (const [operationId, members] of byOperation) {
-      const hasOk = members.some((event) => event.status === "ok");
-      const hasError = members.some((event) => event.status === "error");
+      const ordered = sortByTime(members);
+      const toolish = ordered.filter(
+        (event) =>
+          (event.kind === "TOOL" || event.kind === "LLM") &&
+          (event.status === "ok" || event.status === "error"),
+      );
+      if (toolish.length < 2) continue;
+
+      let sawEarlierError = false;
+      let sawLaterOkAfterError = false;
+      for (const event of toolish) {
+        if (event.status === "error") {
+          sawEarlierError = true;
+        } else if (event.status === "ok" && sawEarlierError) {
+          sawLaterOkAfterError = true;
+        }
+      }
+
+      const hasOk = toolish.some((event) => event.status === "ok");
       const attemptish =
-        members.some((event) => {
+        toolish.some((event) => {
           const meta = workflowFor(event);
           return (
             meta.attemptId !== undefined ||
             meta.attemptNumber !== undefined ||
-            meta.attempt !== undefined
+            meta.attempt !== undefined ||
+            meta.retryOf !== undefined
           );
-        }) || members.length > 1;
-      if (hasOk && attemptish && !hasError) {
+        }) || toolish.length > 1;
+
+      if (!attemptish || !hasOk) continue;
+
+      if (!sawLaterOkAfterError) {
         findings.push(
           fail(
             "contract.retry.recovered-failure-visible",
-            `Operation ${operationId} recovered without retaining a visible failure attempt.`,
+            `Operation ${operationId} does not show an earlier error attempt before a later success in the same chain.`,
             members.slice(0, 4).map(eventEvidence),
-            "error attempt retained",
-            { hasOk, hasError },
+            "earlier error then later ok",
+            {
+              sawEarlierError,
+              statuses: toolish.map((event) => event.status),
+            },
           ),
         );
       }

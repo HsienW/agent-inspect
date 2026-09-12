@@ -1,5 +1,5 @@
 /**
- * Optional omitted-payload digest commitment helpers (6.22).
+ * Optional omitted-payload digest commitment helpers (6.22; preflight bound in 6.25.1).
  *
  * A digest proves bytes were observed/omitted; it is not redaction, authorization,
  * or a secret-management feature. AgentInspect does not hold HMAC keys.
@@ -25,18 +25,22 @@ export interface OmittedPayloadCommitment {
   capturePolicy: "omitted" | "preview-only" | "digest-only";
 }
 
-const MAX_DIGEST_INPUT_BYTES = 1024 * 1024;
+/** Maximum input size accepted for digest commitment (1 MiB). */
+export const OMITTED_PAYLOAD_MAX_DIGEST_INPUT_BYTES = 1024 * 1024;
 
-function toBytes(value: string | Uint8Array): Buffer {
-  if (typeof value === "string") {
-    return Buffer.from(value, "utf8");
+/**
+ * Preflight byte length without allocating a full Buffer copy for oversized input.
+ */
+export function omittedPayloadByteLength(payload: string | Uint8Array): number {
+  if (typeof payload === "string") {
+    return Buffer.byteLength(payload, "utf8");
   }
-  return Buffer.from(value);
+  return payload.byteLength;
 }
 
 /**
  * Build a SHA-256 digest commitment for omitted payload bytes.
- * Throws if input exceeds the 1 MiB bound.
+ * Throws if input exceeds the 1 MiB bound (checked before copying oversized strings).
  */
 export function createOmittedPayloadCommitment(
   payload: string | Uint8Array,
@@ -46,16 +50,21 @@ export function createOmittedPayloadCommitment(
     capturePolicy?: OmittedPayloadCommitment["capturePolicy"];
   } = {},
 ): OmittedPayloadCommitment {
-  const bytes = toBytes(payload);
-  if (bytes.byteLength > MAX_DIGEST_INPUT_BYTES) {
+  const byteLength = omittedPayloadByteLength(payload);
+  if (byteLength > OMITTED_PAYLOAD_MAX_DIGEST_INPUT_BYTES) {
     throw new RangeError(
-      `Omitted payload exceeds ${MAX_DIGEST_INPUT_BYTES} byte digest bound.`,
+      `Omitted payload exceeds ${OMITTED_PAYLOAD_MAX_DIGEST_INPUT_BYTES} byte digest bound.`,
     );
   }
+  // Strings: only allocate after preflight. Uint8Array: hash without Buffer.from copy.
+  const digest =
+    typeof payload === "string"
+      ? createHash("sha256").update(Buffer.from(payload, "utf8")).digest("hex")
+      : createHash("sha256").update(payload).digest("hex");
   return {
     algorithm: "sha256",
-    digest: createHash("sha256").update(bytes).digest("hex"),
-    byteLength: bytes.byteLength,
+    digest,
+    byteLength,
     ...(options.contentType !== undefined ? { contentType: options.contentType } : {}),
     ...(options.shape !== undefined ? { shape: options.shape } : {}),
     capturePolicy: options.capturePolicy ?? "digest-only",

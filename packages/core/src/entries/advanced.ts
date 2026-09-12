@@ -447,4 +447,8 @@ export type {
   OmittedPayloadAlgorithm,
   OmittedPayloadCommitment,
 } from "../safety/omitted-payload.js";
-export { createOmittedPayloadCommitment } from "../safety/omitted-payload.js";
+export {
+  createOmittedPayloadCommitment,
+  omittedPayloadByteLength,
+  OMITTED_PAYLOAD_MAX_DIGEST_INPUT_BYTES,
+} from "../safety/omitted-payload.js";

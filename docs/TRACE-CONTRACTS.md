@@ -169,7 +169,7 @@ defineTraceContract({
 
 Bounded evidence shapes: string event id, `{ eventId }`, or `{ eventIds }` (max 16). Method must be in the `ObservedOutcomeMethod` vocabulary. Omitting `requireProvenance` leaves prior observation behavior unchanged.
 
-### `tools.arguments` / `tools.orderRules` / `controls` / `retry` (shipped — experimental, 6.23)
+### `tools.arguments` / `tools.orderRules` / `controls` / `retry` (shipped — experimental, 6.23; retry chronology corrected in 6.25.1)
 
 See [ADR-0010](./decisions/ADR-0010-structured-control-contracts.md).
 
@@ -202,9 +202,12 @@ defineTraceContract({
     nonIdempotentTools: ["charge"],
     requireIdempotencyEvidenceForRetry: true,
     requireRecoveredFailureVisible: true,
+    fallbackOnlyAfterFailure: true,
   },
 });
 ```
+
+**Retry classification (6.25.1):** a genuine retry is detected from explicit identity preference — `attemptNumber > 1`, valid `retryOf` (target exists and precedes), distinct later `attemptId` under the same `operationId`, or a later finished attempt in an explicitly grouped operation — **not** only from a prior `ok`. `error → success` without `idempotencyKey` / `noSideEffect` evidence fails when `requireIdempotencyEvidenceForRetry` is set. `fallbackOnlyAfterFailure` and `requireRecoveredFailureVisible` require chronological earlier failure in the related chain. A client `idempotencyKey` is evidence of intent, not proof of exactly-once mutation. AgentInspect evaluates traces; it does not execute retries.
 
 Missing structured argument evidence fails closed (`AI_CHECK_TOOL_ARGUMENT_EVIDENCE_UNAVAILABLE`). Findings never include full actual inputs.
 

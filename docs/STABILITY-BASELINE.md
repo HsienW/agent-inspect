@@ -1,6 +1,6 @@
 # Stability baseline (6.25)
 
-**Status:** Maintenance freeze for the adoption-first program through `6.25.x`.  
+**Status:** Core boundary frozen at `6.25.0`. Evidence-backed **patches and minors** remain active for correctness, recovery contracts, Evidence reviewability, and compatibility.  
 **Schema:** persisted writer path remains **1.0**.
 
 ## What this release freezes
@@ -17,12 +17,12 @@
 | Retained 21-day production pilots / “adoption release” metrics | `BLOCKED_ON_EXTERNAL_EVIDENCE` |
 | Full OS × Node GitHub Actions matrix (#209 complete) | Not claimed; PARTIAL manual evidence only |
 | VS Code Marketplace publish | Deferred — [VSCODE.md](./VSCODE.md) |
-| v7 package consolidation / schema 1.1 | Assessment only after this freeze |
+| v7 package consolidation / schema 1.1 | Assessment only; **NO-GO** until all gates pass |
 
 ## Property-style coverage (additive)
 
-Deterministic seeded property checks for TraceContract tool-argument JSON Pointer evaluation live under `packages/core/test/checks/tool-arguments-property.test.ts` (no new fuzz dependencies). Existing conformance corpora remain authoritative for readers/Evidence/redaction.
+Deterministic seeded property checks for TraceContract tool-argument JSON Pointer evaluation live under `packages/core/test/checks/tool-arguments-property.test.ts` (no new fuzz dependencies). Existing conformance corpora remain authoritative for readers/Evidence/redaction. Retry/attempt identity coverage expands in `6.25.1+`.
 
-## After 6.25.x
+## After 6.25.0
 
-Produce a **v7 readiness assessment only**. Do not implement v7 unless every external-use gate in the program prompt is met.
+Continue the post-6.25 reliability program (`6.25.1` → conditional `6.30.0`) per [../ROADMAP.md](../ROADMAP.md) and [implementation/active/NEXT-RELEASES.md](./implementation/active/NEXT-RELEASES.md). Produce a **v7 readiness assessment only** when asked; do not implement v7 automatically.
