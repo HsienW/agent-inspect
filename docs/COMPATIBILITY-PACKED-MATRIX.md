@@ -1,8 +1,8 @@
-# Cross-platform packed consumer matrix (target: v6.18)
+# Cross-platform packed consumer matrix
 
 **Status:** PARTIAL — evidence from maintainer CI + local smoke scripts; not a full OS×Node grid.  
-**Authority:** [implementation/ROADMAP.md](./implementation/ROADMAP.md) · [history/RELEASE-HISTORY.md](./history/RELEASE-HISTORY.md)
-**Date:** 2026-08-26 · tested baseline `agent-inspect@6.17.3`
+**Authority:** [implementation/ROADMAP.md](./implementation/ROADMAP.md) · [STABILITY-BASELINE.md](./STABILITY-BASELINE.md)
+**Date:** 2026-09-12 · tested baseline `agent-inspect@6.23.0` (CI primary); Windows dated row below remains historical evidence for #209
 
 ## Method
 
