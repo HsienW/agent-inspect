@@ -5,8 +5,10 @@ import { describe, expect, it } from "vitest";
 import {
   loadSessionRunRecords,
   loadTraceMetadataList,
-  renderGateJUnit,
+  renderGateGithubAnnotations,
   renderGateGithubStepSummary,
+  renderGateJUnit,
+  renderGateReport,
   runGate,
   TraceDirectory,
 } from "../../src/entries/advanced.js";
@@ -73,5 +75,42 @@ describe("gate engine", () => {
     expect(junit).toContain("agent-inspect-gate");
     expect(github).toContain("AgentInspect gate: PASS");
     expect(github).toContain("| Check | Status | Details |");
+  });
+
+  it("renders compact json and github annotations for failures", async () => {
+    const compact = renderGateReport(
+      {
+        ok: false,
+        exitCode: 1,
+        runCount: 1,
+        checks: [
+          {
+            id: "forbidTool",
+            name: "forbidTool:deleteAccount",
+            ok: false,
+            message: "Tool deleteAccount appeared",
+          },
+        ],
+        diagnostics: [],
+      },
+      { format: "json-compact" },
+    );
+    expect(compact).toContain('"ok":false');
+    expect(compact).not.toContain("\n");
+    const annotations = renderGateGithubAnnotations({
+      ok: false,
+      exitCode: 1,
+      runCount: 1,
+      checks: [
+        {
+          id: "forbidTool",
+          name: "forbidTool:deleteAccount",
+          ok: false,
+          message: "Tool deleteAccount appeared",
+        },
+      ],
+      diagnostics: [],
+    });
+    expect(annotations).toContain("::error title=forbidTool:deleteAccount::");
   });
 });

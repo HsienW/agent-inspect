@@ -11,7 +11,8 @@ export type InitFramework =
   | "custom";
 
 export interface InitCommandOptions {
-  framework?: InitFramework;
+  /** Framework id or alias (`observe` / `manual` → `custom`). */
+  framework?: string;
   ci?: "github";
   dryRun?: boolean;
   yes?: boolean;
@@ -37,6 +38,9 @@ const GITKEEP = ".agent-inspect/.gitkeep";
 
 function normalizeFramework(value: string | undefined): InitFramework {
   const raw = (value ?? "custom").trim();
+  if (raw === "observe" || raw === "manual") {
+    return "custom";
+  }
   if (
     raw === "ai-sdk" ||
     raw === "openai-agents" ||
@@ -47,7 +51,7 @@ function normalizeFramework(value: string | undefined): InitFramework {
     return raw;
   }
   throw new Error(
-    "Unsupported --framework value. Use ai-sdk, openai-agents, langchain, langgraph, or custom.",
+    "Unsupported --framework value. Use ai-sdk, openai-agents, langchain, langgraph, custom, observe, or manual.",
   );
 }
 

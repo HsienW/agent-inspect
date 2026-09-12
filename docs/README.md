@@ -48,7 +48,7 @@ Optional Preview: [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) · [MCP.md](./M
 
 | Doc | Topic |
 | --- | ----- |
-| [API.md](./API.md) · [CLI.md](./CLI.md) | Programmatic and terminal APIs |
+| [API.md](./API.md) · [CLI.md](./CLI.md) · [LIFECYCLE.md](./LIFECYCLE.md) | Programmatic, terminal, and flush/close guidance |
 | [TRACE-FACTS.md](./TRACE-FACTS.md) | Logical projection and TraceFacts |
 | [CUSTOM-TRACE-READER.md](./CUSTOM-TRACE-READER.md) | Authoring custom TraceReaders |
 | [INTEROP-ARCHITECTURAL-INTENT.md](./INTEROP-ARCHITECTURAL-INTENT.md) | Architectural-intent metadata interop |

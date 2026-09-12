@@ -113,14 +113,42 @@ ${cases}
 </testsuites>`;
 }
 
+/**
+ * Compact GitHub Actions workflow-command annotations for failed checks.
+ * File/line are omitted when the gate has no source locations (typical for
+ * trajectory thresholds).
+ */
+export function renderGateGithubAnnotations(result: GateResult): string {
+  return result.checks
+    .filter((check) => !check.ok)
+    .map((check) => {
+      const message = check.message.replace(/\r?\n/g, " ").replace(/%/g, "%25");
+      return `::error title=${check.name}::${message}`;
+    })
+    .join("\n");
+}
+
 export function renderGateReport(
   result: GateResult,
   options: RenderGateReportOptions = {},
 ): string {
   const format = options.format ?? "markdown";
   if (format === "json") return JSON.stringify(result, null, 2);
+  if (format === "json-compact") {
+    return JSON.stringify({
+      ok: result.ok,
+      exitCode: result.exitCode,
+      failed: result.checks.filter((check) => !check.ok).map((check) => check.name),
+      checks: result.checks.map((check) => ({
+        name: check.name,
+        ok: check.ok,
+        message: check.message,
+      })),
+    });
+  }
   if (format === "html") return renderGateReportHtml(result);
   if (format === "junit") return renderGateJUnit(result);
   if (format === "github") return renderGateGithubStepSummary(result);
+  if (format === "github-annotations") return renderGateGithubAnnotations(result);
   return renderGateSummaryMarkdown(result);
 }
