@@ -3,28 +3,28 @@
 ```yaml
 executionMode: maintainer-reviewed
 namedTrain: agentinspect-feedback-integrity-v6.17.5-to-v6.22
-currentTrain: v6.21.0-multi-agent-evidence-precision
-trainStatus: in-progress
-currentChunk: actor-scope-and-outcome-provenance
-nextAction: "Land feat/621-actor-provenance when CI green; then Version Packages + Trusted Publish for 6.21.0"
+currentTrain: v6.22.0-conditional-design-partner-recipes
+trainStatus: ready
+currentChunk: none
+nextAction: "Start conditional 6.22.0 when authorized — #331 only if external partner need is validated"
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/NEXT-RELEASES.md
-pendingManualGate: "green CI on 6.21 PR; merge to main; do not create Version Packages manually"
+pendingManualGate: "maintainer authorization + external acceptance for 6.22.0"
 ```
 
 ## Published baseline
 
-**6.20.0** published on npm. Persisted schema **1.0**.
+**6.21.0** published on npm (all 18 fixed-group packages). Persisted schema **1.0**.
 
-## Active focus — 6.21.0 Multi-agent evidence precision
+## Completed — 6.21.0 Multi-agent evidence precision
 
 | Chunk | Status |
 | --- | --- |
-| #320 actor `scope` selectors | implemented on `feat/621-actor-provenance` |
-| #321 `observations.requireProvenance` | implemented |
-| planner/verifier recipe | implemented |
-| Merge to main + Trusted Publish | pending |
+| #320 actor `scope` selectors | published |
+| #321 `observations.requireProvenance` | published |
+| planner/verifier recipe | published |
+| #377 feature PR + #378 Version Packages + Trusted Publish | done |
 
-## Later
+## Next
 
 - **6.22.0** — #331 design confirmed; conditional; existing APIs only; not implemented (roadmap-future)
