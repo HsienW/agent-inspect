@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.21.0
+
+### Minor Changes
+
+- 9d6a24f: Actor-scoped TraceContracts (`scope` selectors) and structural observation provenance (`observations.requireProvenance`) for multi-agent precision (#320/#321). Includes planner/verifier recipe.
+
 ## 6.20.0
 
 ### Minor Changes

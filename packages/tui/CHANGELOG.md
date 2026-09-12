@@ -1,5 +1,13 @@
 # @agent-inspect/tui
 
+## 6.21.0
+
+### Patch Changes
+
+- 9d6a24f: Actor-scoped TraceContracts (`scope` selectors) and structural observation provenance (`observations.requireProvenance`) for multi-agent precision (#320/#321). Includes planner/verifier recipe.
+- Updated dependencies [9d6a24f]
+  - agent-inspect@6.21.0
+
 ## 6.20.0
 
 ### Patch Changes
