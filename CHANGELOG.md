@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.20.0
+
+### Minor Changes
+
+- 43a4481: Flexible deterministic contracts: selectable `requiredOrderMode` (`first-occurrence` | `happens-before` | `all-occurrences`), one-level `alternatives.anyOf`, and `lintTraceContract` / `explainTraceContract` helpers. Includes MCP expected-rejection and local Promptfoo use-together recipes.
+
 ## 6.19.1
 
 ### Patch Changes
