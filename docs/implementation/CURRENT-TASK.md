@@ -2,29 +2,33 @@
 
 ```yaml
 executionMode: maintainer-reviewed
-namedTrain: agentinspect-feedback-integrity-v6.17.5-to-v6.22
-currentTrain: v6.22.0-conditional-design-partner-recipes
-trainStatus: ready
-currentChunk: none
-nextAction: "Start conditional 6.22.0 when authorized — #331 only if external partner need is validated"
+namedTrain: agentinspect-adoption-first-v6.19-to-v6.25
+currentTrain: v6.22.0-cross-runtime-causal-fidelity
+trainStatus: in-progress
+currentChunk: cross-runtime-fidelity-implementation
+nextAction: "Land feat/622-cross-runtime-fidelity when CI green; Version Packages + Trusted Publish 6.22.0; then 6.23"
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/NEXT-RELEASES.md
-pendingManualGate: "maintainer authorization + external acceptance for 6.22.0"
+pendingManualGate: "green CI on 6.22 PR"
 ```
 
 ## Published baseline
 
-**6.21.0** published on npm (all 18 fixed-group packages). Persisted schema **1.0**.
+**6.21.0** published on npm. Persisted schema **1.0**.
 
-## Completed — 6.21.0 Multi-agent evidence precision
+## Active focus — 6.22.0 Cross-runtime causal fidelity
 
 | Chunk | Status |
 | --- | --- |
-| #320 actor `scope` selectors | published |
-| #321 `observations.requireProvenance` | published |
-| planner/verifier recipe | published |
-| #377 feature PR + #378 Version Packages + Trusted Publish | done |
+| Mapping ledgers | implemented |
+| Relationship facts on TraceFacts | implemented |
+| Operation/attempt identity metadata | implemented |
+| Omitted-payload digests | implemented |
+| W3C MCP + #331 recipes | implemented |
+| Merge + Trusted Publish | pending |
 
-## Next
+## Later
 
-- **6.22.0** — #331 design confirmed; conditional; existing APIs only; not implemented (roadmap-future)
+- **6.23.0** structured control contracts
+- **6.24.0** adoption (external retained-use gate)
+- **6.25.0** stability baseline

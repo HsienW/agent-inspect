@@ -21,7 +21,7 @@ export function extractSessionWorkflowMetadata(
   let found = false;
 
   const assignString = (
-    key: Exclude<keyof SessionWorkflowMetadata, "attempt">,
+    key: Exclude<keyof SessionWorkflowMetadata, "attempt" | "attemptNumber">,
     value: unknown,
   ): void => {
     if (isNonEmptyString(value)) {
@@ -47,6 +47,10 @@ export function extractSessionWorkflowMetadata(
   assignString("toolCallId", record.toolCallId);
   assignString("mcpToolCallId", record.mcpToolCallId);
   assignString("linkedStepId", record.linkedStepId);
+  assignString("operationId", record.operationId);
+  assignString("attemptId", record.attemptId);
+  assignString("fallbackOf", record.fallbackOf);
+  assignString("idempotencyKey", record.idempotencyKey);
   assignString("correlationId", record.correlationId);
   assignString("requestId", record.requestId);
   assignString("decisionId", record.decisionId);
@@ -54,6 +58,11 @@ export function extractSessionWorkflowMetadata(
   const attempt = finitePositiveInt(record.attempt);
   if (attempt !== undefined) {
     out.attempt = attempt;
+    found = true;
+  }
+  const attemptNumber = finitePositiveInt(record.attemptNumber);
+  if (attemptNumber !== undefined) {
+    out.attemptNumber = attemptNumber;
     found = true;
   }
 

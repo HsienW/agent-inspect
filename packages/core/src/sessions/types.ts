@@ -20,6 +20,11 @@ export const SESSION_WORKFLOW_KEYS = [
   "toolCallId",
   "mcpToolCallId",
   "linkedStepId",
+  "operationId",
+  "attemptId",
+  "attemptNumber",
+  "fallbackOf",
+  "idempotencyKey",
   "correlationId",
   "requestId",
   "decisionId",
@@ -56,6 +61,11 @@ export interface SessionWorkflowMetadata {
   toolCallId?: string;
   mcpToolCallId?: string;
   linkedStepId?: string;
+  operationId?: string;
+  attemptId?: string;
+  attemptNumber?: number;
+  fallbackOf?: string;
+  idempotencyKey?: string;
   correlationId?: string;
   requestId?: string;
   decisionId?: string;

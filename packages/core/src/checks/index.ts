@@ -31,10 +31,15 @@ export type {
   FailureRoleCounts,
   SemanticParitySummary,
   TraceFacts,
+  TraceRelationship,
+  TraceRelationshipConfidence,
+  TraceRelationshipDiagnostic,
+  TraceRelationshipType,
 } from "./trace-facts.js";
 export {
   buildTraceFacts,
   deriveFailureFacts,
+  deriveRelationshipFacts,
   summarizeSemanticParity,
 } from "./trace-facts.js";
 export type {

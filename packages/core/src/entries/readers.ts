@@ -26,6 +26,17 @@ export {
   openTraceText,
   otlpJsonReader,
   readTrace,
+  BUILTIN_MAPPING_LEDGERS,
+  OPENINFERENCE_MAPPING_LEDGER,
+  OTLP_JSON_MAPPING_LEDGER,
+  getMappingLedger,
+} from "../readers/index.js";
+
+export type {
+  MappingConfidence,
+  MappingLedger,
+  MappingLedgerEntry,
+  MappingLossKind,
 } from "../readers/index.js";
 
 export type {
