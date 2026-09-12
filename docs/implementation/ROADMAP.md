@@ -138,9 +138,9 @@ Fail-closed deterministic gate hardening:
 | **6.20.0** | `alternatives.anyOf` + ordering modes | #309, #308/#315 | Published |
 | **6.21.0** | Actor-scoped contracts + outcome provenance | #320, #321 | Published |
 | **6.22.0** | Cross-runtime causal fidelity | relationship facts, mapping ledger, W3C MCP demo; #331 recipe folded | In progress |
-| **6.23.0** | Structured control contracts | bounded tool-input checks | In progress |
-| **6.24.0** | Production adoption / distribution | #295 VS Code decision; external retained-use gate | Conditional |
-| **6.25.0** | Stability baseline | maintenance cut | Scheduled |
+| **6.23.0** | Structured control contracts | bounded tool-input checks | Published |
+| **6.24.0** | Production adoption / distribution | #295 VS Code decision; external retained-use gate | Version Packages merged; publish pending |
+| **6.25.0** | Stability baseline | maintenance cut | In progress |
 
 ### 3.1 v6.18.0 — adapter capture parity (#311)
 
@@ -213,7 +213,7 @@ A TraceTransform is **not** the decoder for raw vendor JSON. No official TrueFor
 - No timestamp-only actor inference
 - Outcome provenance: require `method` and/or `evidence`; optionally require referenced event ID in same run/session
 
-Declared-versus-enforced control evidence conventions remain scheduled for 6.23.0.
+Declared-versus-enforced control evidence conventions shipped in 6.23.0.
 
 ### 3.5 v6.22.0 — cross-runtime causal fidelity
 

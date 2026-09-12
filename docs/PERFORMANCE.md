@@ -12,6 +12,8 @@ pnpm perf:baseline
 
 The script prints deterministic timings for parse, normalize, tree build, diff, export, and checks on synthetic data. Warnings appear when a step exceeds internal soft thresholds.
 
+These thresholds are **engineering soft budgets** for regression awareness, not product SLAs or marketing claims. See [STABILITY-BASELINE.md](./STABILITY-BASELINE.md).
+
 ## Performance fixtures
 
 [`fixtures/performance/`](../fixtures/performance/README.md) ships three deterministic size tiers with the same event shape as the baseline's synthetic traces, for exercising CLI paths against stable on-disk inputs:
