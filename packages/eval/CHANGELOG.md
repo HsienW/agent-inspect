@@ -1,5 +1,15 @@
 # @agent-inspect/eval
 
+## 6.25.0
+
+### Patch Changes
+
+- 7750198: Stability baseline: freeze support/docs posture through 6.25.x, refresh packed-matrix honesty, and add property-style tool-argument safety checks.
+- Updated dependencies [7750198]
+  - agent-inspect@6.25.0
+  - @agent-inspect/guardrails@6.25.0
+  - @agent-inspect/circuit@6.25.0
+
 ## 6.24.0
 
 ### Patch Changes

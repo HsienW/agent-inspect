@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.25.0
+
+### Minor Changes
+
+- 7750198: Stability baseline: freeze support/docs posture through 6.25.x, refresh packed-matrix honesty, and add property-style tool-argument safety checks.
+
 ## 6.24.0
 
 ### Minor Changes
