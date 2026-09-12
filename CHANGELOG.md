@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.24.0
+
+### Minor Changes
+
+- 2fa9d46: Production adoption distribution: lifecycle guidance, init/doctor CLI docs, gate compact JSON and GitHub annotations, VS Code Marketplace deferral confirmed.
+
 ## 6.23.0
 
 ### Minor Changes

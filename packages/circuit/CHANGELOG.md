@@ -1,5 +1,7 @@
 # @agent-inspect/circuit
 
+## 6.24.0
+
 ## 6.23.0
 
 ## 6.22.0
