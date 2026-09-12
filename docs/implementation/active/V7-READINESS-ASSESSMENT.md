@@ -6,7 +6,7 @@
 
 | Gate | Status |
 | --- | --- |
-| `6.25.0` published; `6.25.x` maintenance posture clear | pending until Trusted Publish |
+| `6.25.0` published; `6.25.x` maintenance posture clear | **met** — npm `6.25.0` (Trusted Publish 34698294028, 2026-09-12) |
 | Retained external-use evidence (maintainer pilots) | `BLOCKED_ON_EXTERNAL_EVIDENCE` |
 | No open P0/P1 security or data-loss defects | verify at assessment time |
 | Package portfolio evidence for any consolidation | review [PACKAGE-MAINTENANCE-AUDIT.md](../PACKAGE-MAINTENANCE-AUDIT.md) |

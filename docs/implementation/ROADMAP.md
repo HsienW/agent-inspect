@@ -1,8 +1,8 @@
 # AgentInspect Canonical Roadmap (permanent)
 
-**Baseline:** `agent-inspect@6.21.0`
+**Baseline:** `agent-inspect@6.25.0`
 **Roadmap horizon:** `6.19.0 → 6.19.1 → 6.20.0 → 6.21.0 → 6.22.0 → 6.23.0 → 6.24.0 → 6.25.0`
-**Status:** Active canonical roadmap (permanent path; aligned with adoption-first program through 6.25)
+**Status:** Adoption-first program through 6.25 **complete** (published); 6.25.x maintenance; v7 assessment only
 **Primary objective:** Close capability-truth gaps, eliminate fail-open deterministic check behavior, keep release integrity green, align high-confidence redaction with verify-safe, make framework preview capture useful without weakening local-first safety, support arbitrary persisted agent-event sources through the existing reader architecture, make deterministic contracts flexible enough for legitimate alternate agent paths, preserve cross-runtime relationship fidelity, and land a stability baseline
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
@@ -29,7 +29,7 @@ The canonical release sequence is:
 6.18.0  Safe adoption and differentiation (same-output/wrong-path; no-key adapters; preview; redact UX)  (published)
 6.18.1  Reserved 6.18 corrections only
 
-6.19.0  External evidence + derived failure semantics (TraceReader authoring; failure roles; interop)  (Version Packages #357 on main; confirm npm)
+6.19.0  External evidence + derived failure semantics (TraceReader authoring; failure roles; interop)  (published)
 6.19.1  Reserved 6.19 corrections only
 
 6.20.0  Alternative valid paths and causal / strict ordering modes  (published)
@@ -38,16 +38,16 @@ The canonical release sequence is:
 6.21.0  Actor-scoped contracts and outcome provenance requirements  (published)
 6.21.1  Reserved multi-agent contract patch only
 
-6.22.0  Cross-runtime causal fidelity (mapping ledger, relationship facts, W3C MCP demo)
+6.22.0  Cross-runtime causal fidelity (mapping ledger, relationship facts, W3C MCP demo)  (published)
 6.22.1  Reader/correlation corrections only
 
-6.23.0  Structured control contracts (bounded tool-input checks)
+6.23.0  Structured control contracts (bounded tool-input checks)  (published)
 6.23.1  Contract/privacy corrections only
 
-6.24.0  Production adoption and distribution (external retained-use gate)
+6.24.0  Production adoption and distribution (external retained-use gate)  (published)
 6.24.1  Adoption corrections only
 
-6.25.0  Stability baseline
+6.25.0  Stability baseline  (published)
 6.25.x  Maintenance
 ```
 
@@ -134,13 +134,13 @@ Fail-closed deterministic gate hardening:
 | **6.17.8** | Closeout + trust-boundary | #340; MCP untrusted-trace; #297 if green | Published |
 | **6.17.9** | Conditional corrective patch | — | Only verified security/compat defects |
 | **6.18.0** | Safe adoption and differentiation | #311, #213, #307, #328, #329, #330 | Published |
-| **6.19.0** | External evidence + derived failure semantics | #354/#355 | Version Packages `#357` on main; confirm npm |
+| **6.19.0** | External evidence + derived failure semantics | #354/#355 | Published |
 | **6.20.0** | `alternatives.anyOf` + ordering modes | #309, #308/#315 | Published |
 | **6.21.0** | Actor-scoped contracts + outcome provenance | #320, #321 | Published |
-| **6.22.0** | Cross-runtime causal fidelity | relationship facts, mapping ledger, W3C MCP demo; #331 recipe folded | In progress |
+| **6.22.0** | Cross-runtime causal fidelity | relationship facts, mapping ledger, W3C MCP demo; #331 recipe folded | Published |
 | **6.23.0** | Structured control contracts | bounded tool-input checks | Published |
-| **6.24.0** | Production adoption / distribution | #295 VS Code decision; external retained-use gate | Version Packages merged; publish pending |
-| **6.25.0** | Stability baseline | maintenance cut | In progress |
+| **6.24.0** | Production adoption / distribution | #295 VS Code decision; external retained-use gate | Published |
+| **6.25.0** | Stability baseline | maintenance cut; #386/#387 | Published |
 
 ### 3.1 v6.18.0 — adapter capture parity (#311)
 
