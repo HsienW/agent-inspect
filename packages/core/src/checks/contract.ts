@@ -19,6 +19,20 @@ import {
   resolveTraceContractScope,
   type TraceContractScope,
 } from "./contract-scope.js";
+import { resolveCanonicalToolName } from "./logical-events.js";
+import {
+  evaluateControlRules,
+  type TraceContractControlRules,
+} from "./control-rules.js";
+import {
+  evaluateRetrySafetyRules,
+  type TraceContractRetryRules,
+} from "./retry-safety.js";
+import {
+  evaluateToolArgumentValue,
+  extractToolArgumentPayload,
+  type ToolArgumentCheck,
+} from "./tool-arguments.js";
 import {
   OBSERVED_OUTCOME_METHODS,
   extractOutcomesFromPersistedEvents,
@@ -28,6 +42,21 @@ import type { TraceReadResult } from "../readers/index.js";
 
 export type { TraceContractScope } from "./contract-scope.js";
 export { resolveTraceContractScope, workflowMetadataForRun } from "./contract-scope.js";
+export type {
+  ControlStage,
+  TraceContractControlRules,
+} from "./control-rules.js";
+export type { TraceContractRetryRules } from "./retry-safety.js";
+export type {
+  ToolArgumentCheck,
+  ToolArgumentOccurrence,
+  ToolArgumentOperator,
+} from "./tool-arguments.js";
+export {
+  evaluateToolArgumentValue,
+  extractToolArgumentPayload,
+  resolveJsonPointer,
+} from "./tool-arguments.js";
 
 function contractFailFinding(
   ruleId: string,
@@ -102,6 +131,32 @@ export interface TraceContractToolRules {
    * @beta Available through `agent-inspect/checks`.
    */
   requiredOrderMode?: "first-occurrence" | "happens-before" | "all-occurrences";
+  /**
+   * Bounded structured tool-argument checks (JSON Pointer + limited operators).
+   *
+   * Missing structured evidence fails closed as unevaluable (not pass).
+   * Findings never embed full actual inputs.
+   *
+   * @experimental Additive in 6.23.
+   */
+  arguments?: ToolArgumentCheck[];
+  /**
+   * Default occurrence mode for `orderRules` when a rule omits `occurrenceMode`.
+   *
+   * @experimental Additive in 6.23.
+   */
+  defaultOccurrenceMode?: "first-occurrence" | "happens-before" | "all-occurrences";
+  /**
+   * Mixed per-pair ordering rules (additive alongside `requiredOrder`).
+   *
+   * @experimental Additive in 6.23.
+   */
+  orderRules?: Array<{
+    before: string;
+    after: string;
+    occurrenceMode?: "first-occurrence" | "happens-before" | "all-occurrences";
+    requireEndpoints?: boolean;
+  }>;
 }
 
 export interface TraceContractLlmRules {
@@ -175,6 +230,18 @@ export type TraceContractBody = {
   tools?: TraceContractToolRules;
   llm?: TraceContractLlmRules;
   observations?: TraceContractObservationRules;
+  /**
+   * Declared-versus-enforced control invariants.
+   *
+   * @experimental Additive in 6.23.
+   */
+  controls?: TraceContractControlRules;
+  /**
+   * Retry / side-effect safety using explicit attempt identity.
+   *
+   * @experimental Additive in 6.23.
+   */
+  retry?: TraceContractRetryRules;
 };
 
 export interface TraceContractInput extends TraceContractBody {
@@ -219,7 +286,17 @@ function normalizeStatus(status: string): "ok" | "error" | "running" {
 function cloneBody(body: TraceContractBody): TraceContractBody {
   return {
     ...(body.run ? { run: { ...body.run } } : {}),
-    ...(body.tools ? { tools: { ...body.tools } } : {}),
+    ...(body.tools
+      ? {
+          tools: {
+            ...body.tools,
+            ...(body.tools.arguments ? { arguments: body.tools.arguments.map((item) => ({ ...item })) } : {}),
+            ...(body.tools.orderRules
+              ? { orderRules: body.tools.orderRules.map((item) => ({ ...item })) }
+              : {}),
+          },
+        }
+      : {}),
     ...(body.llm ? { llm: { ...body.llm } } : {}),
     ...(body.observations
       ? {
@@ -227,6 +304,32 @@ function cloneBody(body: TraceContractBody): TraceContractBody {
             ...body.observations,
             ...(body.observations.requireProvenance
               ? { requireProvenance: { ...body.observations.requireProvenance } }
+              : {}),
+          },
+        }
+      : {}),
+    ...(body.controls
+      ? {
+          controls: {
+            ...body.controls,
+            ...(body.controls.declaredTools
+              ? { declaredTools: [...body.controls.declaredTools] }
+              : {}),
+            ...(body.controls.enforcedTools
+              ? { enforcedTools: [...body.controls.enforcedTools] }
+              : {}),
+            ...(body.controls.requiredStages
+              ? { requiredStages: body.controls.requiredStages.map((item) => ({ ...item })) }
+              : {}),
+          },
+        }
+      : {}),
+    ...(body.retry
+      ? {
+          retry: {
+            ...body.retry,
+            ...(body.retry.nonIdempotentTools
+              ? { nonIdempotentTools: [...body.retry.nonIdempotentTools] }
               : {}),
           },
         }
@@ -239,7 +342,9 @@ function bodyHasRules(body: TraceContractBody): boolean {
     body.run !== undefined ||
     body.tools !== undefined ||
     body.llm !== undefined ||
-    body.observations !== undefined
+    body.observations !== undefined ||
+    body.controls !== undefined ||
+    body.retry !== undefined
   );
 }
 
@@ -463,11 +568,16 @@ function contractToRules(contract: TraceContractBody): TraceCheckRule[] {
   if (contract.tools) {
     const order = contract.tools.requiredOrder ?? [];
     const requiredOrderMode = contract.tools.requiredOrderMode ?? "first-occurrence";
+    const orderRules = contract.tools.orderRules ?? [];
+    const endpointRequired = orderRules
+      .filter((rule) => rule.requireEndpoints !== false)
+      .flatMap((rule) => [rule.before, rule.after]);
     const required = [
       ...new Set([
         ...(contract.tools.required ?? []),
         ...(contract.tools.requiredTools ?? []),
         ...order,
+        ...endpointRequired,
       ]),
     ];
     const forbidden = [
@@ -491,6 +601,114 @@ function contractToRules(contract: TraceContractBody): TraceCheckRule[] {
           mode: requiredOrderMode,
         }),
       );
+    }
+    const defaultOccurrenceMode =
+      contract.tools.defaultOccurrenceMode ?? requiredOrderMode;
+    for (const [index, rule] of orderRules.entries()) {
+      rules.push(
+        createToolOrderingRule({
+          before: rule.before,
+          after: rule.after,
+          id: `contract.tool.orderRule.${index}`,
+          mode: rule.occurrenceMode ?? defaultOccurrenceMode,
+        }),
+      );
+    }
+    const argumentChecks = contract.tools.arguments ?? [];
+    if (argumentChecks.length > 0) {
+      rules.push({
+        id: "contract.tool.arguments",
+        category: "tool",
+        defaultSeverity: "error",
+        evaluate(context) {
+          const tools = (context.logicalEvents ?? context.events).filter(
+            (event) => event.kind === "TOOL" && event.status !== "running",
+          );
+          const findings: TraceCheckFinding[] = [];
+          for (const [index, check] of argumentChecks.entries()) {
+            const matches = tools.filter(
+              (event) => resolveCanonicalToolName(event) === check.tool,
+            );
+            if (matches.length === 0) {
+              findings.push(
+                contractFailFinding(
+                  `contract.tool.arguments.${index}`,
+                  `No finished tool named ${check.tool} for argument check.`,
+                  context.selectedRun
+                    ? [
+                        {
+                          runId: context.selectedRun.runId,
+                          kind: "RUN",
+                          name: context.selectedRun.name,
+                        },
+                      ]
+                    : [],
+                  { tool: check.tool, path: check.path },
+                  { toolCount: 0 },
+                ),
+              );
+              continue;
+            }
+            const occurrence = check.occurrence ?? "all";
+            const selected =
+              occurrence === "first"
+                ? [matches[0]!]
+                : occurrence === "last"
+                  ? [matches[matches.length - 1]!]
+                  : matches;
+            const results = selected.map((event) => {
+              const payload = extractToolArgumentPayload(event);
+              return evaluateToolArgumentValue(
+                payload.value,
+                check,
+                payload.present,
+              );
+            });
+            if (occurrence === "any") {
+              if (results.some((result) => result.status === "pass")) continue;
+              const firstFail = results.find((result) => result.status !== "pass")!;
+              findings.push(
+                contractFailFinding(
+                  `contract.tool.arguments.${index}`,
+                  firstFail.message,
+                  selected.slice(0, 1).map((event) => ({
+                    runId: event.runId,
+                    eventId: event.eventId,
+                    kind: event.kind,
+                    name: event.name,
+                    path: `tool.${check.tool}${check.path}`,
+                  })),
+                  { tool: check.tool, path: check.path, operator: check.operator },
+                  { code: firstFail.code },
+                ),
+              );
+              continue;
+            }
+            for (const [selIndex, result] of results.entries()) {
+              if (result.status === "pass") continue;
+              const event = selected[selIndex]!;
+              findings.push(
+                contractFailFinding(
+                  `contract.tool.arguments.${index}`,
+                  result.message,
+                  [
+                    {
+                      runId: event.runId,
+                      eventId: event.eventId,
+                      kind: event.kind,
+                      name: event.name,
+                      path: `tool.${check.tool}${check.path}`,
+                    },
+                  ],
+                  { tool: check.tool, path: check.path, operator: check.operator },
+                  { code: result.code },
+                ),
+              );
+            }
+          }
+          return findings;
+        },
+      });
     }
   }
 
@@ -566,6 +784,52 @@ function contractToRules(contract: TraceContractBody): TraceCheckRule[] {
         },
       });
     }
+  }
+
+  if (contract.controls) {
+    const controls = contract.controls;
+    rules.push({
+      id: "contract.controls",
+      category: "run",
+      defaultSeverity: "error",
+      evaluate(context) {
+        const events = context.logicalEvents ?? context.events;
+        const outcomes = extractOutcomesFromPersistedEvents(context.events);
+        const observationNames = new Set(outcomes.map((item) => item.name));
+        const runEvidence: TraceCheckEvidence[] = context.selectedRun
+          ? [
+              {
+                runId: context.selectedRun.runId,
+                kind: "RUN",
+                name: context.selectedRun.name,
+              },
+            ]
+          : [];
+        return evaluateControlRules(events, controls, runEvidence, observationNames);
+      },
+    });
+  }
+
+  if (contract.retry) {
+    const retry = contract.retry;
+    rules.push({
+      id: "contract.retry",
+      category: "run",
+      defaultSeverity: "error",
+      evaluate(context) {
+        const events = context.logicalEvents ?? context.events;
+        const runEvidence: TraceCheckEvidence[] = context.selectedRun
+          ? [
+              {
+                runId: context.selectedRun.runId,
+                kind: "RUN",
+                name: context.selectedRun.name,
+              },
+            ]
+          : [];
+        return evaluateRetrySafetyRules(events, retry, runEvidence);
+      },
+    });
   }
 
   return rules;
@@ -674,7 +938,7 @@ function validateAlternativesShape(
       diagnostics.push({
         code: "contract.alternatives.empty-branch",
         severity: "error",
-        message: `Branch ${branch.id} must declare at least one run/tools/llm/observations rule.`,
+        message: `Branch ${branch.id} must declare at least one run/tools/llm/observations/controls/retry rule.`,
         path: `${path}.contract`,
       });
     }
@@ -1025,6 +1289,40 @@ export function lintTraceContract(contract: TraceContract): TraceContractLintDia
       path: "tools.requiredOrderMode",
     });
   }
+  const orderRules = contract.tools?.orderRules ?? [];
+  const seenPairs = new Set<string>();
+  for (const [index, rule] of orderRules.entries()) {
+    const key = `${rule.before}\0${rule.after}`;
+    if (seenPairs.has(key)) {
+      diagnostics.push({
+        code: "contract.tools.orderRules.duplicate",
+        severity: "warning",
+        message: `Duplicate orderRules pair ${rule.before} → ${rule.after}.`,
+        path: `tools.orderRules[${index}]`,
+      });
+    }
+    seenPairs.add(key);
+    if (rule.before === rule.after) {
+      diagnostics.push({
+        code: "contract.tools.orderRules.self",
+        severity: "error",
+        message: "orderRules before and after must differ.",
+        path: `tools.orderRules[${index}]`,
+      });
+    }
+  }
+  if ((contract.tools?.arguments?.length ?? 0) > 0) {
+    for (const [index, check] of (contract.tools?.arguments ?? []).entries()) {
+      if (!check.path.startsWith("/") && check.path !== "") {
+        diagnostics.push({
+          code: "contract.tools.arguments.path",
+          severity: "error",
+          message: "tools.arguments path must be a JSON Pointer (\"\" or start with \"/\").",
+          path: `tools.arguments[${index}].path`,
+        });
+      }
+    }
+  }
   return diagnostics;
 }
 
@@ -1076,6 +1374,17 @@ export function explainTraceContract(contract: TraceContract): string[] {
         `Base: requiredOrder [${contract.tools.requiredOrder!.join(" → ")}] mode=${mode}.`,
       );
     }
+    if ((contract.tools.orderRules?.length ?? 0) > 0) {
+      const defaultMode = contract.tools.defaultOccurrenceMode ?? "first-occurrence";
+      lines.push(
+        `Base: ${contract.tools.orderRules!.length} orderRules (defaultOccurrenceMode=${defaultMode}).`,
+      );
+    }
+    if ((contract.tools.arguments?.length ?? 0) > 0) {
+      lines.push(
+        `Base: ${contract.tools.arguments!.length} structured tool-argument check(s).`,
+      );
+    }
   }
   if (contract.llm) {
     if (contract.llm.maxCalls !== undefined) {
@@ -1107,6 +1416,12 @@ export function explainTraceContract(contract: TraceContract): string[] {
         `Base: require structural observation provenance [${flags.join(", ")}] (not semantic truth).`,
       );
     }
+  }
+  if (contract.controls) {
+    lines.push("Base: declared-versus-enforced control checks enabled.");
+  }
+  if (contract.retry) {
+    lines.push("Base: retry/side-effect safety checks enabled.");
   }
   const branches = contract.alternatives?.anyOf ?? [];
   if (branches.length > 0) {

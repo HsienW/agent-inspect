@@ -11,6 +11,10 @@ Contracts compile to deterministic check rules for common cases:
 - run status / completion / max duration
 - tool required / forbidden / allowed / maxCalls / order (`requiredTools` / `forbiddenTools` aliases)
 - selectable `requiredOrderMode` (`first-occurrence` | `happens-before` | `all-occurrences`)
+- additive `tools.orderRules` with per-rule occurrence modes
+- bounded `tools.arguments` JSON Pointer checks (`exists` | `type` | `equals` | `oneOf`)
+- `controls` declared-versus-enforced invariants
+- `retry` / side-effect safety using explicit attempt identity
 - `alternatives.anyOf` for one level of legitimate alternate paths
 - actor `scope` selectors (`runId`, `subAgentId`, `groupId`, `workflowStep`, `rootEventId`)
 - observation `requireProvenance` (structural method / evidence / same-run event references)
@@ -164,6 +168,58 @@ defineTraceContract({
 ```
 
 Bounded evidence shapes: string event id, `{ eventId }`, or `{ eventIds }` (max 16). Method must be in the `ObservedOutcomeMethod` vocabulary. Omitting `requireProvenance` leaves prior observation behavior unchanged.
+
+### `tools.arguments` / `tools.orderRules` / `controls` / `retry` (shipped — experimental, 6.23)
+
+See [ADR-0010](./decisions/ADR-0010-structured-control-contracts.md).
+
+```ts
+defineTraceContract({
+  tools: {
+    defaultOccurrenceMode: "first-occurrence",
+    orderRules: [
+      { before: "authorize", after: "charge", occurrenceMode: "all-occurrences" },
+    ],
+    arguments: [
+      {
+        tool: "charge",
+        occurrence: "all",
+        path: "/dryRun",
+        operator: "equals",
+        expected: true,
+      },
+    ],
+  },
+  controls: {
+    declaredTools: ["search", "charge"],
+    enforcedTools: ["search", "charge"],
+    requireDeclaredMatchesEnforced: true,
+    requireObservedWithinEnforced: true,
+    requiredStages: [{ stage: "enforced" }],
+  },
+  retry: {
+    maxAttempts: 2,
+    nonIdempotentTools: ["charge"],
+    requireIdempotencyEvidenceForRetry: true,
+    requireRecoveredFailureVisible: true,
+  },
+});
+```
+
+Missing structured argument evidence fails closed (`AI_CHECK_TOOL_ARGUMENT_EVIDENCE_UNAVAILABLE`). Findings never include full actual inputs.
+
+### Capture capability matrix (tool-argument evidence)
+
+| Source | Structured input | Preview only | Digest only | Unavailable |
+| --- | :---: | :---: | :---: | :---: |
+| Manual `attributes.arguments` / `attributes.input` (object) | yes | — | — | — |
+| Manual `inputSummary` string | — | yes | — | for pointer checks |
+| AI SDK / LangChain metadata-only default | — | sometimes | — | typical |
+| OpenAI Agents metadata-only | — | sometimes | — | typical |
+| MCP / OTLP / OpenInference import | varies | varies | optional digest | when unmapped |
+| Custom TraceReader | reader-defined | reader-defined | reader-defined | fail closed |
+
+Do not advertise a structured argument rule when the selected capture mode cannot supply object evidence.
 
 ### Lint and explain (shipped)
 
