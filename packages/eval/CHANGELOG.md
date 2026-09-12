@@ -1,5 +1,15 @@
 # @agent-inspect/eval
 
+## 6.22.0
+
+### Patch Changes
+
+- 155acb8: Cross-runtime causal fidelity: mapping ledgers, typed relationship facts on TraceFacts, operation/attempt identity metadata, omitted-payload digests, W3C MCP propagation + guardrail refusal recipes (#331).
+- Updated dependencies [155acb8]
+  - agent-inspect@6.22.0
+  - @agent-inspect/guardrails@6.22.0
+  - @agent-inspect/circuit@6.22.0
+
 ## 6.21.0
 
 ### Patch Changes

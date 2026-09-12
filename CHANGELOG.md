@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.22.0
+
+### Minor Changes
+
+- 155acb8: Cross-runtime causal fidelity: mapping ledgers, typed relationship facts on TraceFacts, operation/attempt identity metadata, omitted-payload digests, W3C MCP propagation + guardrail refusal recipes (#331).
+
 ## 6.21.0
 
 ### Minor Changes
