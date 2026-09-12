@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.23.0
+
+### Minor Changes
+
+- 97b962f: Structured control contracts: JSON Pointer tool-argument checks, mixed orderRules, declared-versus-enforced controls, and retry/side-effect safety.
+
 ## 6.22.0
 
 ### Minor Changes
