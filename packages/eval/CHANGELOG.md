@@ -1,5 +1,15 @@
 # @agent-inspect/eval
 
+## 6.23.0
+
+### Patch Changes
+
+- 97b962f: Structured control contracts: JSON Pointer tool-argument checks, mixed orderRules, declared-versus-enforced controls, and retry/side-effect safety.
+- Updated dependencies [97b962f]
+  - agent-inspect@6.23.0
+  - @agent-inspect/guardrails@6.23.0
+  - @agent-inspect/circuit@6.23.0
+
 ## 6.22.0
 
 ### Patch Changes
