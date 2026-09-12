@@ -1937,6 +1937,19 @@ export const DEFAULT_TRACE_READERS: readonly TraceReader[] = [
   otlpJsonReader,
 ];
 
+export type {
+  MappingConfidence,
+  MappingLedger,
+  MappingLedgerEntry,
+  MappingLossKind,
+} from "./mapping-ledger.js";
+export {
+  BUILTIN_MAPPING_LEDGERS,
+  OPENINFERENCE_MAPPING_LEDGER,
+  OTLP_JSON_MAPPING_LEDGER,
+  getMappingLedger,
+} from "./mapping-ledger.js";
+
 export async function detectTraceFormat(
   input: TraceInput,
   options: TraceReadOptions = {},

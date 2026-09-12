@@ -14,6 +14,11 @@ import {
   type FailureRoleCounts,
 } from "./derived-failure.js";
 import {
+  deriveRelationshipFacts,
+  type TraceRelationship,
+  type TraceRelationshipDiagnostic,
+} from "./relationship-facts.js";
+import {
   projectLogicalEvents,
   resolveCanonicalToolName,
   type LogicalProjectionDiagnostic,
@@ -27,6 +32,13 @@ export type {
   FailureRoleCounts,
 } from "./derived-failure.js";
 export { deriveFailureFacts } from "./derived-failure.js";
+export type {
+  TraceRelationship,
+  TraceRelationshipConfidence,
+  TraceRelationshipDiagnostic,
+  TraceRelationshipType,
+} from "./relationship-facts.js";
+export { deriveRelationshipFacts } from "./relationship-facts.js";
 
 /**
  * Bounded semantic counts shared by check / contract / MCP / Evidence consumers.
@@ -112,6 +124,18 @@ export interface TraceFacts {
     DerivedFailureRole,
     readonly DerivedFailureFact[]
   >;
+  /**
+   * Read-time typed relationship facts. Does not rewrite parent hierarchy.
+   *
+   * @experimental Additive in 6.22.
+   */
+  readonly relationships: readonly TraceRelationship[];
+  /**
+   * Diagnostics for unsupported or unresolved relationships.
+   *
+   * @experimental Additive in 6.22.
+   */
+  readonly relationshipDiagnostics: readonly TraceRelationshipDiagnostic[];
 }
 
 const TRACE_FACTS_INPUT_NOT_NORMALIZED = formatProgrammaticDiagnostic(
@@ -217,6 +241,7 @@ export function buildTraceFacts(
   }
 
   const derived = deriveFailureFacts(projection.logicalEvents);
+  const relationship = deriveRelationshipFacts(events);
   const summary = summarizeSemanticParity(events);
 
   return {
@@ -232,5 +257,7 @@ export function buildTraceFacts(
     },
     failureFacts: derived.failureFacts,
     failuresByRole: derived.failuresByRole,
+    relationships: relationship.relationships,
+    relationshipDiagnostics: relationship.diagnostics,
   };
 }

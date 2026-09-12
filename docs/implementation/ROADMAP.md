@@ -1,14 +1,14 @@
 # AgentInspect Canonical Roadmap (permanent)
 
-**Baseline:** `agent-inspect@6.19.0` (Version Packages `#357` on `main`)
-**Roadmap horizon:** `6.19.0 → conditional 6.19.1 → 6.20.0 → 6.21.0 → conditional 6.22.0`
-**Status:** Active canonical roadmap (permanent path; supersedes version-named roadmap seeds)
-**Primary objective:** Close capability-truth gaps, eliminate fail-open deterministic check behavior, keep release integrity green, align high-confidence redaction with verify-safe, make framework preview capture useful without weakening local-first safety, support arbitrary persisted agent-event sources through the existing reader architecture, and make deterministic contracts flexible enough for legitimate alternate agent paths
+**Baseline:** `agent-inspect@6.21.0`
+**Roadmap horizon:** `6.19.0 → 6.19.1 → 6.20.0 → 6.21.0 → 6.22.0 → 6.23.0 → 6.24.0 → 6.25.0`
+**Status:** Active canonical roadmap (permanent path; aligned with adoption-first program through 6.25)
+**Primary objective:** Close capability-truth gaps, eliminate fail-open deterministic check behavior, keep release integrity green, align high-confidence redaction with verify-safe, make framework preview capture useful without weakening local-first safety, support arbitrary persisted agent-event sources through the existing reader architecture, make deterministic contracts flexible enough for legitimate alternate agent paths, preserve cross-runtime relationship fidelity, and land a stability baseline
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
 **Network policy:** no new default network behavior
 **Product boundary:** local-first and customer-owned; no maintainer-hosted SaaS
-**Named train:** `agentinspect-feedback-integrity-v6.17.5-to-v6.22`
+**Named train:** `agentinspect-adoption-first-v6.19-to-v6.25`
 **Active plan:** [active/NEXT-RELEASES.md](./active/NEXT-RELEASES.md)
 
 ---
@@ -32,14 +32,23 @@ The canonical release sequence is:
 6.19.0  External evidence + derived failure semantics (TraceReader authoring; failure roles; interop)  (Version Packages #357 on main; confirm npm)
 6.19.1  Reserved 6.19 corrections only
 
-6.20.0  Alternative valid paths and causal / strict ordering modes  (next — #308/#315/#309)
+6.20.0  Alternative valid paths and causal / strict ordering modes  (published)
 6.20.1  Reserved contract compatibility patch only
 
-6.21.0  Actor-scoped contracts and outcome provenance requirements  (#320/#321)
+6.21.0  Actor-scoped contracts and outcome provenance requirements  (published)
 6.21.1  Reserved multi-agent contract patch only
 
-6.22.0  Conditional design-partner recipes (#331 design confirmed; existing APIs only; not yet implemented)
-6.22.x  Stability, external verification, and adoption
+6.22.0  Cross-runtime causal fidelity (mapping ledger, relationship facts, W3C MCP demo)
+6.22.1  Reader/correlation corrections only
+
+6.23.0  Structured control contracts (bounded tool-input checks)
+6.23.1  Contract/privacy corrections only
+
+6.24.0  Production adoption and distribution (external retained-use gate)
+6.24.1  Adoption corrections only
+
+6.25.0  Stability baseline
+6.25.x  Maintenance
 ```
 
 No major version is required. No new trace schema. No TrueForge-specific package. No full-content capture mode. No general temporal/workflow DSL.
@@ -126,9 +135,12 @@ Fail-closed deterministic gate hardening:
 | **6.17.9** | Conditional corrective patch | — | Only verified security/compat defects |
 | **6.18.0** | Safe adoption and differentiation | #311, #213, #307, #328, #329, #330 | Published |
 | **6.19.0** | External evidence + derived failure semantics | #354/#355 | Version Packages `#357` on main; confirm npm |
-| **6.20.0** | `alternatives.anyOf` + ordering modes | #309, #308/#315 | Next train (`roadmap-now`) |
-| **6.21.0** | Actor-scoped contracts + outcome provenance | #320, #321 | Scheduled (`roadmap-next`) |
-| **6.22.0** | Conditional design-partner recipes | #331 | Design confirmed; existing APIs only; not yet implemented (`roadmap-future`) |
+| **6.20.0** | `alternatives.anyOf` + ordering modes | #309, #308/#315 | Published |
+| **6.21.0** | Actor-scoped contracts + outcome provenance | #320, #321 | Published |
+| **6.22.0** | Cross-runtime causal fidelity | relationship facts, mapping ledger, W3C MCP demo; #331 recipe folded | In progress |
+| **6.23.0** | Structured control contracts | bounded tool-input checks | Scheduled |
+| **6.24.0** | Production adoption / distribution | #295 VS Code decision; external retained-use gate | Conditional |
+| **6.25.0** | Stability baseline | maintenance cut | Scheduled |
 
 ### 3.1 v6.18.0 — adapter capture parity (#311)
 
@@ -201,16 +213,30 @@ A TraceTransform is **not** the decoder for raw vendor JSON. No official TrueFor
 - No timestamp-only actor inference
 - Outcome provenance: require `method` and/or `evidence`; optionally require referenced event ID in same run/session
 
-Declared-versus-enforced control evidence conventions remain design-partner gated (see 6.22.0).
+Declared-versus-enforced control evidence conventions remain scheduled for 6.23.0.
 
-### 3.5 v6.22.0 — conditional design-partner recipes
+### 3.5 v6.22.0 — cross-runtime causal fidelity
 
-Only when external partners validate need:
+Preserve meaning when AgentInspect reads executions it did not produce:
 
-- Digest-backed producer/consumer handoff evidence (no raw transferred content by default)
-- Declared-control versus enforced-control conventions
-- MCP retry / duplicate-side-effect design-partner fixture (after confirming whether the first retryable failure occurs after the side effect)
-- CI promotion-envelope recipe for external control planes (after zevqora / equivalent validation)
+- Version-pinned OpenInference / OTLP mapping ledgers with known-loss rows
+- Read-time typed relationship facts (no parent-hierarchy rewrite; no timestamp inference)
+- Explicit operation/attempt identity metadata (`operationId`, `attemptId`, `fallbackOf`, …)
+- Optional omitted-payload digest commitments (digest ≠ redaction)
+- No-key W3C MCP propagation recipe with negative control
+- Guardrail refusal / non-action recipe (#331) using existing TraceContract APIs only
+
+### 3.6 v6.23.0 — structured control contracts
+
+Bounded tool-input checks (JSON Pointer + limited operators), mixed per-rule ordering, declared-versus-enforced controls, retry/side-effect safety using explicit attempt identity.
+
+### 3.7 v6.24.0 — production adoption
+
+Framework-first setup, distribution polish, VS Code publish-or-close (#295). Publication of an “adoption” claim requires maintainer-supplied retained-use evidence (`BLOCKED_ON_EXTERNAL_EVIDENCE` otherwise).
+
+### 3.8 v6.25.0 — stability baseline
+
+Freeze support expectations, documentation truth, and maintenance posture before any conditional v7 assessment.
 
 Historical `6.16.x`–`6.17.1` repository-health and Evidence UX work remains summarized in [history/ROADMAP-HISTORY.md](../history/ROADMAP-HISTORY.md) and Git tags.
 

@@ -441,3 +441,9 @@ export {
 } from "../gate/index.js";
 
 export { maybeInspectRun, isAgentInspectEnabled } from "../maybe-inspect-run.js";
+
+export type {
+  OmittedPayloadAlgorithm,
+  OmittedPayloadCommitment,
+} from "../safety/omitted-payload.js";
+export { createOmittedPayloadCommitment } from "../safety/omitted-payload.js";
