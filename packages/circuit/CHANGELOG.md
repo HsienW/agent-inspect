@@ -1,5 +1,11 @@
 # @agent-inspect/circuit
 
+## 6.25.1
+
+### Patch Changes
+
+- ca0ce77: Fix retry fail-open on error→success (identity-based retry classification, chronological fallback/recovery rules) and preflight the omitted-payload 1 MiB bound before copying oversized inputs.
+
 ## 6.25.0
 
 ## 6.24.0

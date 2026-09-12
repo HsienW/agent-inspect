@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.25.1
+
+### Patch Changes
+
+- ca0ce77: Fix retry fail-open on error→success (identity-based retry classification, chronological fallback/recovery rules) and preflight the omitted-payload 1 MiB bound before copying oversized inputs.
+
 ## Unreleased
 
 ## 6.25.0
