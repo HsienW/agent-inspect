@@ -1,5 +1,16 @@
 # @agent-inspect/tui
 
+## 6.27.0
+
+### Minor Changes
+
+- 0f7c2e1: Bounded safe recovery contracts: additive TraceContract `retry.operations[]` oracles (read-first `retrieve_policy`), ADR-0011, and flagship recipe. Schema remains 1.0; AgentInspect still does not execute retries.
+
+### Patch Changes
+
+- Updated dependencies [0f7c2e1]
+  - agent-inspect@6.27.0
+
 ## 6.26.0
 
 ### Minor Changes
