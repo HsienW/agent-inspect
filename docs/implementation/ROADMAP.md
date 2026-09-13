@@ -1,15 +1,21 @@
 # AgentInspect Canonical Roadmap (permanent)
 
 **Baseline:** `agent-inspect@6.29.0`
-**Roadmap horizon:** post-6.25 reliability train complete through `6.29.0`; `6.30.0` blocked on external evidence (adoption-first `6.19→6.25` complete)
-**Status:** Train stopped — `BLOCKED_ON_EXTERNAL_EVIDENCE`; `LAST_IMPLEMENTED_RELEASE: 6.29.0`; **V7_DECISION: NO-GO**
-**Primary objective:** Eliminate fail-open retry/recovery chronology defects, bound omitted-payload allocation, separate execution status from behavioral outcomes, ship bounded safe recovery contracts, make Evidence reviewer-reproducible, and improve provider usage fidelity—without schema 1.1, hosted SaaS, or fabricated external evidence
+**Roadmap horizon:** post-6.29 hardening `6.29.1 → 6.29.3` (optional maintenance); `6.30.0+` blocked on external evidence
+**Status:** `6.29.x` evidence-backed patches **active**; speculative `6.30` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
+**Primary objective:** Remove redaction-policy regex execution, restore OTLP declaration honesty, fail-close recovery contracts, harden AI SDK overlap and Evidence contract binding—without schema 1.1, hosted SaaS, or fabricated external evidence
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
 **Network policy:** no new default network behavior
 **Product boundary:** local-first and customer-owned; no maintainer-hosted SaaS
-**Named train:** `agentinspect-reliability-evidence-v6.25.1-to-v6.30`
+**Named train:** `agentinspect-post-629-hardening-v6.29.1-to-v6.30`
 **Active plan:** [active/NEXT-RELEASES.md](./active/NEXT-RELEASES.md)
+
+---
+
+## Freeze language
+
+> **Core boundary frozen; evidence-backed security, correctness, compatibility, and public-truth patches remain active.**
 
 ---
 
@@ -60,13 +66,18 @@ The canonical release sequence is:
 6.28.0  Reviewer-reproducible Evidence
 6.28.1  Evidence-binding corrections only
 
-6.29.0  Provider usage fidelity and adapter compatibility
-6.29.1  Adapter/usage corrections only
+6.29.0  Provider usage fidelity and adapter compatibility  (published)
+6.29.1  Redaction-policy security + OTLP declared-vs-emitted truth  (next)
+6.29.2  Recovery fail-closed (identity, chronology, write, canonical equality)
+6.29.3  AI SDK overlap honesty + Evidence contract safety/HTML + DX recipe
+6.29.4  Optional maintenance patch only when published artifacts change
 
 6.30.0  Conditional external conformance (external evidence required)
 6.30.x  Maintenance
 
-7.0.0   Assessment only — not scheduled
+6.31.0  Conditional external conformance and support review
+
+7.0.0   Assessment only — V7_DECISION: NO-GO
 ```
 
 No major version is required. No new trace schema. No TrueForge-specific package. No full-content capture mode. No general temporal/workflow DSL.
