@@ -1,5 +1,16 @@
 # @agent-inspect/jest
 
+## 6.26.0
+
+### Minor Changes
+
+- ec2ebbf: Outcome-aware behavioral sessions: `--preset behavioral-session` scores OUTCOME events without collapsing graceful tool errors into run failure, plus a synthetic MCP dual-axis recipe (#362).
+
+### Patch Changes
+
+- Updated dependencies [ec2ebbf]
+  - agent-inspect@6.26.0
+
 ## 6.25.1
 
 ### Patch Changes
