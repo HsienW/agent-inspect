@@ -3,7 +3,7 @@
 **Authority:** [../ROADMAP.md](../ROADMAP.md)
 **Baseline:** **published** `agent-inspect@6.29.0` · schema `1.0`
 **Named train:** `agentinspect-post-629-hardening-v6.29.1-to-v6.30`
-**Program status:** **in progress** — evidence-backed `6.29.x` patches; `6.30+` still external-gated
+**Program status:** **6.29.1–6.29.3 code complete** on branch; publish pending; `6.30+` **BLOCKED_ON_EXTERNAL_EVIDENCE**
 
 ## Freeze language
 
@@ -11,19 +11,19 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, and 
 
 ## Sequence
 
-1. **Immediate gate** — operational docs + manual Settings checklist (instructions only)
-2. **6.29.1** — regex-free redaction policy + OTLP declared-vs-emitted truth
-3. **6.29.2** — recovery identity, chronology, write completion, canonical equality
-4. **6.29.3** — AI SDK overlap honesty + contract Evidence safety + HTML binding + DX recipe
-5. **6.29.4** — optional; only if published package artifacts change after maintenance
-6. **Verified maintenance** — fresh audits; no automatic npm release for site/settings-only work
+1. **Immediate gate** — done
+2. **6.29.1** — regex-free redaction + OTLP truth — **done (code)**
+3. **6.29.2** — recovery fail-closed — **done (code)**
+4. **6.29.3** — AI SDK overlap + Evidence safety/HTML + DX — **done (code)**
+5. **Verified maintenance** — audit recorded; website privacy/security/CSP added; **no auto npm**
+6. **PREPARE RELEASE** — changeset → Version Packages → `publish.yml` (maintainer)
 7. **6.30.0** — only with `EVIDENCE GATE APPROVED` + retained fixtures; else blocked
 8. **6.31.0** — conditional conformance review
 9. **v7** — assessment only; **V7_DECISION: NO-GO**
 
 ## Current chunk
 
-Immediate gate → **6.29.1-A** (redaction security).
+Verified maintenance complete → release prep / external block.
 
 ## Stop rules
 
@@ -36,10 +36,11 @@ Immediate gate → **6.29.1-A** (redaction security).
 - Do not merge PR #352 wholesale; 6.29.1-A is the security path
 - Ignore-only (do not read/stage/commit): `.redstamp/`, `Dockerfile`, `glama.json`, `redstamp-proposal-issue-body.md`
 
-## External stop marker (minors)
+## External stop marker
 
 ```text
 BLOCKED_ON_EXTERNAL_EVIDENCE
 LAST_PUBLISHED_RELEASE: 6.29.0
+LAST_IMPLEMENTED_CODE: 6.29.3 themes
 V7_DECISION: NO-GO
 ```

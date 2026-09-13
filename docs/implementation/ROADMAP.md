@@ -1,8 +1,8 @@
 # AgentInspect Canonical Roadmap (permanent)
 
 **Baseline:** `agent-inspect@6.29.0`
-**Roadmap horizon:** post-6.29 hardening `6.29.1 → 6.29.3` (optional maintenance); `6.30.0+` blocked on external evidence
-**Status:** `6.29.x` evidence-backed patches **active**; speculative `6.30` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
+**Roadmap horizon:** post-6.29 hardening `6.29.1 → 6.29.3` **code complete** (publish pending); `6.30.0+` blocked on external evidence
+**Status:** `6.29.x` hardening **implemented on branch**; speculative `6.30` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
 **Primary objective:** Remove redaction-policy regex execution, restore OTLP declaration honesty, fail-close recovery contracts, harden AI SDK overlap and Evidence contract binding—without schema 1.1, hosted SaaS, or fabricated external evidence
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
@@ -67,15 +67,15 @@ The canonical release sequence is:
 6.28.1  Evidence-binding corrections only
 
 6.29.0  Provider usage fidelity and adapter compatibility  (published)
-6.29.1  Redaction-policy security + OTLP declared-vs-emitted truth  (next)
-6.29.2  Recovery fail-closed (identity, chronology, write, canonical equality)
-6.29.3  AI SDK overlap honesty + Evidence contract safety/HTML + DX recipe
+6.29.1  Redaction-policy security + OTLP declared-vs-emitted truth  (code complete; publish pending)
+6.29.2  Recovery fail-closed (identity, chronology, write, canonical equality)  (code complete; publish pending)
+6.29.3  AI SDK overlap honesty + Evidence contract safety/HTML + DX recipe  (code complete; publish pending)
 6.29.4  Optional maintenance patch only when published artifacts change
 
-6.30.0  Conditional external conformance (external evidence required)
+6.30.0  Conditional external conformance — BLOCKED_ON_EXTERNAL_EVIDENCE
 6.30.x  Maintenance
 
-6.31.0  Conditional external conformance and support review
+6.31.0  Conditional external conformance and support review — BLOCKED_ON_EXTERNAL_EVIDENCE
 
 7.0.0   Assessment only — V7_DECISION: NO-GO
 ```
