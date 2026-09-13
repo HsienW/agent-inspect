@@ -49,6 +49,24 @@ Core commands:
 - `report` — markdown or HTML inspection report for a single run
 - `explain` — deterministic local facts/inferences for a trace, with dry-run payloads
 
+## 1.1 CLI vs TraceContract decision table (6.29.3)
+
+Use this table when choosing between CLI check shorthands and TraceContract rules.
+No new CLI commands were added for branching paths.
+
+| Need | Prefer |
+| ---- | ------ |
+| One tool must always run | CLI `--required-tool` / contract `tools.required` |
+| Tool must never run | CLI `--forbidden-tool` / contract `tools.forbidden` |
+| Legitimate alternate paths (OR) | TraceContract `alternatives.anyOf` (not CLI flags) |
+| Causal order between tools | TraceContract `requiredOrder` + `requiredOrderMode` |
+| Read recovery vs write fail-closed | TraceContract `retry.operations` + `sideEffectClass` |
+| Sensitive expected literals in Evidence | Contract binding safety (`unavailable` on credential-like expected); never silent complete packaging |
+| Share-safe offline review package | CLI `bundle` / Evidence CI helpers |
+
+See [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md) and recipe
+[sensitive-read-outbound-write-anyof](../examples/recipes/sensitive-read-outbound-write-anyof/).
+
 ## 2. Environment variables
 
 - **`AGENT_INSPECT_TRACE_DIR`**: default directory for manual trace files (`.jsonl`) when not passed via `--dir` (or API options).
