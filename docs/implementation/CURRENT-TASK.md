@@ -5,8 +5,8 @@ executionMode: maintainer-reviewed
 namedTrain: agentinspect-post-629-hardening-v6.29.1-to-v6.30
 currentTrain: v6.29.1-redaction-otlp
 trainStatus: in-progress
-currentChunk: 6291b-complete-next-prepare-6291-or-6292
-nextAction: "Prepare 6.29.1 release (changeset) after A+B land; then CONTINUE 6.29.2 recovery fail-closed"
+currentChunk: 6292-complete-next-6293
+nextAction: "Implement 6.29.3 AI SDK overlap + Evidence contract safety/HTML + DX recipe"
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/NEXT-RELEASES.md
 pendingManualGate: "GitHub branch protection on main + Dependabot triage; ignore-only for .redstamp/ Dockerfile glama.json redstamp-proposal-issue-body.md"
