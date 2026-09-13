@@ -158,13 +158,13 @@ describe("bounded redaction policy (#329)", () => {
       "policy.houseLiteral",
       "policy.housePrefix",
     ]);
-    expect(compiled.detectors[0]?.detect({ value: "xx HOUSE_MARK yy" })).toEqual([
+    expect(compiled.detectors[0]?.detect({ path: "body", value: "xx HOUSE_MARK yy" })).toEqual([
       { action: "replace", severity: "error", matchKind: "custom" },
     ]);
-    expect(compiled.detectors[1]?.detect({ value: "hsec_abc" })).toEqual([
+    expect(compiled.detectors[1]?.detect({ path: "body", value: "hsec_abc" })).toEqual([
       { action: "replace", severity: "error", matchKind: "custom" },
     ]);
-    expect(compiled.detectors[1]?.detect({ value: "xhsec_abc" })).toEqual([]);
+    expect(compiled.detectors[1]?.detect({ path: "body", value: "xhsec_abc" })).toEqual([]);
   });
 
   it("rejects typed/user-regex patterns without compiling them", () => {
