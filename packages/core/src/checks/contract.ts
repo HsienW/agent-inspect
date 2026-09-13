@@ -24,6 +24,7 @@ import {
   evaluateControlRules,
   type TraceContractControlRules,
 } from "./control-rules.js";
+import { evaluateRecoveryOperations } from "./recovery-operations.js";
 import {
   evaluateRetrySafetyRules,
   type TraceContractRetryRules,
@@ -46,7 +47,14 @@ export type {
   ControlStage,
   TraceContractControlRules,
 } from "./control-rules.js";
-export type { TraceContractRetryRules } from "./retry-safety.js";
+export type {
+  RecoverySameArgumentsMode,
+  RecoverySideEffectClass,
+  TraceContractRecoveryOperation,
+  TraceContractRecoveryRetryableErrors,
+  TraceContractRecoverySuccessfulResultDependency,
+  TraceContractRetryRules,
+} from "./retry-safety.js";
 export type {
   ToolArgumentCheck,
   ToolArgumentOccurrence,
@@ -238,8 +246,9 @@ export type TraceContractBody = {
   controls?: TraceContractControlRules;
   /**
    * Retry / side-effect safety using explicit attempt identity.
+   * Additive `retry.operations[]` recovery oracles land in 6.27.
    *
-   * @experimental Additive in 6.23.
+   * @experimental Additive in 6.23; operations in 6.27.
    */
   retry?: TraceContractRetryRules;
 };
@@ -330,6 +339,30 @@ function cloneBody(body: TraceContractBody): TraceContractBody {
             ...body.retry,
             ...(body.retry.nonIdempotentTools
               ? { nonIdempotentTools: [...body.retry.nonIdempotentTools] }
+              : {}),
+            ...(body.retry.operations
+              ? {
+                  operations: body.retry.operations.map((operation) => ({
+                    ...operation,
+                    ...(operation.retryableErrors
+                      ? {
+                          retryableErrors: {
+                            ...operation.retryableErrors,
+                            ...(operation.retryableErrors.codes
+                              ? { codes: [...operation.retryableErrors.codes] }
+                              : {}),
+                          },
+                        }
+                      : {}),
+                    ...(operation.successfulResultDependency
+                      ? {
+                          successfulResultDependency: {
+                            ...operation.successfulResultDependency,
+                          },
+                        }
+                      : {}),
+                  })),
+                }
               : {}),
           },
         }
@@ -827,7 +860,11 @@ function contractToRules(contract: TraceContractBody): TraceCheckRule[] {
               },
             ]
           : [];
-        return evaluateRetrySafetyRules(events, retry, runEvidence);
+        const base = evaluateRetrySafetyRules(events, retry, runEvidence);
+        if (!retry.operations || retry.operations.length === 0) {
+          return base;
+        }
+        return [...base, ...evaluateRecoveryOperations(events, retry.operations)];
       },
     });
   }
@@ -1421,7 +1458,12 @@ export function explainTraceContract(contract: TraceContract): string[] {
     lines.push("Base: declared-versus-enforced control checks enabled.");
   }
   if (contract.retry) {
-    lines.push("Base: retry/side-effect safety checks enabled.");
+    const opCount = contract.retry.operations?.length ?? 0;
+    lines.push(
+      opCount > 0
+        ? `Base: retry/side-effect safety checks enabled (${opCount} recovery operation oracle(s)).`
+        : "Base: retry/side-effect safety checks enabled.",
+    );
   }
   const branches = contract.alternatives?.anyOf ?? [];
   if (branches.length > 0) {

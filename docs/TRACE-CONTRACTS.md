@@ -14,7 +14,7 @@ Contracts compile to deterministic check rules for common cases:
 - additive `tools.orderRules` with per-rule occurrence modes
 - bounded `tools.arguments` JSON Pointer checks (`exists` | `type` | `equals` | `oneOf`)
 - `controls` declared-versus-enforced invariants
-- `retry` / side-effect safety using explicit attempt identity
+- `retry` / side-effect safety using explicit attempt identity (additive `retry.operations[]` recovery oracles in 6.27)
 - `alternatives.anyOf` for one level of legitimate alternate paths
 - actor `scope` selectors (`runId`, `subAgentId`, `groupId`, `workflowStep`, `rootEventId`)
 - observation `requireProvenance` (structural method / evidence / same-run event references)
@@ -169,9 +169,9 @@ defineTraceContract({
 
 Bounded evidence shapes: string event id, `{ eventId }`, or `{ eventIds }` (max 16). Method must be in the `ObservedOutcomeMethod` vocabulary. Omitting `requireProvenance` leaves prior observation behavior unchanged.
 
-### `tools.arguments` / `tools.orderRules` / `controls` / `retry` (shipped — experimental, 6.23; retry chronology corrected in 6.25.1)
+### `tools.arguments` / `tools.orderRules` / `controls` / `retry` (shipped — experimental, 6.23; retry chronology corrected in 6.25.1; `retry.operations` in 6.27)
 
-See [ADR-0010](./decisions/ADR-0010-structured-control-contracts.md).
+See [ADR-0010](./decisions/ADR-0010-structured-control-contracts.md) and [ADR-0011](./decisions/ADR-0011-bounded-safe-recovery.md).
 
 ```ts
 defineTraceContract({
@@ -203,11 +203,29 @@ defineTraceContract({
     requireIdempotencyEvidenceForRetry: true,
     requireRecoveredFailureVisible: true,
     fallbackOnlyAfterFailure: true,
+    operations: [
+      {
+        tool: "retrieve_policy",
+        sideEffectClass: "read",
+        maxAttempts: 2,
+        retryableErrors: { codes: ["TRANSIENT"] },
+        requireFailureBeforeRetry: true,
+        requireSameArguments: "structured-or-digest",
+        requireTerminalSuccess: true,
+        requireRecoveredFailureVisible: true,
+        successfulResultDependency: {
+          consumerKind: "LLM",
+          requireExplicitReference: true,
+        },
+      },
+    ],
   },
 });
 ```
 
 **Retry classification (6.25.1):** a genuine retry is detected from explicit identity preference — `attemptNumber > 1`, valid `retryOf` (target exists and precedes), distinct later `attemptId` under the same `operationId`, or a later finished attempt in an explicitly grouped operation — **not** only from a prior `ok`. `error → success` without `idempotencyKey` / `noSideEffect` evidence fails when `requireIdempotencyEvidenceForRetry` is set. `fallbackOnlyAfterFailure` and `requireRecoveredFailureVisible` require chronological earlier failure in the related chain. A client `idempotencyKey` is evidence of intent, not proof of exactly-once mutation. AgentInspect evaluates traces; it does not execute retries.
+
+**Bounded recovery operations (6.27):** `retry.operations[]` adds per-tool oracles for safe **read** recovery first (`retrieve_policy` recipe). Same-arguments checks accept structured payloads or matching digests and fail closed when both are missing. Write `sideEffectClass` treats timeout/`unknown`/`running` completion as unevaluable unless authoritative idempotency evidence is present. Write-retry is not safe by default.
 
 Missing structured argument evidence fails closed (`AI_CHECK_TOOL_ARGUMENT_EVIDENCE_UNAVAILABLE`). Findings never include full actual inputs.
 

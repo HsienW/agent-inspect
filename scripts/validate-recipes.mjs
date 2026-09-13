@@ -41,6 +41,7 @@ const RECIPES = [
   "mcp-client-tracing",
   "mcp-expected-rejection",
   "mcp-behavioral-session",
+  "bounded-read-recovery",
   "planner-verifier-actor-scope",
   "w3c-mcp-propagation",
   "guardrail-refusal-non-action",
