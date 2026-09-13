@@ -86,7 +86,7 @@ export interface CheckCommandOptions {
   requireCompleted?: boolean;
   detectStalls?: boolean;
   failOnObservation?: string;
-  /** Additive check preset: trajectory | safety | comprehensive. */
+  /** Additive check preset: trajectory | safety | comprehensive | behavioral-session. */
   preset?: string;
   /** Local Evidence v2 emit mode: fail | always | never. */
   evidenceOn?: EvidenceOnMode;
@@ -95,7 +95,12 @@ export interface CheckCommandOptions {
   evidenceFormat?: string;
 }
 
-export const CHECK_PRESET_NAMES = ["trajectory", "safety", "comprehensive"] as const;
+export const CHECK_PRESET_NAMES = [
+  "trajectory",
+  "safety",
+  "comprehensive",
+  "behavioral-session",
+] as const;
 export type CheckPresetName = (typeof CHECK_PRESET_NAMES)[number];
 
 export interface ResolvePresetContext {
@@ -109,6 +114,8 @@ export interface ResolvedPreset {
   /** Inject structure.requireParentBeforeChild when config lacks relationship options. */
   enableStructureRelationshipDefaults: boolean;
   select: string[];
+  /** Default `--fail-on-observation` for behavioral-session (does not override explicit flag). */
+  failOnObservation?: string;
 }
 
 const DEFAULT_SELECT = ["run.status"];
@@ -225,9 +232,14 @@ export function resolvePreset(
 ): ResolvedPreset | undefined {
   if (preset === undefined || preset.trim() === "") return undefined;
   const name = preset.trim().toLowerCase();
-  if (name !== "trajectory" && name !== "safety" && name !== "comprehensive") {
+  if (
+    name !== "trajectory" &&
+    name !== "safety" &&
+    name !== "comprehensive" &&
+    name !== "behavioral-session"
+  ) {
     throw new Error(
-      `Unknown --preset "${preset}". Use trajectory, safety, or comprehensive.`,
+      `Unknown --preset "${preset}". Use trajectory, safety, comprehensive, or behavioral-session.`,
     );
   }
 
@@ -264,6 +276,16 @@ export function resolvePreset(
       enableSafetyRedaction: true,
       enableStructureRelationshipDefaults: false,
       select: safetySelect,
+    };
+  }
+  if (name === "behavioral-session") {
+    // Dual-axis: require harness completion + outcome scoring; do not collapse on tool error.
+    return {
+      requireCompleted: true,
+      enableSafetyRedaction: false,
+      enableStructureRelationshipDefaults: false,
+      select: ["run.requireCompleted", "outcome.status", "structure.orphan"],
+      failOnObservation: "failed",
     };
   }
 
@@ -807,6 +829,10 @@ function applyResolvedPreset(
     options: {
       ...options,
       ...(resolved.requireCompleted ? { requireCompleted: true } : {}),
+      ...(resolved.failOnObservation !== undefined &&
+      (options.failOnObservation === undefined || options.failOnObservation.trim() === "")
+        ? { failOnObservation: resolved.failOnObservation }
+        : {}),
     },
   };
 }
@@ -1023,7 +1049,18 @@ function printPresetClassSummary(
   preset: string | undefined,
 ): void {
   const name = preset?.trim().toLowerCase();
-  if (name !== "trajectory" && name !== "safety" && name !== "comprehensive") {
+  if (
+    name !== "trajectory" &&
+    name !== "safety" &&
+    name !== "comprehensive" &&
+    name !== "behavioral-session"
+  ) {
+    return;
+  }
+  if (name === "behavioral-session") {
+    console.log(
+      `Behavioral session: ${result.status === "pass" ? "PASS" : "FAIL"} (outcomes scored; tool errors may be expected)`,
+    );
     return;
   }
   const hasSafetyFindings = result.findings.some((finding) =>

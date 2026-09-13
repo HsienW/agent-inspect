@@ -40,6 +40,7 @@ const RECIPES = [
   "eval-ci-artifacts",
   "mcp-client-tracing",
   "mcp-expected-rejection",
+  "mcp-behavioral-session",
   "planner-verifier-actor-scope",
   "w3c-mcp-propagation",
   "guardrail-refusal-non-action",

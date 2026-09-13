@@ -48,6 +48,7 @@
     "agent-inspect-recipe-eval-ci-artifacts",
     "agent-inspect-recipe-workspace-basic",
     "agent-inspect-recipe-langgraph-gate-evidence",
+    "agent-inspect-recipe-mcp-behavioral-session",
     "agent-inspect-vscode"
   ]
 }
