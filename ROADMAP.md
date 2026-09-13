@@ -10,24 +10,22 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ---
 
-## Current — post-6.29 hardening (`6.29.1` → `6.29.3`)
+## Current — published `6.29.1` (post-6.29 hardening)
 
-**Current release line:** **6.29.0** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
+**Current release line:** **6.29.1** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
 
 Core boundary frozen; evidence-backed **security, correctness, compatibility, and public-truth patches** remain active. Retained-use / conformance claims stay `BLOCKED_ON_EXTERNAL_EVIDENCE`. **`6.30.0` is not invented** without external fixtures. **v7 is NO-GO**.
 
 | Release | Theme | Status |
 | ------- | ----- | ------ |
 | **6.19.0**–**6.29.0** | Adoption-first through usage fidelity | Published |
-| **6.29.1** | Redaction-policy security + OTLP export truth | Next |
-| **6.29.2** | Recovery fail-closed correctness | Planned |
-| **6.29.3** | AI SDK overlap + Evidence contract HTML/DX | Planned |
+| **6.29.1** | Post-6.29 hardening (redaction, OTLP, recovery, AI SDK, Evidence, DX) | Published |
 | **6.30.0** | Conditional external conformance | **BLOCKED_ON_EXTERNAL_EVIDENCE** |
 | **7.0.0** | Major | Assessment only / **NO-GO** |
 
 ```text
 BLOCKED_ON_EXTERNAL_EVIDENCE
-LAST_PUBLISHED_RELEASE: 6.29.0
+LAST_PUBLISHED_RELEASE: 6.29.1
 V7_DECISION: NO-GO
 ```
 
