@@ -115,7 +115,7 @@ redact(
 );
 ```
 
-3. **CLI local policy file** (`--policy <path>` on `redact` / `verify-safe` / `scan`): JSON only, no remote fetch, no secrets on argv. Supports `extraKeys` plus bounded `literal` / `prefix` / `typed` patterns with max count/length and ReDoS protections. The same compiled policy drives redaction and residual/verify-safe detection.
+3. **CLI local policy file** (`--policy <path>` on `redact` / `verify-safe` / `scan`): JSON only, no remote fetch, no secrets on argv. Supports `extraKeys` plus bounded `literal` / `prefix` patterns matched with string operations (no user-controlled regex). Policy files are capped at 64 KiB. The same compiled policy drives redaction and residual/verify-safe detection. The former `typed` pattern kind was removed in **6.29.1**.
 
 ```json
 {
@@ -123,8 +123,7 @@ redact(
   "extraKeys": ["houseToken"],
   "patterns": [
     { "id": "houseLiteral", "type": "literal", "value": "HOUSE_MARK" },
-    { "id": "housePrefix", "type": "prefix", "value": "hsec_" },
-    { "id": "houseTyped", "type": "typed", "pattern": "hsec_[A-Za-z0-9]{8,24}" }
+    { "id": "housePrefix", "type": "prefix", "value": "hsec_" }
   ]
 }
 ```

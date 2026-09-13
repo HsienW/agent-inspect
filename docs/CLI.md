@@ -446,7 +446,7 @@ Options:
 - `--profile <local|share|strict>`: redaction profile (default `share`)
 - `-o, --output <path>`: write redacted content to a file
 - `--json`: print deterministic JSON wrapper with findings
-- `--policy <path>`: local JSON redaction policy (`extraKeys` + bounded `literal` / `prefix` / `typed` patterns). No remote fetch; no secrets on argv. See [SAFETY-POLICY.md](SAFETY-POLICY.md).
+- `--policy <path>`: local JSON redaction policy (`extraKeys` + bounded `literal` / `prefix` patterns; no user regex since 6.29.1). No remote fetch; no secrets on argv. See [SAFETY-POLICY.md](SAFETY-POLICY.md).
 - `--fail-on-residual`: opt-in non-zero exit when residual safety is `UNSAFE` or `UNKNOWN` (default exit codes unchanged)
 
 After redaction, the command surfaces a **residual safety assessment** using the same local detector pipeline as `verify-safe`. Human mode prints a concise stderr warning when residual status is not `SAFE`. JSON mode adds an additive `residualAssessment` field (`status`, finding counts, codes only — never matched secret values). Residual status uses `SAFE` | `SAFE_WITH_WARNINGS` | `UNSAFE` | `UNKNOWN`. Supported AgentInspect traces get a full assessment; arbitrary JSON that is not a supported trace yields `UNKNOWN`. Redact never certifies safe sharing — finish with `verify-safe` before publishing.
