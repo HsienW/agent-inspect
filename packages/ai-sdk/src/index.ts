@@ -358,6 +358,8 @@ class AgentInspectAiSdkTelemetryIntegration {
       },
     });
 
+    run.steps.clear();
+    run.tools.clear();
     this.activeRun = undefined;
   }
 
@@ -529,6 +531,8 @@ class AgentInspectAiSdkTelemetryIntegration {
           sourceCount: event.sources.length,
         },
       });
+      // Drop finished steps so overlap/close terminalization only touches open rows.
+      run.steps.delete(event.stepNumber);
     });
   }
 
@@ -639,6 +643,8 @@ class AgentInspectAiSdkTelemetryIntegration {
         outputSummary: event.success ? summarizeUnknown(event.output) : undefined,
         error: event.success ? undefined : summarizeError(event.error),
       });
+      // Drop finished tools so overlap/close terminalization only touches open rows.
+      run.tools.delete(toolCall.toolCallId);
     });
   }
 

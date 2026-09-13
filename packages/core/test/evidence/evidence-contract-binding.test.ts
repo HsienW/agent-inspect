@@ -109,6 +109,21 @@ describe("evidence contract binding (6.28)", () => {
     expect(packaged.binding.note).toMatch(/refuses complete packaging|credential/i);
   });
 
+  it("does not refuse packaging when credential-like text is outside expected/oneOf", () => {
+    const packaged = buildEvidenceContractPackage({
+      engineVersion: "6.29.3",
+      source: "inline",
+      contract: {
+        tools: {
+          // Tool name alone must not trigger unsafe-expected refusal.
+          required: ["sk-ant-abcdefghijklmnopqrstuvwxyz012345"],
+        },
+      },
+    });
+    expect(packaged.binding.status).toBe("complete");
+    expect(packaged.file).toBeDefined();
+  });
+
   it("embeds safe contract binding metadata in HTML after resolve/bind", () => {
     const pkg = buildEvidenceCiPackage({
       generatorVersion: "6.29.3",

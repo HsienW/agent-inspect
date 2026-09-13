@@ -33,30 +33,42 @@ export const EVIDENCE_CONTRACT_UNSAFE_NOTE =
 
 /**
  * Walk JSON-like contract values looking for high-confidence credential strings
- * in expected / oneOf (and nested) fields. Does not mutate input.
+ * under `expected` / `oneOf` (and nested) fields only. Does not mutate input.
  */
 export function contractContainsUnsafeExpectedValues(value: unknown): boolean {
-  return scanUnsafeExpectedValues(value, 0);
+  return scanForExpectedFields(value, 0);
 }
 
-function scanUnsafeExpectedValues(value: unknown, depth: number): boolean {
+/** Recurse looking for `expected` / `oneOf` keys; do not treat other strings as secrets. */
+function scanForExpectedFields(value: unknown, depth: number): boolean {
   if (depth > 32) return false;
-  if (typeof value === "string") {
-    return stringContainsHighConfidenceCredential(value);
-  }
   if (Array.isArray(value)) {
-    return value.some((item) => scanUnsafeExpectedValues(item, depth + 1));
+    return value.some((item) => scanForExpectedFields(item, depth + 1));
   }
   if (value === null || typeof value !== "object") return false;
   const record = value as Record<string, unknown>;
   for (const [key, child] of Object.entries(record)) {
     if (key === "expected" || key === "oneOf") {
-      if (scanUnsafeExpectedValues(child, depth + 1)) return true;
+      if (valueTreeContainsCredential(child, depth + 1)) return true;
       continue;
     }
-    if (scanUnsafeExpectedValues(child, depth + 1)) return true;
+    if (scanForExpectedFields(child, depth + 1)) return true;
   }
   return false;
+}
+
+function valueTreeContainsCredential(value: unknown, depth: number): boolean {
+  if (depth > 32) return false;
+  if (typeof value === "string") {
+    return stringContainsHighConfidenceCredential(value);
+  }
+  if (Array.isArray(value)) {
+    return value.some((item) => valueTreeContainsCredential(item, depth + 1));
+  }
+  if (value === null || typeof value !== "object") return false;
+  return Object.values(value as Record<string, unknown>).some((child) =>
+    valueTreeContainsCredential(child, depth + 1),
+  );
 }
 
 /** Deterministic JSON (sorted keys) with trailing newline. */
