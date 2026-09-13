@@ -6,6 +6,8 @@
  * @experimental
  */
 
+import { canonicalStructuredEqual } from "./canonical-equality.js";
+
 export type JsonPointerValue =
   | string
   | number
@@ -84,7 +86,7 @@ function jsonType(value: unknown): string {
 }
 
 function valuesEqual(left: unknown, right: unknown): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
+  return canonicalStructuredEqual(left, right).equal === true;
 }
 
 export type ToolArgumentEval =

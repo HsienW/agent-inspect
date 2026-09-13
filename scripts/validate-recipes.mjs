@@ -15,6 +15,7 @@ const RECIPES = [
   "multi-agent-handoff",
   "proactive-agent-logs",
   "promptfoo-use-together",
+  "sensitive-read-outbound-write-anyof",
   "pino-json-logs",
   "winston-json-logs",
   "log4js-json-layout",

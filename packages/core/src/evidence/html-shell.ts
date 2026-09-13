@@ -57,6 +57,16 @@ export interface EvidenceHtmlShellInput {
    * Callers must pass only trusted, escaped fragments (use evidence view builders).
    */
   viewBodies?: Partial<Record<EvidenceViewId, string>>;
+  /**
+   * Safe contract-binding metadata only (status / digest / note). Never embed
+   * expected-value payloads in HTML (6.29.3).
+   */
+  contractBinding?: {
+    status: string;
+    sha256?: string;
+    note?: string;
+    ruleCount?: number;
+  };
 }
 
 function statusClass(status: string): string {
@@ -123,6 +133,22 @@ function buildEmbeddedPayload(input: EvidenceHtmlShellInput): Record<string, unk
       verificationPolicy: input.verificationPolicy,
     },
     checkSummary: input.checkSummary,
+    ...(input.contractBinding !== undefined
+      ? {
+          contract: {
+            status: input.contractBinding.status,
+            ...(input.contractBinding.sha256 !== undefined
+              ? { sha256: input.contractBinding.sha256 }
+              : {}),
+            ...(input.contractBinding.ruleCount !== undefined
+              ? { ruleCount: input.contractBinding.ruleCount }
+              : {}),
+            ...(input.contractBinding.note !== undefined
+              ? { note: input.contractBinding.note }
+              : {}),
+          },
+        }
+      : {}),
   };
 }
 
@@ -247,6 +273,23 @@ ${nav}
         : ""
     }</p>
     <p>Profile: <code>${escapeHtml(input.redactionProfile)}</code> · Verification: <code>${escapeHtml(input.verificationPolicy)}</code></p>
+    ${
+      input.contractBinding !== undefined
+        ? `<p>Contract binding: <code>${escapeHtml(input.contractBinding.status)}</code>${
+            input.contractBinding.ruleCount !== undefined
+              ? ` · Rules: <code>${escapeHtml(String(input.contractBinding.ruleCount))}</code>`
+              : ""
+          }${
+            input.contractBinding.sha256 !== undefined
+              ? ` · Digest: <code>${escapeHtml(input.contractBinding.sha256.slice(0, 16))}…</code>`
+              : ""
+          }</p>${
+            input.contractBinding.note !== undefined && input.contractBinding.note.trim() !== ""
+              ? `<p class="muted">${escapeHtml(input.contractBinding.note)}</p>`
+              : ""
+          }`
+        : ""
+    }
     <p>Generator: <code>${escapeHtml(input.generatorName)}@${escapeHtml(input.generatorVersion)}</code>
     ${input.createdAt ? ` · Created: <code>${escapeHtml(input.createdAt)}</code>` : ""}</p>
     <h3>Runs</h3>

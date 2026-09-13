@@ -1,19 +1,21 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 
 import type { RedactionDetector, RedactionSeverity } from "@agent-inspect/redact";
 
-/** Hard bounds for local CLI redaction policies (#329). */
+/** Hard bounds for local CLI redaction policies (#329 / 6.29.1). */
 export const REDACTION_POLICY_LIMITS = {
   maxExtraKeys: 64,
   maxKeyLength: 64,
   maxPatterns: 32,
   maxPatternLength: 128,
   maxPatternIdLength: 64,
-  maxTypedQuantifier: 64,
+  /** Maximum policy file size before parse (bytes). */
+  maxPolicyFileBytes: 64 * 1024,
 } as const;
 
-export type RedactionPolicyPatternType = "literal" | "prefix" | "typed";
+/** Supported pattern kinds after 6.29.1 (typed/user-regex removed). */
+export type RedactionPolicyPatternType = "literal" | "prefix";
 
 export interface RedactionPolicyPatternInput {
   id?: unknown;
@@ -41,15 +43,11 @@ export interface CompiledRedactionPolicy {
   diagnostics: readonly PolicyDiagnostic[];
 }
 
-const SAFE_TYPED_PATTERN =
-  /^[A-Za-z0-9_@./:=<>\-[\]()|+*?{},\\\s^$]+$/;
+const ALLOWED_TOP_LEVEL = new Set(["version", "extraKeys", "patterns"]);
+const ALLOWED_PATTERN_FIELDS = new Set(["id", "type", "value", "severity"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function rejectRemotePolicyPath(policyPath: string): void {
@@ -83,54 +81,37 @@ function validateExtraKey(key: string, index: number): string {
   return key;
 }
 
-function assertBoundedTypedPattern(pattern: string, label: string): void {
-  if (pattern.length === 0) throw new Error(`${label} must be non-empty.`);
-  if (pattern.length > REDACTION_POLICY_LIMITS.maxPatternLength) {
-    throw new Error(
-      `${label} exceeds max length ${REDACTION_POLICY_LIMITS.maxPatternLength}.`,
-    );
-  }
-  if (!SAFE_TYPED_PATTERN.test(pattern)) {
-    throw new Error(
-      `${label} contains unsupported characters for bounded typed patterns.`,
-    );
-  }
-  // Reject constructs that commonly enable ReDoS or unbounded matching.
-  if (/\(\?/.test(pattern) || /\\[1-9]/.test(pattern)) {
-    throw new Error(
-      `${label} rejects lookaround, backreferences, and nested quantifiers.`,
-    );
-  }
-  // Nested quantifiers: a quantified group that is itself quantified, e.g. (a+)+
-  if (/\([^)]*[+*{][^)]*\)[+*{]/.test(pattern) || /\[[^\]]*[+*{][^\]]*\][+*{]/.test(pattern)) {
-    throw new Error(`${label} rejects nested quantifiers.`);
-  }
-  if (/\.[*+]/.test(pattern) || /[*+]\{/.test(pattern)) {
-    throw new Error(`${label} rejects unbounded .* / .+ style quantifiers.`);
-  }
-  for (const match of pattern.matchAll(/\{(\d+)(?:,(\d*))?\}/g)) {
-    const min = Number(match[1]);
-    const maxRaw = match[2];
-    const max = maxRaw === undefined || maxRaw === "" ? min : Number(maxRaw);
-    if (
-      !Number.isFinite(min) ||
-      !Number.isFinite(max) ||
-      min > REDACTION_POLICY_LIMITS.maxTypedQuantifier ||
-      max > REDACTION_POLICY_LIMITS.maxTypedQuantifier
-    ) {
-      throw new Error(
-        `${label} quantifiers must be <= ${REDACTION_POLICY_LIMITS.maxTypedQuantifier}.`,
-      );
+function rejectUnknownFields(
+  record: Record<string, unknown>,
+  allowed: ReadonlySet<string>,
+  label: string,
+): void {
+  for (const key of Object.keys(record)) {
+    if (!allowed.has(key)) {
+      throw new Error(`${label} rejects unknown field "${key}".`);
     }
   }
 }
 
+/**
+ * Literal and prefix matching use bounded string operations only.
+ * No user-controlled pattern is compiled through `new RegExp`.
+ */
 function compilePatternDetector(
   input: RedactionPolicyPatternInput,
   index: number,
 ): RedactionDetector {
   const label = `patterns[${index}]`;
   if (!isRecord(input)) throw new Error(`${label} must be an object.`);
+
+  const typeEarly = input.type;
+  if (typeEarly === "typed") {
+    throw new Error(
+      `${label}.type "typed" is no longer supported (removed in 6.29.1). Use type "literal" or "prefix" with a fixed value; arbitrary regex patterns are not accepted.`,
+    );
+  }
+
+  rejectUnknownFields(input, ALLOWED_PATTERN_FIELDS, label);
 
   const idRaw = input.id;
   if (typeof idRaw !== "string" || idRaw.trim() === "") {
@@ -147,42 +128,34 @@ function compilePatternDetector(
   }
 
   const type = input.type;
-  if (type !== "literal" && type !== "prefix" && type !== "typed") {
-    throw new Error(`${label}.type must be literal, prefix, or typed.`);
+  if (type !== "literal" && type !== "prefix") {
+    throw new Error(`${label}.type must be literal or prefix.`);
+  }
+
+  if (input.pattern !== undefined) {
+    throw new Error(
+      `${label}.pattern is not accepted; use .value with type literal or prefix.`,
+    );
   }
 
   const severity = parseSeverity(input.severity, label);
-  let source: string;
-  if (type === "typed") {
-    if (typeof input.pattern !== "string") {
-      throw new Error(`${label}.pattern must be a string for typed patterns.`);
-    }
-    assertBoundedTypedPattern(input.pattern, `${label}.pattern`);
-    source = input.pattern;
-  } else {
-    if (typeof input.value !== "string") {
-      throw new Error(`${label}.value must be a string for ${type} patterns.`);
-    }
-    if (input.value.length === 0) {
-      throw new Error(`${label}.value must be non-empty.`);
-    }
-    if (input.value.length > REDACTION_POLICY_LIMITS.maxPatternLength) {
-      throw new Error(
-        `${label}.value exceeds max length ${REDACTION_POLICY_LIMITS.maxPatternLength}.`,
-      );
-    }
-    const escaped = escapeRegExp(input.value);
-    source = type === "prefix" ? `^${escaped}` : escaped;
+  if (typeof input.value !== "string") {
+    throw new Error(`${label}.value must be a string for ${type} patterns.`);
   }
-
-  let regex: RegExp;
-  try {
-    regex = new RegExp(source);
-  } catch (error) {
+  if (input.value.length === 0) {
+    throw new Error(`${label}.value must be non-empty.`);
+  }
+  if (input.value.length > REDACTION_POLICY_LIMITS.maxPatternLength) {
     throw new Error(
-      `${label} failed to compile: ${error instanceof Error ? error.message : String(error)}`,
+      `${label}.value exceeds max length ${REDACTION_POLICY_LIMITS.maxPatternLength}.`,
     );
   }
+
+  const needle = input.value;
+  const match =
+    type === "prefix"
+      ? (haystack: string) => haystack.startsWith(needle)
+      : (haystack: string) => haystack.includes(needle);
 
   return {
     id: `policy.${id}`,
@@ -190,8 +163,9 @@ function compilePatternDetector(
     matchKind: "custom",
     detect({ value }) {
       if (typeof value !== "string") return [];
-      regex.lastIndex = 0;
-      return regex.test(value) ? [{ action: "replace", severity, matchKind: "custom" }] : [];
+      return match(value)
+        ? [{ action: "replace", severity, matchKind: "custom" }]
+        : [];
     },
   };
 }
@@ -207,6 +181,7 @@ export function compileRedactionPolicy(
   if (!isRecord(raw)) {
     throw new Error(`Redaction policy must be a JSON object (${policyPath}).`);
   }
+  rejectUnknownFields(raw, ALLOWED_TOP_LEVEL, "Redaction policy");
 
   const diagnostics: PolicyDiagnostic[] = [];
   if (raw.version !== undefined && raw.version !== 1) {
@@ -279,9 +254,10 @@ export async function loadRedactionPolicy(
 ): Promise<CompiledRedactionPolicy> {
   rejectRemotePolicyPath(policyPath);
   const resolved = path.resolve(policyPath);
-  let text: string;
+
+  let fileStat;
   try {
-    text = await readFile(resolved, "utf-8");
+    fileStat = await stat(resolved);
   } catch (error) {
     throw new Error(
       `Failed to read --policy file "${resolved}": ${
@@ -289,7 +265,34 @@ export async function loadRedactionPolicy(
       }`,
     );
   }
+  if (!fileStat.isFile()) {
+    throw new Error(
+      `--policy must be a regular local JSON file (not a directory or special file): "${resolved}".`,
+    );
+  }
+  if (fileStat.size > REDACTION_POLICY_LIMITS.maxPolicyFileBytes) {
+    throw new Error(
+      `--policy file exceeds max size ${REDACTION_POLICY_LIMITS.maxPolicyFileBytes} bytes.`,
+    );
+  }
 
+  let buffer: Buffer;
+  try {
+    buffer = await readFile(resolved);
+  } catch (error) {
+    throw new Error(
+      `Failed to read --policy file "${resolved}": ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+  if (buffer.byteLength > REDACTION_POLICY_LIMITS.maxPolicyFileBytes) {
+    throw new Error(
+      `--policy file exceeds max size ${REDACTION_POLICY_LIMITS.maxPolicyFileBytes} bytes.`,
+    );
+  }
+
+  const text = buffer.toString("utf-8");
   let parsed: unknown;
   try {
     parsed = JSON.parse(text) as unknown;

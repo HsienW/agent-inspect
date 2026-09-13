@@ -922,21 +922,105 @@ describe("@agent-inspect/ai-sdk scaffold", () => {
     });
 
     await integration.onStart?.(startEvent());
+    await integration.onStepStart?.(stepStartEvent());
+    await integration.onToolCallStart?.(toolStartEvent());
     await integration.onStart?.(startEvent());
     await integration.onStepStart?.(stepStartEvent());
     await integration.onFinish?.(finishEvent());
     await integration.onStart?.(startEvent());
 
-    expect(writer.getEvents().map((event) => [event.kind, event.status])).toEqual([
-      ["RUN", "running"],
-      ["RUN", "running"],
-    ]);
+    const events = writer.getEvents();
+    const firstRunId = events[0]?.runId;
+    expect(firstRunId).toBeTruthy();
+    const firstGen = events.filter((event) => event.runId === firstRunId);
+    const latestByEventId = new Map<string, (typeof events)[number]>();
+    for (const event of firstGen) {
+      latestByEventId.set(event.eventId, event);
+    }
+    expect(
+      [...latestByEventId.values()].some((event) => event.status === "running"),
+    ).toBe(false);
+    expect(
+      [...latestByEventId.values()].some(
+        (event) =>
+          event.kind === "RUN" &&
+          event.status === "error" &&
+          event.attributes?.lifecycle === "abandoned-overlap",
+      ),
+    ).toBe(true);
+
     expect(integration.getDiagnostics()).toMatchObject({
       writeFailures: 0,
       lifecycleWarnings: 2,
       lastWarning:
         "onStepStart ignored while integration is suspended: Overlapping AI SDK generation ignored; create one agentInspect() integration per concurrent generation.",
     });
+  });
+
+  it("terminalizes an open generation on close instead of leaving running rows", async () => {
+    const writer = memoryWriter();
+    const integration = agentInspect({
+      writer,
+      runName: "close-abandon-fixture",
+    });
+
+    await integration.onStart?.(startEvent());
+    await integration.onStepStart?.(stepStartEvent());
+    await integration.close();
+
+    const events = writer.getEvents();
+    const latestByEventId = new Map<string, (typeof events)[number]>();
+    for (const event of events) {
+      latestByEventId.set(event.eventId, event);
+    }
+    expect(
+      [...latestByEventId.values()].some((event) => event.status === "running"),
+    ).toBe(false);
+    expect(
+      [...latestByEventId.values()].some(
+        (event) =>
+          event.kind === "RUN" &&
+          event.status === "unknown" &&
+          event.attributes?.lifecycle === "abandoned-close",
+      ),
+    ).toBe(true);
+  });
+
+  it("does not re-terminalize steps or tools that already finished", async () => {
+    const writer = memoryWriter();
+    const integration = agentInspect({
+      writer,
+      runName: "finished-open-only-fixture",
+    });
+
+    await integration.onStart?.(startEvent());
+    await integration.onStepStart?.(stepStartEvent());
+    await integration.onToolCallStart?.(toolStartEvent());
+    await integration.onToolCallFinish?.(toolFinishEvent(true));
+    await integration.onStepFinish?.(stepFinishEvent());
+    await integration.onStart?.(startEvent());
+
+    const events = writer.getEvents();
+    const firstRunId = events[0]?.runId;
+    const firstGen = events.filter((event) => event.runId === firstRunId);
+    const abandonedLifecycle = firstGen.filter(
+      (event) =>
+        event.attributes?.lifecycle === "abandoned-overlap" &&
+        (event.kind === "LLM" || event.kind === "TOOL"),
+    );
+    expect(abandonedLifecycle).toEqual([]);
+    expect(
+      firstGen.some(
+        (event) =>
+          event.kind === "RUN" &&
+          event.status === "error" &&
+          event.attributes?.lifecycle === "abandoned-overlap",
+      ),
+    ).toBe(true);
+    expect(firstGen.some((event) => event.kind === "TOOL" && event.status === "ok")).toBe(
+      true,
+    );
+    expect(firstGen.some((event) => event.kind === "LLM" && event.status === "ok")).toBe(true);
   });
 
   it("diagnoses out-of-order callbacks without fabricating lifecycle rows", async () => {

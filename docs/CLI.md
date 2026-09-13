@@ -49,6 +49,24 @@ Core commands:
 - `report` — markdown or HTML inspection report for a single run
 - `explain` — deterministic local facts/inferences for a trace, with dry-run payloads
 
+## 1.1 CLI vs TraceContract decision table (6.29.3)
+
+Use this table when choosing between CLI check shorthands and TraceContract rules.
+No new CLI commands were added for branching paths.
+
+| Need | Prefer |
+| ---- | ------ |
+| One tool must always run | CLI `--required-tool` / contract `tools.required` |
+| Tool must never run | CLI `--forbidden-tool` / contract `tools.forbidden` |
+| Legitimate alternate paths (OR) | TraceContract `alternatives.anyOf` (not CLI flags) |
+| Causal order between tools | TraceContract `requiredOrder` + `requiredOrderMode` |
+| Read recovery vs write fail-closed | TraceContract `retry.operations` + `sideEffectClass` |
+| Sensitive expected literals in Evidence | Contract binding safety (`unavailable` on credential-like expected); never silent complete packaging |
+| Share-safe offline review package | CLI `bundle` / Evidence CI helpers |
+
+See [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md) and recipe
+[sensitive-read-outbound-write-anyof](../examples/recipes/sensitive-read-outbound-write-anyof/).
+
 ## 2. Environment variables
 
 - **`AGENT_INSPECT_TRACE_DIR`**: default directory for manual trace files (`.jsonl`) when not passed via `--dir` (or API options).
@@ -446,7 +464,7 @@ Options:
 - `--profile <local|share|strict>`: redaction profile (default `share`)
 - `-o, --output <path>`: write redacted content to a file
 - `--json`: print deterministic JSON wrapper with findings
-- `--policy <path>`: local JSON redaction policy (`extraKeys` + bounded `literal` / `prefix` / `typed` patterns). No remote fetch; no secrets on argv. See [SAFETY-POLICY.md](SAFETY-POLICY.md).
+- `--policy <path>`: local JSON redaction policy (`extraKeys` + bounded `literal` / `prefix` patterns; no user regex since 6.29.1). No remote fetch; no secrets on argv. See [SAFETY-POLICY.md](SAFETY-POLICY.md).
 - `--fail-on-residual`: opt-in non-zero exit when residual safety is `UNSAFE` or `UNKNOWN` (default exit codes unchanged)
 
 After redaction, the command surfaces a **residual safety assessment** using the same local detector pipeline as `verify-safe`. Human mode prints a concise stderr warning when residual status is not `SAFE`. JSON mode adds an additive `residualAssessment` field (`status`, finding counts, codes only — never matched secret values). Residual status uses `SAFE` | `SAFE_WITH_WARNINGS` | `UNSAFE` | `UNKNOWN`. Supported AgentInspect traces get a full assessment; arbitrary JSON that is not a supported trace yields `UNKNOWN`. Redact never certifies safe sharing — finish with `verify-safe` before publishing.

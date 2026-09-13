@@ -372,6 +372,130 @@ describe("bounded safe recovery operations (6.27)", () => {
     ).toBe(true);
   });
 
+  it("treats key-order-different structured args as equal (canonical)", () => {
+    const events = [
+      runEvent("run-1"),
+      tool(
+        "t1",
+        "run-1",
+        "retrieve_policy",
+        "2026-09-12T00:00:01.000Z",
+        "2026-09-12T00:00:02.000Z",
+        {
+          operationId: "op-1",
+          attemptId: "a1",
+          attemptNumber: 1,
+          arguments: { a: 1, b: 2 },
+          errorCode: "TRANSIENT",
+        },
+        "error",
+      ),
+      tool("t2", "run-1", "retrieve_policy", "2026-09-12T00:00:03.000Z", "2026-09-12T00:00:04.000Z", {
+        operationId: "op-1",
+        attemptId: "a2",
+        attemptNumber: 2,
+        arguments: { b: 2, a: 1 },
+      }),
+      llm("l1", "run-1", "2026-09-12T00:00:05.000Z", {
+        referencedEventIds: ["t2"],
+      }),
+    ];
+    expect(evaluateTraceContract({ read: readOf(events) }, recoveryContract).ok).toBe(true);
+  });
+
+  it("fails when an earlier ok is followed by a later error (latest attempt)", () => {
+    const events = [
+      runEvent("run-1"),
+      tool("t1", "run-1", "retrieve_policy", "2026-09-12T00:00:01.000Z", "2026-09-12T00:00:02.000Z", {
+        operationId: "op-1",
+        attemptId: "a1",
+        attemptNumber: 1,
+        arguments: { policyId: "p-1" },
+      }),
+      tool(
+        "t2",
+        "run-1",
+        "retrieve_policy",
+        "2026-09-12T00:00:03.000Z",
+        "2026-09-12T00:00:04.000Z",
+        {
+          operationId: "op-1",
+          attemptId: "a2",
+          attemptNumber: 2,
+          arguments: { policyId: "p-1" },
+          errorCode: "TRANSIENT",
+        },
+        "error",
+      ),
+      llm("l1", "run-1", "2026-09-12T00:00:05.000Z", {
+        referencedEventIds: ["t1"],
+      }),
+    ];
+    const result = evaluateTraceContract({ read: readOf(events) }, recoveryContract);
+    expect(result.ok).toBe(false);
+    expect(
+      result.findings.some((finding) => finding.ruleId === "contract.retry.operations.terminal-success"),
+    ).toBe(true);
+  });
+
+  it("does not merge unrelated same-tool calls lacking operationId", () => {
+    const contract = defineTraceContract({
+      retry: {
+        operations: [
+          {
+            tool: "retrieve_policy",
+            sideEffectClass: "read",
+            maxAttempts: 1,
+            requireTerminalSuccess: true,
+          },
+        ],
+      },
+    });
+    const events = [
+      runEvent("run-1"),
+      tool("t1", "run-1", "retrieve_policy", "2026-09-12T00:00:01.000Z", "2026-09-12T00:00:02.000Z", {
+        arguments: { policyId: "p-1" },
+      }),
+      tool("t2", "run-1", "retrieve_policy", "2026-09-12T00:00:03.000Z", "2026-09-12T00:00:04.000Z", {
+        arguments: { policyId: "p-2" },
+      }),
+    ];
+    expect(evaluateTraceContract({ read: readOf(events) }, contract).ok).toBe(true);
+  });
+
+  it("links retryOf across attempts into one operation for maxAttempts", () => {
+    const contract = defineTraceContract({
+      retry: {
+        operations: [
+          {
+            tool: "retrieve_policy",
+            sideEffectClass: "read",
+            maxAttempts: 1,
+            requireTerminalSuccess: true,
+          },
+        ],
+      },
+    });
+    const events = [
+      runEvent("run-1"),
+      tool("t1", "run-1", "retrieve_policy", "2026-09-12T00:00:01.000Z", "2026-09-12T00:00:02.000Z", {
+        attemptId: "a1",
+        arguments: { policyId: "p-1" },
+        errorCode: "TRANSIENT",
+      }, "error"),
+      tool("t2", "run-1", "retrieve_policy", "2026-09-12T00:00:03.000Z", "2026-09-12T00:00:04.000Z", {
+        attemptId: "a2",
+        retryOf: "t1",
+        arguments: { policyId: "p-1" },
+      }),
+    ];
+    const result = evaluateTraceContract({ read: readOf(events) }, contract);
+    expect(result.ok).toBe(false);
+    expect(
+      result.findings.some((finding) => finding.ruleId === "contract.retry.operations.max-attempts"),
+    ).toBe(true);
+  });
+
   it("explains recovery operation oracles", () => {
     const lines = explainTraceContract(recoveryContract);
     expect(lines.some((line) => line.includes("recovery operation oracle"))).toBe(true);

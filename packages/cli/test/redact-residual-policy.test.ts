@@ -141,7 +141,7 @@ describe("bounded redaction policy (#329)", () => {
     await rm(tmp, { recursive: true, force: true });
   });
 
-  it("compiles extraKeys and bounded patterns deterministically", () => {
+  it("compiles extraKeys and literal/prefix patterns deterministically", () => {
     const compiled = compileRedactionPolicy(
       {
         version: 1,
@@ -149,7 +149,6 @@ describe("bounded redaction policy (#329)", () => {
         patterns: [
           { id: "houseLiteral", type: "literal", value: "HOUSE_MARK" },
           { id: "housePrefix", type: "prefix", value: "hsec_" },
-          { id: "houseTyped", type: "typed", pattern: "hsec_[A-Za-z0-9]{8,24}" },
         ],
       },
       "/tmp/policy.json",
@@ -158,14 +157,25 @@ describe("bounded redaction policy (#329)", () => {
     expect(compiled.detectors.map((d) => d.id)).toEqual([
       "policy.houseLiteral",
       "policy.housePrefix",
-      "policy.houseTyped",
     ]);
+    expect(compiled.detectors[0]?.detect({ value: "xx HOUSE_MARK yy" })).toEqual([
+      { action: "replace", severity: "error", matchKind: "custom" },
+    ]);
+    expect(compiled.detectors[1]?.detect({ value: "hsec_abc" })).toEqual([
+      { action: "replace", severity: "error", matchKind: "custom" },
+    ]);
+    expect(compiled.detectors[1]?.detect({ value: "xhsec_abc" })).toEqual([]);
   });
 
-  it("rejects remote policy URLs and unbounded patterns", async () => {
-    await expect(loadRedactionPolicy("https://example.test/policy.json")).rejects.toThrow(
-      /local JSON file path/,
-    );
+  it("rejects typed/user-regex patterns without compiling them", () => {
+    expect(() =>
+      compileRedactionPolicy(
+        {
+          patterns: [{ id: "houseTyped", type: "typed", pattern: "hsec_[A-Za-z0-9]{8,24}" }],
+        },
+        "policy.json",
+      ),
+    ).toThrow(/typed.*no longer supported|literal or prefix/i);
 
     expect(() =>
       compileRedactionPolicy(
@@ -174,7 +184,13 @@ describe("bounded redaction policy (#329)", () => {
         },
         "policy.json",
       ),
-    ).toThrow(/nested quantifiers|unbounded/);
+    ).toThrow(/typed.*no longer supported/i);
+  });
+
+  it("rejects remote policy URLs, unknown fields, duplicate ids, and oversize files", async () => {
+    await expect(loadRedactionPolicy("https://example.test/policy.json")).rejects.toThrow(
+      /local JSON file path/,
+    );
 
     expect(() =>
       compileRedactionPolicy(
@@ -188,6 +204,41 @@ describe("bounded redaction policy (#329)", () => {
         "policy.json",
       ),
     ).toThrow(/max count/);
+
+    expect(() =>
+      compileRedactionPolicy({ version: 1, unexpected: true }, "policy.json"),
+    ).toThrow(/unknown field "unexpected"/);
+
+    expect(() =>
+      compileRedactionPolicy(
+        {
+          patterns: [
+            { id: "dup", type: "literal", value: "a" },
+            { id: "dup", type: "literal", value: "b" },
+          ],
+        },
+        "policy.json",
+      ),
+    ).toThrow(/Duplicate pattern id/);
+
+    expect(() =>
+      compileRedactionPolicy(
+        {
+          patterns: [{ id: "x", type: "literal", value: "a", pattern: "oops" }],
+        },
+        "policy.json",
+      ),
+    ).toThrow(/unknown field "pattern"|pattern is not accepted/);
+
+    const dir = path.join(tmp, "policy-dir");
+    await writeFile(path.join(tmp, "placeholder"), "x");
+    const { mkdir } = await import("node:fs/promises");
+    await mkdir(dir, { recursive: true });
+    await expect(loadRedactionPolicy(dir)).rejects.toThrow(/regular local JSON file/);
+
+    const big = path.join(tmp, "big-policy.json");
+    await writeFile(big, "x".repeat(REDACTION_POLICY_LIMITS.maxPolicyFileBytes + 1));
+    await expect(loadRedactionPolicy(big)).rejects.toThrow(/max size/);
   });
 
   it("applies the same policy to redact and residual detection", async () => {

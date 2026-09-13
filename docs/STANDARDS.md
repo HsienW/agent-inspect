@@ -29,7 +29,7 @@ The fixture's top-level `version` is an **AgentInspect reference fixture revisio
 npx agent-inspect export <run-id> --format otlp-json --profile share
 ```
 
-GenAI attribute mapping follows `OTEL_GEN_AI_SEMCONV_PIN` (see exporters API). No gRPC collector included.
+GenAI attribute mapping follows `OTEL_GEN_AI_SEMCONV_PIN` (see exporters API). The pin lists only attributes the exporter may emit (operation name, request model, usage tokens). AgentInspect does **not** export `gen_ai.prompt` / `gen_ai.completion` bodies. No gRPC collector included.
 
 Fixture: [fixtures/standards/otlp-basic.json](../fixtures/standards/otlp-basic.json)
 

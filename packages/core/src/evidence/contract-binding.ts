@@ -6,6 +6,7 @@
  */
 
 import { defineTraceContract, type TraceContract, type TraceContractInput } from "../checks/contract.js";
+import { stringContainsHighConfidenceCredential } from "../safety/credential-value-patterns.js";
 import { sha256Equals, sha256Hex } from "./hash.js";
 import {
   EVIDENCE_RESOLVED_CONTRACT_FILENAME,
@@ -26,6 +27,49 @@ export const EVIDENCE_CONTRACT_UNAVAILABLE_NOTE =
 
 export const EVIDENCE_CONTRACT_ASSURANCE_NOTE =
   "Contract binding verifies packaged digest integrity only; it does not prove producer identity, trusted time, source completeness, semantic truth, or external acceptance.";
+
+export const EVIDENCE_CONTRACT_UNSAFE_NOTE =
+  "Resolved TraceContract contains high-confidence credential-like expected values; Evidence refuses complete packaging rather than silently redacting evaluated expectations.";
+
+/**
+ * Walk JSON-like contract values looking for high-confidence credential strings
+ * under `expected` / `oneOf` (and nested) fields only. Does not mutate input.
+ */
+export function contractContainsUnsafeExpectedValues(value: unknown): boolean {
+  return scanForExpectedFields(value, 0);
+}
+
+/** Recurse looking for `expected` / `oneOf` keys; do not treat other strings as secrets. */
+function scanForExpectedFields(value: unknown, depth: number): boolean {
+  if (depth > 32) return false;
+  if (Array.isArray(value)) {
+    return value.some((item) => scanForExpectedFields(item, depth + 1));
+  }
+  if (value === null || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  for (const [key, child] of Object.entries(record)) {
+    if (key === "expected" || key === "oneOf") {
+      if (valueTreeContainsCredential(child, depth + 1)) return true;
+      continue;
+    }
+    if (scanForExpectedFields(child, depth + 1)) return true;
+  }
+  return false;
+}
+
+function valueTreeContainsCredential(value: unknown, depth: number): boolean {
+  if (depth > 32) return false;
+  if (typeof value === "string") {
+    return stringContainsHighConfidenceCredential(value);
+  }
+  if (Array.isArray(value)) {
+    return value.some((item) => valueTreeContainsCredential(item, depth + 1));
+  }
+  if (value === null || typeof value !== "object") return false;
+  return Object.values(value as Record<string, unknown>).some((child) =>
+    valueTreeContainsCredential(child, depth + 1),
+  );
+}
 
 /** Deterministic JSON (sorted keys) with trailing newline. */
 export function serializeCanonicalJson(value: unknown): string {
@@ -257,6 +301,36 @@ export function buildEvidenceContractPackage(
   }
   if (unsupported.length > 0) {
     ruleIds = sortedUniqueStrings([...ruleIds, ...unsupported]);
+  }
+
+  // Refuse unsafe expected literals — never mutate then claim complete.
+  if (contractContainsUnsafeExpectedValues(resolved)) {
+    return {
+      binding: {
+        status: "unavailable",
+        source: input.source,
+        ...(input.contractId !== undefined ? { contractId: input.contractId } : {}),
+        ...(input.contractVersion !== undefined
+          ? { contractVersion: input.contractVersion }
+          : {}),
+        canonicalizationVersion: EVIDENCE_CONTRACT_CANONICALIZATION_VERSION,
+        engineVersion: input.engineVersion,
+        ruleIds,
+        ...(unsupported.length > 0 ? { unsupportedRuleIds: unsupported } : {}),
+        note: input.note ?? EVIDENCE_CONTRACT_UNSAFE_NOTE,
+      },
+      checkBinding: {
+        canonicalizationVersion: EVIDENCE_CONTRACT_CANONICALIZATION_VERSION,
+        engineVersion: input.engineVersion,
+        evaluatedRuleIds: ruleIds,
+        bindingStatus: "unavailable",
+        ...(unsupported.length > 0 ? { unsupportedRuleIds: unsupported } : {}),
+        origin: {
+          source: input.source,
+          ...(input.preset?.name ? { preset: input.preset.name } : {}),
+        },
+      },
+    };
   }
 
   const document: ResolvedContractDocument = {

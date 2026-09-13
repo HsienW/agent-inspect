@@ -1,0 +1,3 @@
+Sensitive-read / outbound-write anyOf recipe complete
+Read-only path: pass
+Write path: pass

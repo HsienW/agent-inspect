@@ -30,6 +30,8 @@ const columns = [
       { href: site.npm, label: "npm", external: true },
       { href: "/docs/contributing", label: "Contributing" },
       { href: "/docs/compare", label: "Compare" },
+      { href: "/privacy", label: "Privacy" },
+      { href: "/security", label: "Security" },
     ],
   },
 ];

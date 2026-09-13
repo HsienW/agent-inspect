@@ -79,6 +79,7 @@ pointed at something real, per NETWORK-BEHAVIOR.md.
 | [phoenix-openinference-import](phoenix-openinference-import) | OpenInference interop | `agent-inspect` | No | No network | Preview <sup>Standards round-trip / Collector-Phoenix external proof</sup> | `pnpm --filter agent-inspect-recipe-phoenix-openinference-import start` |
 | [pino-json-logs](pino-json-logs) | Turn existing logs into a tree | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-pino-json-logs start` |
 | [promptfoo-use-together](promptfoo-use-together) | Local Promptfoo + TraceContract pattern | `agent-inspect` | No | No network | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-promptfoo-use-together start` |
+| [sensitive-read-outbound-write-anyof](sensitive-read-outbound-write-anyof) | Sensitive-read vs outbound-write `anyOf` branches | `agent-inspect` | No | No network | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-sensitive-read-outbound-write-anyof start` |
 | [proactive-agent-logs](proactive-agent-logs) | Turn existing logs into a tree | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-proactive-agent-logs start` |
 | [rag-pipeline](rag-pipeline) | Debug a RAG pipeline | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-rag-pipeline start` |
 | [read-only-mcp-server](read-only-mcp-server) | Read evidence through MCP | `@agent-inspect/mcp-server`<br>`agent-inspect` | No | Exposes local evidence to a connected client (share-profile boundary) | Preview | `pnpm --filter agent-inspect-recipe-read-only-mcp-server start` |
@@ -107,7 +108,8 @@ each package README's `**Support level:**` line, except where a recipe uses a fe
 | [bounded-read-recovery](bounded-read-recovery) | Read-only retrieve_policy recovery oracle | TraceContract `retry.operations[]` (6.27) | yes | no |
 | [tool-failure-retry](tool-failure-retry) | Flaky tool → retry succeeds | `step.tool`, error then success in trace | yes | no |
 | [multi-agent-handoff](multi-agent-handoff) | Coordinator + specialist steps | Nested steps, `metadata` for handoff | yes | no |
-| [promptfoo-use-together](promptfoo-use-together) | Local Promptfoo + TraceContract pattern | `agent-inspect` | No | No network | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-promptfoo-use-together start` |
+| [promptfoo-use-together](promptfoo-use-together) | Local Promptfoo + TraceContract pattern | `defineTraceContract`, `alternatives.anyOf` | yes | no |
+| [sensitive-read-outbound-write-anyof](sensitive-read-outbound-write-anyof) | Sensitive-read vs outbound-write branches | `alternatives.anyOf`, `retry.operations` | yes | no |
 | [proactive-agent-logs](proactive-agent-logs) | Advanced log ingest + tail | `logs`, `tail`, config mapping, redaction | yes (CLI + samples) | no |
 | [pino-json-logs](pino-json-logs) | pino-shaped JSON logs | `logs`, `tail`, `time`/`msg` field mapping | yes (CLI + samples) | no |
 | [winston-json-logs](winston-json-logs) | Winston-shaped JSON logs | `logs`, `tail`, `timestamp`/`message` field mapping | yes (CLI + samples) | no |

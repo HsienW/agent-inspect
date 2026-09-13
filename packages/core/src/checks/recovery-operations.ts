@@ -8,6 +8,7 @@
  */
 
 import type { TraceCheckEvidence, TraceCheckFinding } from "./index.js";
+import { encodeCanonicalStructured } from "./canonical-equality.js";
 import { resolveCanonicalToolName } from "./logical-events.js";
 import { extractToolArgumentPayload } from "./tool-arguments.js";
 import { classifyRetryAttempt, countOperationAttempts } from "./retry-safety.js";
@@ -162,11 +163,9 @@ type ArgumentFingerprint =
 function argumentFingerprint(event: PersistedInspectEvent): ArgumentFingerprint {
   const payload = extractToolArgumentPayload(event);
   if (payload.present) {
-    try {
-      return { kind: "structured", value: JSON.stringify(payload.value) };
-    } catch {
-      return { kind: "missing" };
-    }
+    const encoded = encodeCanonicalStructured(payload.value);
+    if (!encoded.ok) return { kind: "missing" };
+    return { kind: "structured", value: encoded.value };
   }
   const digest = argumentDigestOf(event);
   if (digest) return { kind: "digest", value: digest };
@@ -273,21 +272,107 @@ function llmReferencesTool(
   return false;
 }
 
+function attemptIdOf(event: PersistedInspectEvent): string | undefined {
+  const value = workflowFor(event).attemptId;
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
+}
+
+function hasDuplicateAttemptIds(members: readonly PersistedInspectEvent[]): boolean {
+  const seen = new Set<string>();
+  for (const event of members) {
+    const id = attemptIdOf(event);
+    if (!id) continue;
+    if (seen.has(id)) return true;
+    seen.add(id);
+  }
+  return false;
+}
+
+function findRetryTarget(
+  members: readonly PersistedInspectEvent[],
+  retryOf: string,
+): PersistedInspectEvent | undefined {
+  return members.find(
+    (candidate) =>
+      candidate.eventId === retryOf ||
+      attemptIdOf(candidate) === retryOf ||
+      workflowFor(candidate).operationId === retryOf,
+  );
+}
+
+/**
+ * Group tool attempts by explicit operation identity.
+ * Missing operationId does not merge unrelated calls: each unlinked event is
+ * its own group unless joined via retryOf to another attempt in the same tool set.
+ */
 function groupToolAttempts(
   events: readonly PersistedInspectEvent[],
   toolName: string,
 ): Map<string, PersistedInspectEvent[]> {
+  const members = events.filter(
+    (event) => event.kind === "TOOL" && resolveCanonicalToolName(event) === toolName,
+  );
+  const parent = new Map<string, string>();
+  const ensure = (id: string): string => {
+    if (!parent.has(id)) parent.set(id, id);
+    return id;
+  };
+  const find = (id: string): string => {
+    ensure(id);
+    let cur = id;
+    while (parent.get(cur) !== cur) {
+      cur = parent.get(cur)!;
+    }
+    // path compression
+    let walk = id;
+    while (parent.get(walk) !== cur) {
+      const next = parent.get(walk)!;
+      parent.set(walk, cur);
+      walk = next;
+    }
+    return cur;
+  };
+  const union = (a: string, b: string): void => {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent.set(ra, rb);
+  };
+
+  const nodeId = (event: PersistedInspectEvent): string => {
+    const operationId = workflowFor(event).operationId;
+    if (typeof operationId === "string" && operationId.trim() !== "") {
+      return `op:${operationId.trim()}`;
+    }
+    return `event:${event.eventId}`;
+  };
+
+  for (const event of members) {
+    ensure(nodeId(event));
+  }
+
+  for (const event of members) {
+    const retryOf = workflowFor(event).retryOf;
+    if (typeof retryOf !== "string" || retryOf.trim() === "") continue;
+    const target = findRetryTarget(members, retryOf.trim());
+    if (target) {
+      union(nodeId(event), nodeId(target));
+    }
+  }
+
+  // Merge events that share the same operationId label (already same node id).
   const groups = new Map<string, PersistedInspectEvent[]>();
-  for (const event of events) {
-    if (event.kind !== "TOOL") continue;
-    if (resolveCanonicalToolName(event) !== toolName) continue;
-    const workflow = workflowFor(event);
-    const key = workflow.operationId ?? `__tool__:${toolName}`;
+  for (const event of members) {
+    const key = find(nodeId(event));
     const list = groups.get(key) ?? [];
     list.push(event);
     groups.set(key, list);
   }
   return groups;
+}
+
+function latestAttempt(ordered: readonly PersistedInspectEvent[]): PersistedInspectEvent | undefined {
+  if (ordered.length === 0) return undefined;
+  return ordered[ordered.length - 1];
 }
 
 /**
@@ -321,6 +406,18 @@ export function evaluateRecoveryOperations(
 
     for (const [operationKey, members] of groups) {
       const ordered = sortByTime(members);
+
+      if (hasDuplicateAttemptIds(members)) {
+        findings.push(
+          fail(
+            "contract.retry.operations.duplicate-attempt-id",
+            `Tool ${operation.tool} operation ${operationKey} has duplicate attemptId values.`,
+            members.slice(0, 4).map(eventEvidence),
+            "unique attemptId",
+            "duplicate",
+          ),
+        );
+      }
 
       if (operation.maxAttempts !== undefined) {
         const count = countOperationAttempts(members);
@@ -360,9 +457,23 @@ export function evaluateRecoveryOperations(
       let sawEarlierError = false;
       let sawLaterOkAfterError = false;
       let lastOk: PersistedInspectEvent | undefined;
+      let identityUnavailable = false;
 
       for (const event of ordered) {
         const classification = classifyRetryAttempt(event, prior, members);
+        if (classification.kind === "unknown") {
+          identityUnavailable = true;
+          findings.push(
+            fail(
+              "contract.retry.operations.attempt-identity",
+              `Tool ${operation.tool} operation ${operationKey} has ambiguous attempt identity (${classification.reason}).`,
+              [eventEvidence(event)],
+              "explicit operationId/attemptId/retryOf chronology",
+              { code: "AI_CHECK_RECOVERY_ATTEMPT_IDENTITY_UNAVAILABLE", reason: classification.reason },
+            ),
+          );
+        }
+
         const isRetry = classification.kind === "retry";
 
         if (isRetry && operation.requireFailureBeforeRetry) {
@@ -403,6 +514,16 @@ export function evaluateRecoveryOperations(
                 ),
               );
             }
+          } else {
+            findings.push(
+              fail(
+                "contract.retry.operations.retryable-error",
+                `Retry of tool ${operation.tool} has no prior error code evidence.`,
+                [eventEvidence(event)],
+                [...allowed],
+                null,
+              ),
+            );
           }
         }
 
@@ -425,6 +546,16 @@ export function evaluateRecoveryOperations(
                 ),
               );
             }
+          } else {
+            findings.push(
+              fail(
+                "contract.retry.operations.same-arguments",
+                "Structured or digest argument evidence unavailable for same-arguments check.",
+                [eventEvidence(event)],
+                "matching structured args or digests",
+                { code: "AI_CHECK_RECOVERY_ARGUMENT_EVIDENCE_UNAVAILABLE" },
+              ),
+            );
           }
         }
 
@@ -439,25 +570,25 @@ export function evaluateRecoveryOperations(
         prior.push(event);
       }
 
+      const latest = latestAttempt(ordered);
       if (operation.requireTerminalSuccess) {
-        const hasOk = ordered.some((event) => event.status === "ok");
-        if (!hasOk) {
+        if (!latest || latest.status !== "ok") {
           findings.push(
             fail(
               "contract.retry.operations.terminal-success",
-              `Tool ${operation.tool} operation ${operationKey} has no terminal ok success.`,
+              `Tool ${operation.tool} operation ${operationKey} does not terminate with ok on the latest attempt.`,
               ordered.slice(0, 4).map(eventEvidence),
-              "ok",
-              ordered.map((event) => event.status),
+              "latest attempt ok",
+              latest?.status ?? "missing",
             ),
           );
         }
       }
 
       if (operation.requireRecoveredFailureVisible) {
-        const hasOk = ordered.some((event) => event.status === "ok");
+        const latestOk = latest?.status === "ok";
         // Only require visible failure when a multi-attempt recovery chain exists.
-        if (ordered.length > 1 && hasOk && !sawLaterOkAfterError) {
+        if (ordered.length > 1 && latestOk && !sawLaterOkAfterError) {
           findings.push(
             fail(
               "contract.retry.operations.recovered-failure-visible",
@@ -471,23 +602,43 @@ export function evaluateRecoveryOperations(
       }
 
       const dependency = operation.successfulResultDependency;
-      if (dependency?.consumerKind === "LLM" && lastOk) {
-        const requireExplicit = dependency.requireExplicitReference === true;
-        const referenced = llmEvents.some((llmEvent) =>
-          llmReferencesTool(llmEvent, lastOk!, requireExplicit),
-        );
-        if (!referenced) {
-          findings.push(
-            fail(
-              "contract.retry.operations.successful-result-dependency",
-              requireExplicit
-                ? `Successful ${operation.tool} result is not explicitly referenced by a later LLM event.`
-                : `Successful ${operation.tool} result has no later LLM consumer.`,
-              [eventEvidence(lastOk)],
-              "LLM reference to successful tool event",
-              { code: "AI_CHECK_RECOVERY_RESULT_DEPENDENCY_MISSING" },
-            ),
-          );
+      if (dependency?.consumerKind === "LLM") {
+        const successForDependency =
+          latest?.status === "ok" ? latest : identityUnavailable ? undefined : lastOk;
+        if (successForDependency) {
+          if (
+            sideEffectClass === "write" &&
+            isUnevaluableWriteCompletion(successForDependency) &&
+            !hasIdempotencyEvidence(successForDependency)
+          ) {
+            findings.push(
+              fail(
+                "contract.retry.operations.successful-result-dependency",
+                `Successful ${operation.tool} result dependency is unevaluable because write completion evidence is unavailable.`,
+                [eventEvidence(successForDependency)],
+                "LLM reference to successful tool event",
+                { code: "AI_CHECK_RECOVERY_WRITE_COMPLETION_UNAVAILABLE" },
+              ),
+            );
+          } else {
+            const requireExplicit = dependency.requireExplicitReference === true;
+            const referenced = llmEvents.some((llmEvent) =>
+              llmReferencesTool(llmEvent, successForDependency, requireExplicit),
+            );
+            if (!referenced) {
+              findings.push(
+                fail(
+                  "contract.retry.operations.successful-result-dependency",
+                  requireExplicit
+                    ? `Successful ${operation.tool} result is not explicitly referenced by a later LLM event.`
+                    : `Successful ${operation.tool} result has no later LLM consumer.`,
+                  [eventEvidence(successForDependency)],
+                  "LLM reference to successful tool event",
+                  { code: "AI_CHECK_RECOVERY_RESULT_DEPENDENCY_MISSING" },
+                ),
+              );
+            }
+          }
         }
       }
     }
