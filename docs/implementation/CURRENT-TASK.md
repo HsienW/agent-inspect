@@ -3,10 +3,10 @@
 ```yaml
 executionMode: maintainer-reviewed
 namedTrain: agentinspect-post-629-hardening-v6.29.1-to-v6.30
-currentTrain: post-6293-code-complete-awaiting-release
-trainStatus: blocked-external-for-minors
-currentChunk: verified-maintenance-complete
-nextAction: "PREPARE RELEASE for 6.29.1–6.29.3 (changeset → Version Packages → Trusted Publish); do not invent 6.30.0"
+currentTrain: published-6291
+trainStatus: blocked-external
+currentChunk: stop
+nextAction: "Do not invent 6.30.0 without EVIDENCE GATE APPROVED + retained fixtures"
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/NEXT-RELEASES.md
 pendingManualGate: "GitHub branch protection on main + Dependabot triage; ignore-only for .redstamp/ Dockerfile glama.json redstamp-proposal-issue-body.md"
@@ -19,23 +19,18 @@ worktreeIgnoreOnly:
 
 ## Published baseline
 
-**6.29.0** on npm. Schema **1.0**. Root Node `>=20`.
+**6.29.1** on npm (fixed group of 18 packages). Schema **1.0**. Root Node `>=20`.
 
-## Implemented on branch (not yet published)
-
-Code complete for **6.29.1–6.29.3** themes on `feat/post-629-hardening` (redaction security, OTLP honesty, recovery fail-closed, AI SDK terminalize, Evidence binding safety/HTML order, DX recipe). Publish only via Changesets → Version Packages → `publish.yml`.
+Shipped themes (single publish): regex-free redaction, OTLP honesty, recovery fail-closed, AI SDK overlap terminalize, Evidence contract safety/HTML order, CLI/recipe DX, website privacy/security/CSP.
 
 ## Freeze language
 
 Core boundary frozen; evidence-backed security, correctness, compatibility, and public-truth patches remain active.
 
-## External stop (minors)
+## External stop
 
 ```text
 BLOCKED_ON_EXTERNAL_EVIDENCE
-LAST_IMPLEMENTED_RELEASE: 6.29.3 (code; unpublished until Trusted Publish)
-LAST_PUBLISHED_RELEASE: 6.29.0
+LAST_PUBLISHED_RELEASE: 6.29.1
 V7_DECISION: NO-GO
 ```
-
-Do not invent `6.30.0` without `EVIDENCE GATE APPROVED` and retained sanitized fixtures.

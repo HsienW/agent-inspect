@@ -7,17 +7,16 @@
 ```yaml
 baselineVersion: "6.29.1"
 publishedVersion: "6.29.1"
-pendingPublishVersion: "6.29.3"
-currentTrain: "post-629-hardening-code-complete"
-trainStatus: "blocked-on-release-then-external"
+pendingPublishVersion: null
+currentTrain: "post-629-hardening-published"
+trainStatus: "blocked-external"
 executionMode: "maintainer-reviewed"
 namedTrain: "agentinspect-post-629-hardening-v6.29.1-to-v6.30"
-branch: "feat/post-629-hardening"
-currentChunk: "verified-maintenance-complete"
-lastConfirmedCommit: "b2cda062"
-lastValidationLevel: "focused-tests-for-6291-6293; recipes:check OK; open-only terminalize + expected/oneOf scan follow-up"
-lastValidationLevel: "focused-tests-for-6291-6293; recipes:check OK"
-nextAction: "Open/merge PR → PREPARE RELEASE changeset for 6.29.x → Trusted Publish; keep 6.30 external-gated"
+branch: "main"
+currentChunk: "published-6291-stop"
+lastConfirmedCommit: "15d978f4"
+lastValidationLevel: "Trusted Publish 6.29.1 (scoped packages + root via publish.yml re-run 34779223285)"
+nextAction: "Keep 6.30+ blocked until EVIDENCE GATE APPROVED; maintenance-only otherwise"
 pendingManualGate: "main branch protection; Dependabot majors close/split; Actions bumps independently; worktree ignore-only for known untracked paths"
 githubIssues:
   "209": "keep open — cross-platform packed-consumer matrix PARTIAL"
@@ -29,13 +28,9 @@ activePlan: "docs/implementation/active/NEXT-RELEASES.md"
 completedChunks:
   - "prior train through 6.29.0 published"
   - "post-6.29 plan approved; operational docs activated"
-  - "6.29.1-A regex-free redaction policy"
-  - "6.29.1-B OTLP declared-vs-emitted"
-  - "6.29.2 recovery fail-closed"
-  - "6.29.3 AI SDK terminalize + Evidence safety/HTML + DX recipe"
-  - "verified maintenance (audit refresh + website privacy/security/CSP; no npm)"
-remainingTrains:
-  - "PREPARE RELEASE / publish 6.29.x"
+  - "6.29.1–6.29.3 themes shipped as agent-inspect@6.29.1 (Trusted Publish)"
+  - "verified maintenance (audit + website privacy/security/CSP)"
+remainingTrains: []
 blockedTrains:
   - "6.30.0 external conformance (BLOCKED_ON_EXTERNAL_EVIDENCE)"
   - "6.31.0 conformance review (BLOCKED_ON_EXTERNAL_EVIDENCE)"
@@ -46,12 +41,10 @@ verifiedMaintenance:
   pnpmAuditProd: "17 vulns (3 low / 10 moderate / 4 high); no critical; mostly transitive recipe/adapter peers (hono, @ai-sdk/provider-utils)"
   policy: "split dependency families; no grouped majors; no Node floor bump; no auto npm for site-only"
   websiteTrust: "added /privacy /security + CSP meta (static export)"
-  npmRelease: "not triggered by site-only maintenance"
+  npmRelease: "6.29.1 published via Trusted Publish"
 stopMarker: |
   BLOCKED_ON_EXTERNAL_EVIDENCE (for 6.30+)
-  LAST_PUBLISHED_RELEASE: 6.29.0
-  LAST_IMPLEMENTED_CODE: 6.29.3 themes on feat/post-629-hardening
+  LAST_PUBLISHED_RELEASE: 6.29.1
   V7_DECISION: NO-GO
-  6.29.x_PATCHES: code-complete; awaiting Trusted Publish
 updatedAt: "2026-09-13"
 ```
