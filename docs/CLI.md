@@ -320,7 +320,8 @@ Options:
 - `--guardrails <rule>`: optional deterministic guardrail rules (`banned-phrase`, `pii-leak`, `prompt-injection`, …); repeatable
 - `--circuit <rule>`: optional circuit analyzers (`same-tool-repetition`, `max-retries`, …); repeatable
 - `--fail-on-observation <status>`: add `outcome.status` rule; repeatable (`failed`, `passed`, `unknown`, `skipped`; default when flag present without value: `failed`)
-- `--preset <trajectory|safety|comprehensive>`: additive check preset (does not change the default when omitted)
+- `--preset <trajectory|safety|comprehensive|behavioral-session>`: additive check preset (does not change the default when omitted)
+  - `behavioral-session` (6.26): require harness completion + score OUTCOME events (`--fail-on-observation failed` by default); does **not** treat every TOOL `error` as a failed run
   - `trajectory`: completion/structure/relationship focus; excludes share-safety findings
   - `safety`: raw-content / secret / redaction focus
   - `comprehensive`: union of trajectory and safety

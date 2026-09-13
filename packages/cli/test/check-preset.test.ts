@@ -75,6 +75,22 @@ describe("resolvePreset", () => {
     ]);
   });
 
+  it("resolves behavioral-session with outcomes and without collapsing on tool errors", () => {
+    const resolved = resolvePreset("behavioral-session");
+    expect(resolved).toMatchObject({
+      requireCompleted: true,
+      enableSafetyRedaction: false,
+      enableStructureRelationshipDefaults: false,
+      failOnObservation: "failed",
+    });
+    expect(resolved?.select).toEqual([
+      "run.requireCompleted",
+      "outcome.status",
+      "structure.orphan",
+    ]);
+    expect(resolved?.select).not.toContain("run.status");
+  });
+
   it("rejects unknown preset names", () => {
     expect(() => resolvePreset("mystery")).toThrow(/Unknown --preset/);
   });

@@ -423,7 +423,7 @@ export function createCliProgram(): Command {
     )
     .addOption(
       new Option("--preset <name>", "additive check preset")
-        .choices(["trajectory", "safety", "comprehensive"]),
+        .choices(["trajectory", "safety", "comprehensive", "behavioral-session"]),
     )
     .addOption(
       new Option(

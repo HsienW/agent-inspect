@@ -1,0 +1,3 @@
+healthy PASS
+unexpected-accept FAIL
+Dual-axis: TOOL status stays execution-truth; OUTCOME scores expected behavior (#362).
