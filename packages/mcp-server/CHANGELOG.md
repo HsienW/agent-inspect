@@ -1,5 +1,14 @@
 # @agent-inspect/mcp-server
 
+## 6.29.1
+
+### Patch Changes
+
+- d723406: Post-6.29 hardening: regex-free redaction policy, OTLP GenAI declared-vs-emitted honesty, recovery fail-closed contracts, AI SDK overlap/close terminalization (open rows only), Evidence refuse unsafe expected/oneOf values with bind-before-HTML packaging, and CLI/recipe DX for anyOf vs retry paths.
+- Updated dependencies [d723406]
+  - agent-inspect@6.29.1
+  - @agent-inspect/redact@6.29.1
+
 ## 6.29.0
 
 ### Patch Changes
