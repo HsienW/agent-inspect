@@ -40,7 +40,7 @@ Pick by the job you are doing. Every cell below is derived from the recipe's own
 [NETWORK-BEHAVIOR.md](../../docs/NETWORK-BEHAVIOR.md) — nothing here is asserted
 independently of those sources.
 
-**All 46 recipes need no API key and make no network calls.** They are mocks-only and
+**All 47 recipes need no API key and make no network calls.** They are mocks-only and
 local by construction; the two MCP rows note where network enters once a recipe is
 pointed at something real, per NETWORK-BEHAVIOR.md.
 
@@ -48,6 +48,7 @@ pointed at something real, per NETWORK-BEHAVIOR.md.
 |---|---|---|---|---|---|---|
 | [ai-sdk-local-telemetry](ai-sdk-local-telemetry) | AI SDK tracing | `@agent-inspect/ai-sdk`<br>`agent-inspect` | No | No network | Supported | `pnpm --filter agent-inspect-recipe-ai-sdk-local-telemetry start` |
 | [ai-sdk-next-route](ai-sdk-next-route) | AI SDK tracing (per request) | `@agent-inspect/ai-sdk`<br>`agent-inspect` | No | No network | Supported | `pnpm --filter agent-inspect-recipe-ai-sdk-next-route start` |
+| [bounded-read-recovery](bounded-read-recovery) | Gate safe read-tool recovery (`retry.operations`) | `agent-inspect` | No | Synthetic fixtures only | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-bounded-read-recovery start` |
 | [circuit-breaker-basic](circuit-breaker-basic) | Trip a circuit breaker | `@agent-inspect/circuit` | No | No network | Supported | `pnpm --filter agent-inspect-recipe-circuit-breaker-basic start` |
 | [cohort-baseline-candidate](cohort-baseline-candidate) | Compare a cohort baseline | `agent-inspect` (CLI only) | No | No network | Beta <sup>Suites / cohorts / gates</sup> | `pnpm --filter agent-inspect-recipe-cohort-baseline-candidate start` |
 | [decision-metadata](decision-metadata) | Record decisions without chain-of-thought | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-decision-metadata start` |
@@ -103,6 +104,7 @@ each package README's `**Support level:**` line, except where a recipe uses a fe
 | Recipe | Demonstrates | AgentInspect features | Runnable | External services |
 |--------|----------------|----------------------|----------|---------------------|
 | [rag-pipeline](rag-pipeline) | Mock RAG-style pipeline | `inspectRun`, `step`, `step.tool`, `step.llm`, `traceDir` | yes | no |
+| [bounded-read-recovery](bounded-read-recovery) | Read-only retrieve_policy recovery oracle | TraceContract `retry.operations[]` (6.27) | yes | no |
 | [tool-failure-retry](tool-failure-retry) | Flaky tool → retry succeeds | `step.tool`, error then success in trace | yes | no |
 | [multi-agent-handoff](multi-agent-handoff) | Coordinator + specialist steps | Nested steps, `metadata` for handoff | yes | no |
 | [promptfoo-use-together](promptfoo-use-together) | Local Promptfoo + TraceContract pattern | `agent-inspect` | No | No network | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-promptfoo-use-together start` |

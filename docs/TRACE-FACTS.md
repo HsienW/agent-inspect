@@ -19,6 +19,7 @@ evaluateTraceContract({ read }, defineTraceContract({
 
 Failure roles are derived classifications over recorded evidence.
 They do not rewrite persisted status, prove root cause, or prove a retry was safe.
+For bounded recovery **contract** oracles (`retry.operations`, 6.27), use TraceContract — not TraceFacts alone.
 
 | Role | Meaning |
 | --- | --- |

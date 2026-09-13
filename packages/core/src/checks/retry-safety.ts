@@ -9,9 +9,18 @@
 
 import type { TraceCheckEvidence, TraceCheckFinding } from "./index.js";
 import { resolveCanonicalToolName } from "./logical-events.js";
+import type { TraceContractRecoveryOperation } from "./recovery-operations.js";
 import { extractSessionWorkflowMetadata } from "../sessions/metadata.js";
 import type { PersistedInspectEvent } from "../types/persisted-inspect-event.js";
 import type { SessionWorkflowMetadata } from "../sessions/types.js";
+
+export type {
+  RecoverySameArgumentsMode,
+  RecoverySideEffectClass,
+  TraceContractRecoveryOperation,
+  TraceContractRecoveryRetryableErrors,
+  TraceContractRecoverySuccessfulResultDependency,
+} from "./recovery-operations.js";
 
 export interface TraceContractRetryRules {
   /**
@@ -45,6 +54,12 @@ export interface TraceContractRetryRules {
    * same operation/retry chain (not merely coexistence of ok+error).
    */
   requireRecoveredFailureVisible?: boolean;
+  /**
+   * Per-tool bounded recovery oracles (read-first; write timeout/unknown fails closed).
+   *
+   * @experimental Additive in 6.27.
+   */
+  operations?: readonly TraceContractRecoveryOperation[];
 }
 
 function fail(

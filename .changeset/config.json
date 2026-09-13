@@ -49,6 +49,7 @@
     "agent-inspect-recipe-workspace-basic",
     "agent-inspect-recipe-langgraph-gate-evidence",
     "agent-inspect-recipe-mcp-behavioral-session",
+    "agent-inspect-recipe-bounded-read-recovery",
     "agent-inspect-vscode"
   ]
 }
