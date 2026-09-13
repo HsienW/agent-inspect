@@ -279,10 +279,94 @@ class AgentInspectAiSdkTelemetryIntegration {
     return this.preview.applyPreviewFields({}, fields);
   }
 
+  /**
+   * AI SDK 6 audit (6.29.3): callbacks do not expose a stable run/step UUID on
+   * all lifecycle hooks (only `toolCallId` is stable). Overlapping generations
+   * therefore cannot be multiplexed safely — abandon and terminalize instead.
+   */
+  private async terminalizeActiveRun(
+    reason: "abandoned-overlap" | "abandoned-close",
+  ): Promise<void> {
+    const run = this.activeRun;
+    if (!run) return;
+    const endedAt = nowIso();
+    const status = reason === "abandoned-overlap" ? "error" : "unknown";
+
+    for (const tool of run.tools.values()) {
+      await this.write({
+        schemaVersion: "0.2",
+        eventId: tool.eventId,
+        runId: run.runId,
+        parentId: tool.parentId,
+        kind: "TOOL",
+        name: tool.toolName,
+        status,
+        timestamp: endedAt,
+        startedAt: tool.startedAt,
+        endedAt,
+        durationMs: durationMs(tool.startedAt, endedAt),
+        confidence: "explicit",
+        source: AI_SDK_SOURCE,
+        attributes: {
+          legacyEvent: "step_completed",
+          lifecycle: reason,
+          toolName: tool.toolName,
+        },
+      });
+    }
+
+    for (const [stepNumber, step] of run.steps.entries()) {
+      await this.write({
+        schemaVersion: "0.2",
+        eventId: step.eventId,
+        runId: run.runId,
+        parentId: step.parentId,
+        kind: "LLM",
+        name: `ai-sdk-step-${stepNumber}`,
+        status,
+        timestamp: endedAt,
+        startedAt: step.startedAt,
+        endedAt,
+        durationMs: durationMs(step.startedAt, endedAt),
+        confidence: "explicit",
+        source: AI_SDK_SOURCE,
+        attributes: {
+          legacyEvent: "step_completed",
+          lifecycle: reason,
+          stepNumber,
+        },
+      });
+    }
+
+    await this.write({
+      schemaVersion: "0.2",
+      eventId: run.eventId,
+      runId: run.runId,
+      kind: "RUN",
+      name: run.name,
+      status,
+      timestamp: endedAt,
+      startedAt: run.startedAt,
+      endedAt,
+      durationMs: durationMs(run.startedAt, endedAt),
+      confidence: "explicit",
+      source: AI_SDK_SOURCE,
+      attributes: {
+        legacyEvent: "run_completed",
+        lifecycle: reason,
+        ...summarizeModel(run.model),
+      },
+    });
+
+    this.activeRun = undefined;
+  }
+
   async onStart(event: OnStartEvent): Promise<void> {
     await this.handleLifecycle("onStart", async () => {
       if (this.activeRun || this.suspendedReason) {
-        this.activeRun = undefined;
+        if (this.activeRun) {
+          await this.terminalizeActiveRun("abandoned-overlap");
+        }
         this.suspendedReason =
           "Overlapping AI SDK generation ignored; create one agentInspect() integration per concurrent generation.";
         this.recordLifecycleWarning(this.suspendedReason);
@@ -622,6 +706,9 @@ class AgentInspectAiSdkTelemetryIntegration {
 
   async close(): Promise<void> {
     try {
+      if (this.activeRun) {
+        await this.terminalizeActiveRun("abandoned-close");
+      }
       await this.writer?.close?.();
     } catch (error) {
       this.diagnostics.closeFailures += 1;
