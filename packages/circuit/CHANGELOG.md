@@ -1,5 +1,11 @@
 # @agent-inspect/circuit
 
+## 6.29.1
+
+### Patch Changes
+
+- d723406: Post-6.29 hardening: regex-free redaction policy, OTLP GenAI declared-vs-emitted honesty, recovery fail-closed contracts, AI SDK overlap/close terminalization (open rows only), Evidence refuse unsafe expected/oneOf values with bind-before-HTML packaging, and CLI/recipe DX for anyOf vs retry paths.
+
 ## 6.29.0
 
 ## 6.28.0
