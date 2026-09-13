@@ -86,6 +86,50 @@ describe("evidence contract binding (6.28)", () => {
     expect(packaged.binding.note).toMatch(/No resolved TraceContract/i);
   });
 
+  it("refuses complete packaging when expected values look like credentials", () => {
+    const packaged = buildEvidenceContractPackage({
+      engineVersion: "6.29.3",
+      source: "inline",
+      contract: {
+        tools: {
+          arguments: [
+            {
+              tool: "login",
+              path: "/token",
+              operator: "equals",
+              expected: "sk-ant-abcdefghijklmnopqrstuvwxyz012345",
+            },
+          ],
+        },
+      },
+    });
+    expect(packaged.binding.status).toBe("unavailable");
+    expect(packaged.file).toBeUndefined();
+    expect(packaged.resolvedJson).toBeUndefined();
+    expect(packaged.binding.note).toMatch(/refuses complete packaging|credential/i);
+  });
+
+  it("embeds safe contract binding metadata in HTML after resolve/bind", () => {
+    const pkg = buildEvidenceCiPackage({
+      generatorVersion: "6.29.3",
+      runIds: ["run_a"],
+      sourceContents: { run_a: '{"schemaVersion":"1.0"}\n' },
+      redactedTraceJsonl: '{"schemaVersion":"1.0"}\n',
+      redactionProfile: "share",
+      assessmentStatus: "SAFE",
+      checkResultsJson: serializeCheckResultsJson({ aggregateStatus: "SAFE" }),
+      createdAt: "2026-09-12T00:00:00.000Z",
+      contractPackage: {
+        engineVersion: "6.29.3",
+        source: "inline",
+        contract: { tools: { required: ["search"] } },
+      },
+    });
+    expect(pkg["evidence.html"]).toContain("Contract binding:");
+    expect(pkg["evidence.html"]).toContain("complete");
+    expect(pkg["evidence.html"]).not.toContain("sk-ant-");
+  });
+
   it("binds check-results.json digest to the packaged contract in CI Evidence", async () => {
     const pkg = buildEvidenceCiPackage({
       generatorVersion: "6.28.0",
