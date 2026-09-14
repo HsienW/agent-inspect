@@ -171,12 +171,19 @@ describe("persistedInspectEventToTraceEvents", () => {
     expect(back[0]?.event).toBe("step_started");
   });
 
-  it("preserves supplied total and cached usage during normalization", () => {
+  it("preserves extended token usage across persisted conversion", () => {
     const persisted = traceEventToPersistedInspectEvent(
       {
         ...stepStarted("llm"),
         metadata: {
-          tokens: { input: 5, output: 2, total: 20, cached: 3 },
+          tokens: {
+            input: 5,
+            output: 2,
+            total: 20,
+            cached: 3,
+            cacheWrite: 4,
+            reasoning: 6,
+          },
         },
       },
     );
@@ -187,6 +194,8 @@ describe("persistedInspectEventToTraceEvents", () => {
       output: 2,
       total: 20,
       cached: 3,
+      cacheWrite: 4,
+      reasoning: 6,
     });
     expect(back?.event).toBe("step_started");
     if (back?.event === "step_started") {
@@ -195,7 +204,49 @@ describe("persistedInspectEventToTraceEvents", () => {
         output: 2,
         total: 20,
         cached: 3,
+        cacheWrite: 4,
+        reasoning: 6,
       });
     }
+  });
+
+  it("preserves extended token usage on the native step path", () => {
+    const persisted = {
+      schemaVersion: "0.2" as const,
+      eventId: "native-usage",
+      runId: "run-native-usage",
+      kind: "LLM" as const,
+      name: "native-llm-step",
+      status: "running" as const,
+      timestamp: "2026-09-14T00:00:00.000Z",
+      startedAt: "2026-09-14T00:00:00.000Z",
+      confidence: "explicit" as const,
+      source: { type: "manual" as const },
+      tokenUsage: {
+        input: 7,
+        output: 3,
+        total: 10,
+        cached: 1,
+        cacheWrite: 0,
+        reasoning: 5,
+      },
+    };
+
+    const started = persistedInspectEventToTraceEvents(persisted).find(
+      (event) => event.event === "step_started",
+    );
+
+    expect(
+      started?.event === "step_started"
+        ? started.metadata?.tokens
+        : undefined,
+    ).toEqual({
+      input: 7,
+      output: 3,
+      total: 10,
+      cached: 1,
+      cacheWrite: 0,
+      reasoning: 5,
+    });
   });
 });
