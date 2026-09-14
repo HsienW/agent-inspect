@@ -102,6 +102,12 @@ function mapTokenUsageToMetadata(
       ...(tokenUsage.output !== undefined ? { output: tokenUsage.output } : {}),
       ...(tokenUsage.total !== undefined ? { total: tokenUsage.total } : {}),
       ...(tokenUsage.cached !== undefined ? { cached: tokenUsage.cached } : {}),
+      ...(tokenUsage.cacheWrite !== undefined
+        ? { cacheWrite: tokenUsage.cacheWrite }
+        : {}),
+      ...(tokenUsage.reasoning !== undefined
+        ? { reasoning: tokenUsage.reasoning }
+        : {}),
     };
   }
   return Object.keys(metadata).length > 0 ? metadata : undefined;
