@@ -1,15 +1,15 @@
 # Current task
 
 ```yaml
-executionMode: autonomous-release-train
+executionMode: maintainer-reviewed
 namedTrain: agentinspect-adoption-after-6291-v6.29.2-to-v6.32
-currentTrain: adoption-6293-complete
+currentTrain: published-6292
 trainStatus: blocked-external
-currentChunk: stop-6293
-nextAction: "6.30.0+ requires EVIDENCE GATE APPROVED + retained fixtures; use PREPARE RELEASE 6.29.2 then 6.29.3 when ready to publish"
+currentChunk: stop
+nextAction: "Do not invent 6.30.0 without EVIDENCE GATE APPROVED + retained fixtures"
 canonicalRoadmap: docs/implementation/ROADMAP.md
 activePlan: docs/implementation/active/NEXT-RELEASES.md
-pendingManualGate: "main branch protection (maintainer GitHub settings); gh merge PR #412 on remote when token restored"
+pendingManualGate: "GitHub branch protection on main; Dependabot majors stay split"
 worktreeIgnoreOnly:
   - .redstamp/
   - redstamp-proposal-issue-body.md
@@ -17,20 +17,28 @@ worktreeIgnoreOnly:
 
 ## Published baseline
 
-**6.29.1** on npm. Implementation for **6.29.2** and **6.29.3** is complete locally; pending Changeset → Version Packages → Trusted Publish.
+**6.29.2** on npm (fixed group of 18 packages). Schema **1.0**. Root Node `>=20`.
 
-## Completed in this train (local)
+Shipped in this publish (themes labeled 6.29.2 + 6.29.3 in the adoption plan):
 
-- **6.29.2:** MCP external runtime + packed ESM/CJS e2e (#413); suite init no-overwrite (#411/#412); nested metadata tool-argument checks (#414); bounded error codes (#415)
-- **6.29.3:** OpenAI Agents `input_tokens_details.cached_tokens` (#416); browser observer boundary (#417); Evidence regen + path/version verify (#418); Glama pin/non-root (#419); interop/transport docs
+- MCP externalizes `agent-inspect` + packed ESM/CJS shared-runtime e2e (#413)
+- Suite init refuses overwrite (#411 / #412)
+- Nested `metadata.arguments` for tool-argument checks (#414)
+- Bounded safe error codes (#415)
+- OpenAI Agents `input_tokens_details.cached_tokens` (#416)
+- Browser observed-outcome injected observer (#417)
+- Public Evidence regen + private-path reject (#418)
+- Glama pin/non-root (#419)
+- Interop pass wording + transport evidence docs
 
-## Stop markers
+## Freeze language
+
+Core boundary frozen; evidence-backed security, correctness, compatibility, interoperability, and adoption patches remain active.
+
+## External stop
 
 ```text
-RELEASE_6.29.2_IMPLEMENTATION_COMPLETE
-RELEASE_6.29.3_IMPLEMENTATION_COMPLETE
-AWAITING: PREPARE RELEASE 6.29.2 / CONTINUE — EXECUTE NEXT RELEASE (for 6.30.0 only after EVIDENCE GATE APPROVED)
-BLOCKED_ON_6_30_EXTERNAL_INPUTS
-LAST_PUBLISHED_RELEASE: 6.29.1
+BLOCKED_ON_EXTERNAL_EVIDENCE
+LAST_PUBLISHED_RELEASE: 6.29.2
 V7_DECISION: NO-GO
 ```
