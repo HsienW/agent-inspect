@@ -13,4 +13,6 @@ export default defineConfig({
   treeshake: true,
   platform: "node",
   target: "es2022",
+  // Share the application AgentInspect runtime/context — do not bundle a second copy.
+  external: ["agent-inspect"],
 });

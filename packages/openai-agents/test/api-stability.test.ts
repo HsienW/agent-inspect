@@ -246,6 +246,45 @@ describe("@agent-inspect/openai-agents processor", () => {
     expect(trees[0]?.runId).toBe("trace_openai_agents_1");
   });
 
+  it("normalizes cached tokens from input_tokens_details (real SDK shape)", async () => {
+    const writer = memoryWriter();
+    const processor = agentInspectProcessor({ writer });
+    const trace = traceFixture({ traceId: "trace_openai_agents_cache" });
+    const generationSpan = spanFixture(
+      {
+        type: "generation",
+        model: "gpt-fixture",
+        input: [{ role: "user", content: "cache shape" }],
+        output: [{ role: "assistant", content: "cache shape out" }],
+        model_config: { temperature: 0 },
+        usage: {
+          input_tokens: 10,
+          output_tokens: 2,
+          input_tokens_details: { cached_tokens: 7 },
+          output_tokens_details: { reasoning_tokens: 1 },
+        },
+      },
+      { spanId: "span_generation_sdk_cache" },
+    );
+
+    await processor.onTraceStart(trace);
+    await processor.onSpanStart(generationSpan);
+    await processor.onSpanEnd(generationSpan);
+    await processor.onTraceEnd(trace);
+
+    const completed = writer
+      .getEvents()
+      .find((event) => event.name === "generation:gpt-fixture" && event.status === "ok");
+    expect(completed?.tokenUsage).toEqual({
+      input: 10,
+      output: 2,
+      total: 12,
+      cached: 7,
+      reasoning: 1,
+    });
+    expect(completed?.tokenUsage).not.toHaveProperty("cacheWrite");
+  });
+
   it("maps handoff, MCP, custom, response, transcription, and speech spans conservatively", async () => {
     const writer = memoryWriter();
     const processor = agentInspectProcessor({ writer });

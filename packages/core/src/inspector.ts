@@ -137,15 +137,67 @@ function mergeMetadata(
   };
 }
 
+const SAFE_ERROR_CODE_MAX_LENGTH = 128;
+const SAFE_ERROR_CODE_PATTERN = /^[A-Za-z0-9_.:-]+$/;
+
+/**
+ * Normalize a thrown error's `code` or `status` into a bounded safe string.
+ * Accepts finite numbers (e.g. HTTP 404) and short alphanumeric codes.
+ * Omits objects, arrays, multiline/oversized values, and arbitrary properties.
+ */
+function toSafeErrorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null) {
+    return undefined;
+  }
+  const record = error as Record<string, unknown>;
+  const raw = record.code !== undefined ? record.code : record.status;
+  let candidate: string | undefined;
+  if (typeof raw === "number" && Number.isFinite(raw)) {
+    candidate = String(raw);
+  } else if (typeof raw === "string") {
+    candidate = raw.trim();
+  }
+  if (
+    candidate === undefined ||
+    candidate.length === 0 ||
+    candidate.length > SAFE_ERROR_CODE_MAX_LENGTH ||
+    !SAFE_ERROR_CODE_PATTERN.test(candidate)
+  ) {
+    return undefined;
+  }
+  return candidate;
+}
+
 function toPersistedError(error: unknown): PersistedInspectError {
   if (error instanceof Error) {
-    return {
+    const persisted: PersistedInspectError = {
       name: error.name,
       message: error.message,
     };
+    const code = toSafeErrorCode(error);
+    if (code !== undefined) {
+      persisted.code = code;
+    }
+    return persisted;
   }
   if (typeof error === "string") {
     return { message: error };
+  }
+  if (typeof error === "object" && error !== null) {
+    const record = error as Record<string, unknown>;
+    const message =
+      typeof record.message === "string" && record.message.length > 0
+        ? record.message
+        : "Unknown error";
+    const persisted: PersistedInspectError = { message };
+    if (typeof record.name === "string" && record.name.length > 0) {
+      persisted.name = record.name;
+    }
+    const code = toSafeErrorCode(error);
+    if (code !== undefined) {
+      persisted.code = code;
+    }
+    return persisted;
   }
   return { message: "Unknown error" };
 }

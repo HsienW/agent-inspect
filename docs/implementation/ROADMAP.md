@@ -1,14 +1,14 @@
 # AgentInspect Canonical Roadmap (permanent)
 
 **Baseline:** `agent-inspect@6.29.1`
-**Roadmap horizon:** post-6.29 hardening published as `6.29.1`; `6.30.0+` blocked on external evidence
-**Status:** hardening themes **published**; speculative `6.30` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
-**Primary objective:** Remove redaction-policy regex execution, restore OTLP declaration honesty, fail-close recovery contracts, harden AI SDK overlap and Evidence contract binding—without schema 1.1, hosted SaaS, or fabricated external evidence
+**Roadmap horizon:** adoption train after 6.29.1 — patches `6.29.2`/`6.29.3`, then conditional `6.30.0`–`6.32.0`; `v7` NO-GO
+**Status:** **6.29.1 published**; adoption train **active** (`6.29.2` in progress); inventing `6.30.0+` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
+**Primary objective:** Fix published MCP runtime identity and CLI/check integrity, then adapter/Evidence fidelity—without schema 1.1, hosted SaaS, or fabricated external evidence
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
 **Network policy:** no new default network behavior
 **Product boundary:** local-first and customer-owned; no maintainer-hosted SaaS
-**Named train:** `agentinspect-post-629-hardening-v6.29.1-to-v6.30`
+**Named train:** `agentinspect-adoption-after-6291-v6.29.2-to-v6.32`
 **Active plan:** [active/NEXT-RELEASES.md](./active/NEXT-RELEASES.md)
 
 ---
@@ -68,14 +68,17 @@ The canonical release sequence is:
 
 6.29.0  Provider usage fidelity and adapter compatibility  (published)
 6.29.1  Post-6.29 hardening (redaction, OTLP honesty, recovery, AI SDK, Evidence, DX)  (published)
-6.29.2  (themes folded into 6.29.1 publish)
-6.29.3  (themes folded into 6.29.1 publish)
-6.29.4  Optional maintenance patch only when published artifacts change
+6.29.2  Published runtime and CLI integrity (MCP external, suite init, nested args, error codes)  (active)
+6.29.3  Adapter, recipe, and public-Evidence fidelity  (next)
+6.29.4  Reserved corrective patch only
 
-6.30.0  Conditional external conformance — BLOCKED_ON_EXTERNAL_EVIDENCE
-6.30.x  Maintenance
+6.30.0  Portable Evidence and interoperability contracts — BLOCKED_ON_6_30_EXTERNAL_INPUTS
+6.30.1  Interoperability corrections only
 
-6.31.0  Conditional external conformance and support review — BLOCKED_ON_EXTERNAL_EVIDENCE
+6.31.0  Failure-first review and adoption UX — BLOCKED_ON_6_31_REVIEW_FIXTURE
+6.31.1  Review-UX corrections only
+
+6.32.0  Conditional external conformance and support review — BLOCKED_ON_EXTERNAL_EVIDENCE
 
 7.0.0   Assessment only — V7_DECISION: NO-GO
 ```

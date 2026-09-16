@@ -1,7 +1,7 @@
 {
   "ok": true,
   "status": "pass",
-  "root": "/Users/dand/Dev/agent-inspect/examples/evidence/moderate-agent/evidence",
+  "root": "examples/evidence/moderate-agent/evidence",
   "checkedFiles": 3,
   "issues": [],
   "assessment": {
@@ -10,6 +10,6 @@
   },
   "generator": {
     "name": "agent-inspect",
-    "version": "6.17.1"
+    "version": "6.29.1"
   }
 }

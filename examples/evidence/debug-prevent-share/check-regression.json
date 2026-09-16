@@ -11,7 +11,7 @@
       ],
       "evidence": [
         {
-          "eventId": "step_knhEzrCFwK",
+          "eventId": "step_jQbKV0Xfp5",
           "kind": "OUTCOME",
           "name": "policyShown",
           "path": "outcome.policyShown",
@@ -33,7 +33,7 @@
       "actual": "search_docs",
       "evidence": [
         {
-          "eventId": "step_TGbAMI1_fn_started",
+          "eventId": "step__Tcbp5C8sp_started",
           "kind": "TOOL",
           "name": "tool:search_docs",
           "runId": "demo-regression",
@@ -49,12 +49,64 @@
   ],
   "format": "agent-inspect-v1.0-jsonl",
   "ok": false,
+  "ruleExecutions": [
+    {
+      "category": "run",
+      "findingCount": 1,
+      "ruleId": "outcome.status",
+      "runId": "demo-regression",
+      "status": "fail"
+    },
+    {
+      "category": "run",
+      "findingCount": 0,
+      "ruleId": "run.requireCompleted",
+      "runId": "demo-regression",
+      "status": "pass"
+    },
+    {
+      "category": "run",
+      "findingCount": 0,
+      "ruleId": "run.status",
+      "runId": "demo-regression",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.cycle",
+      "runId": "demo-regression",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.orphan",
+      "runId": "demo-regression",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.relationship",
+      "runId": "demo-regression",
+      "status": "pass"
+    },
+    {
+      "category": "tool",
+      "findingCount": 1,
+      "ruleId": "tool.usage",
+      "runId": "demo-regression",
+      "status": "fail"
+    }
+  ],
   "runId": "demo-regression",
   "status": "fail",
   "summary": {
     "errors": 0,
     "failed": 2,
     "passed": 0,
+    "rulesEvaluated": 7,
     "warnings": 0
   }
 }

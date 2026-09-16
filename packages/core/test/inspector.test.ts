@@ -298,6 +298,53 @@ describe("createInspector", () => {
     );
   });
 
+  it("preserves bounded safe error codes and numeric status codes", async () => {
+    const writer = memoryWriter();
+    const inspector = createInspector({ writer });
+
+    const timeout = new Error("timed out") as Error & { code?: string };
+    timeout.code = "ETIMEDOUT";
+    await expect(
+      inspector.run("code-run", async () => {
+        await inspector.step("timeout-step", async () => {
+          throw timeout;
+        });
+      }, { runId: "run_error_code" }),
+    ).rejects.toBe(timeout);
+
+    const http = Object.assign(new Error("not found"), { status: 404 });
+    await expect(
+      inspector.run("status-run", async () => {
+        throw http;
+      }, { runId: "run_error_status" }),
+    ).rejects.toBe(http);
+
+    const unsafe = Object.assign(new Error("secret fail"), {
+      code: "line1\nline2",
+      body: { token: "should-not-persist" },
+      headers: { authorization: "Bearer secret" },
+    });
+    await expect(
+      inspector.run("unsafe-run", async () => {
+        throw unsafe;
+      }, { runId: "run_error_unsafe" }),
+    ).rejects.toBe(unsafe);
+
+    const events = writer.getEvents();
+    expect(
+      events.find((event) => event.eventId === "run_error_code_completed")?.error,
+    ).toEqual({ name: "Error", message: "timed out", code: "ETIMEDOUT" });
+    expect(
+      events.find((event) => event.eventId === "run_error_status_completed")?.error,
+    ).toEqual({ name: "Error", message: "not found", code: "404" });
+    const unsafePersisted = events.find(
+      (event) => event.eventId === "run_error_unsafe_completed",
+    )?.error;
+    expect(unsafePersisted).toEqual({ name: "Error", message: "secret fail" });
+    expect(JSON.stringify(unsafePersisted)).not.toContain("should-not-persist");
+    expect(JSON.stringify(unsafePersisted)).not.toContain("Bearer");
+  });
+
   it("rethrows application errors unchanged when persisted error details are bounded", async () => {
     const writer = memoryWriter();
     const inspector = createInspector({

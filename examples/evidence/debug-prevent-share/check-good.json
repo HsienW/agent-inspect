@@ -3,12 +3,64 @@
   "findings": [],
   "format": "agent-inspect-v1.0-jsonl",
   "ok": true,
+  "ruleExecutions": [
+    {
+      "category": "run",
+      "findingCount": 0,
+      "ruleId": "outcome.status",
+      "runId": "demo-good",
+      "status": "pass"
+    },
+    {
+      "category": "run",
+      "findingCount": 0,
+      "ruleId": "run.requireCompleted",
+      "runId": "demo-good",
+      "status": "pass"
+    },
+    {
+      "category": "run",
+      "findingCount": 0,
+      "ruleId": "run.status",
+      "runId": "demo-good",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.cycle",
+      "runId": "demo-good",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.orphan",
+      "runId": "demo-good",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.relationship",
+      "runId": "demo-good",
+      "status": "pass"
+    },
+    {
+      "category": "tool",
+      "findingCount": 0,
+      "ruleId": "tool.usage",
+      "runId": "demo-good",
+      "status": "pass"
+    }
+  ],
   "runId": "demo-good",
   "status": "pass",
   "summary": {
     "errors": 0,
     "failed": 0,
     "passed": 0,
+    "rulesEvaluated": 7,
     "warnings": 0
   }
 }

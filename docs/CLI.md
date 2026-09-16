@@ -979,6 +979,8 @@ Options (shared):
 
 - `--template <name>` — PM/QA template (v5.4+): `customer-support-agent`, `refund-agent`, `sales-assistant`, `browser-task-agent`, `mcp-tool-agent`, `workflow-agent`, `rag-answer-agent`, `human-approval-agent`
 
+`suite init` creates a new `agent-inspect.suite.json` and **refuses to overwrite** an existing file (valid, malformed, or empty). Edit or delete the existing config explicitly before recreating it. There is no `--force` flag.
+
 `run` also supports:
 
 - `-o, --output <dir>` — write JSON run artifact (default: `.agent-inspect/suite-runs`)

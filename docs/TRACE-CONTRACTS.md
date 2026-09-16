@@ -229,11 +229,22 @@ defineTraceContract({
 
 Missing structured argument evidence fails closed (`AI_CHECK_TOOL_ARGUMENT_EVIDENCE_UNAVAILABLE`). Findings never include full actual inputs.
 
+Manual instrumentation stores caller metadata under `attributes.metadata`. Tool-argument checks therefore also accept structured object/array evidence at:
+
+```text
+attributes.metadata.arguments
+attributes.metadata.input
+attributes.metadata.toolArguments
+```
+
+Precedence: top-level `attributes.arguments|input|toolArguments`, then nested metadata keys, then structured `inputSummary`. Preview strings are never parsed as JSON. This does not enable default raw argument capture.
+
 ### Capture capability matrix (tool-argument evidence)
 
 | Source | Structured input | Preview only | Digest only | Unavailable |
 | --- | :---: | :---: | :---: | :---: |
 | Manual `attributes.arguments` / `attributes.input` (object) | yes | — | — | — |
+| Manual `attributes.metadata.arguments` / `input` / `toolArguments` (object/array) | yes | — | — | — |
 | Manual `inputSummary` string | — | yes | — | for pointer checks |
 | AI SDK / LangChain metadata-only default | — | sometimes | — | typical |
 | OpenAI Agents metadata-only | — | sometimes | — | typical |

@@ -200,6 +200,56 @@ function summarizeError(error: SpanError | null | undefined): PersistedInspectEr
   return { message: error.message };
 }
 
+function readFiniteNonNegative(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? value
+    : undefined;
+}
+
+function applyCachedAndReasoningFromDetails(
+  tokenUsage: PersistedTokenUsage,
+  detailRecord: Record<string, unknown>,
+): void {
+  if (tokenUsage.cached === undefined) {
+    const cached = readFiniteNonNegative(
+      detailRecord.cached_tokens ?? detailRecord.cached_input_tokens,
+    );
+    if (cached !== undefined) {
+      tokenUsage.cached = cached;
+    }
+  }
+
+  if (tokenUsage.cacheWrite === undefined) {
+    const cacheWrite = readFiniteNonNegative(
+      detailRecord.cache_creation_tokens ??
+        detailRecord.cached_creation_tokens ??
+        detailRecord.cache_write_tokens,
+    );
+    if (cacheWrite !== undefined) {
+      tokenUsage.cacheWrite = cacheWrite;
+    }
+  }
+
+  if (tokenUsage.reasoning !== undefined) {
+    return;
+  }
+  const reasoning =
+    detailRecord.reasoning_tokens ?? detailRecord.output_tokens_details;
+  const asNumber = readFiniteNonNegative(reasoning);
+  if (asNumber !== undefined) {
+    tokenUsage.reasoning = asNumber;
+    return;
+  }
+  if (typeof reasoning === "object" && reasoning !== null && !Array.isArray(reasoning)) {
+    const nested = readFiniteNonNegative(
+      (reasoning as Record<string, unknown>).reasoning_tokens,
+    );
+    if (nested !== undefined) {
+      tokenUsage.reasoning = nested;
+    }
+  }
+}
+
 function summarizeUsage(usage: unknown): PersistedTokenUsage | undefined {
   if (typeof usage !== "object" || usage === null || Array.isArray(usage)) {
     return undefined;
@@ -217,38 +267,23 @@ function summarizeUsage(usage: unknown): PersistedTokenUsage | undefined {
     tokenUsage.total = (tokenUsage.input ?? 0) + (tokenUsage.output ?? 0);
   }
 
+  // Real OpenAI Agents / Responses SDK shape.
+  const inputDetails = record.input_tokens_details;
+  if (
+    typeof inputDetails === "object" &&
+    inputDetails !== null &&
+    !Array.isArray(inputDetails)
+  ) {
+    applyCachedAndReasoningFromDetails(
+      tokenUsage,
+      inputDetails as Record<string, unknown>,
+    );
+  }
+
+  // Legacy / synthetic alias used by older fixtures.
   const details = record.details;
   if (typeof details === "object" && details !== null && !Array.isArray(details)) {
-    const detailRecord = details as Record<string, unknown>;
-    const cached = detailRecord.cached_tokens ?? detailRecord.cached_input_tokens;
-    if (typeof cached === "number" && Number.isFinite(cached) && cached >= 0) {
-      tokenUsage.cached = cached;
-    }
-    const cacheWrite =
-      detailRecord.cache_creation_tokens ??
-      detailRecord.cached_creation_tokens ??
-      detailRecord.cache_write_tokens;
-    if (
-      typeof cacheWrite === "number" &&
-      Number.isFinite(cacheWrite) &&
-      cacheWrite >= 0
-    ) {
-      tokenUsage.cacheWrite = cacheWrite;
-    }
-    const reasoning =
-      detailRecord.reasoning_tokens ?? detailRecord.output_tokens_details;
-    if (typeof reasoning === "number" && Number.isFinite(reasoning) && reasoning >= 0) {
-      tokenUsage.reasoning = reasoning;
-    } else if (
-      typeof reasoning === "object" &&
-      reasoning !== null &&
-      !Array.isArray(reasoning)
-    ) {
-      const nested = (reasoning as Record<string, unknown>).reasoning_tokens;
-      if (typeof nested === "number" && Number.isFinite(nested) && nested >= 0) {
-        tokenUsage.reasoning = nested;
-      }
-    }
+    applyCachedAndReasoningFromDetails(tokenUsage, details as Record<string, unknown>);
   }
 
   const outputDetails = record.output_tokens_details;
@@ -257,13 +292,10 @@ function summarizeUsage(usage: unknown): PersistedTokenUsage | undefined {
     outputDetails !== null &&
     !Array.isArray(outputDetails)
   ) {
-    const nested = (outputDetails as Record<string, unknown>).reasoning_tokens;
-    if (
-      typeof nested === "number" &&
-      Number.isFinite(nested) &&
-      nested >= 0 &&
-      tokenUsage.reasoning === undefined
-    ) {
+    const nested = readFiniteNonNegative(
+      (outputDetails as Record<string, unknown>).reasoning_tokens,
+    );
+    if (nested !== undefined && tokenUsage.reasoning === undefined) {
       tokenUsage.reasoning = nested;
     }
   }

@@ -2,6 +2,8 @@
 
 `@agent-inspect/mcp-server` exposes **read-only** MCP tools over a local trace directory. Distinct from `@agent-inspect/mcp` (client telemetry).
 
+For **client** tracing (`wrapMcpClient`), install matching fixed-group versions of `agent-inspect` and `@agent-inspect/mcp`. The published MCP client package externalizes `agent-inspect` so wrapped list/call steps share the application `inspectRun` context. Call wrapped operations inside an active run.
+
 For the **6.11+ coding-agent debug loop** (flagship tools, causal failure, configure CLI, Evidence v2), see [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) and [coding-agent-instructions/](./coding-agent-instructions/).
 
 > This is **role 3** of three MCP workflows — reading evidence you already have.

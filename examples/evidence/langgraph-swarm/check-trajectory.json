@@ -3,12 +3,50 @@
   "findings": [],
   "format": "agent-inspect-v0.1-jsonl",
   "ok": true,
+  "ruleExecutions": [
+    {
+      "category": "run",
+      "findingCount": 0,
+      "ruleId": "run.requireCompleted",
+      "runId": "swarm_anon_deep_ok",
+      "status": "pass"
+    },
+    {
+      "category": "run",
+      "findingCount": 0,
+      "ruleId": "run.status",
+      "runId": "swarm_anon_deep_ok",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.cycle",
+      "runId": "swarm_anon_deep_ok",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.orphan",
+      "runId": "swarm_anon_deep_ok",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.relationship",
+      "runId": "swarm_anon_deep_ok",
+      "status": "pass"
+    }
+  ],
   "runId": "swarm_anon_deep_ok",
   "status": "pass",
   "summary": {
     "errors": 0,
     "failed": 0,
     "passed": 0,
+    "rulesEvaluated": 5,
     "warnings": 0
   }
 }

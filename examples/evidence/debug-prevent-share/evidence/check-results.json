@@ -6,8 +6,17 @@
       "status": "SAFE",
       "errors": 0,
       "warnings": 0,
-      "findings": 0
+      "findings": 0,
+      "rulesEvaluated": 5
     }
+  ],
+  "rulesEvaluated": 5,
+  "evaluatedRuleIds": [
+    "run.requireCompleted",
+    "run.status",
+    "structure.cycle",
+    "structure.orphan",
+    "structure.relationship"
   ],
   "findings": [],
   "diagnostics": []

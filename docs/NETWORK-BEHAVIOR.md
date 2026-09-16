@@ -27,6 +27,14 @@ AgentInspect is **local-first**. Core tracing writes local files and does **not*
 4. Prefer **redact / verify-safe** before any share or ingest path.
 5. Redaction is best-effort, not certification.
 
+## Transport evidence (HTTP / fetch / MCP)
+
+Capture **HTTP status**, **server-advertised retry delay**, **selected delay**, and their **sources** at the transport or fetch boundary that observes them.
+
+An MCP client wrapper or SDK error string cannot recover facts already collapsed into a message such as `"fetch failed"` or `"429 Too Many Requests"`. If the application needs TraceFacts or contracts over status/retry behavior, instrument the fetch/transport layer (or an observer that reads response headers before they are discarded).
+
+AgentInspect does not invent transport facts from error message text.
+
 ## Enabling Studio ingest
 
 See [SELF-HOSTING.md](./SELF-HOSTING.md) and [`@agent-inspect/studio`](https://github.com/rajudandigam/agent-inspect/tree/main/packages/studio). HTTP ingest remains off until you configure token and binding.

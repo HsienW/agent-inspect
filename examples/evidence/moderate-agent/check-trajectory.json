@@ -3,12 +3,50 @@
   "findings": [],
   "format": "agent-inspect-v0.1-jsonl",
   "ok": true,
+  "ruleExecutions": [
+    {
+      "category": "run",
+      "findingCount": 0,
+      "ruleId": "run.requireCompleted",
+      "runId": "pilot_anon_bridged_tool",
+      "status": "pass"
+    },
+    {
+      "category": "run",
+      "findingCount": 0,
+      "ruleId": "run.status",
+      "runId": "pilot_anon_bridged_tool",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.cycle",
+      "runId": "pilot_anon_bridged_tool",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.orphan",
+      "runId": "pilot_anon_bridged_tool",
+      "status": "pass"
+    },
+    {
+      "category": "structure",
+      "findingCount": 0,
+      "ruleId": "structure.relationship",
+      "runId": "pilot_anon_bridged_tool",
+      "status": "pass"
+    }
+  ],
   "runId": "pilot_anon_bridged_tool",
   "status": "pass",
   "summary": {
     "errors": 0,
     "failed": 0,
     "passed": 0,
+    "rulesEvaluated": 5,
     "warnings": 0
   }
 }

@@ -2,15 +2,16 @@
 
 ## What this demonstrates
 
-A synthetic Browser/MCP-style action can complete successfully without producing its expected effect. This recipe records the difference between execution evidence and an independently observed outcome:
+A synthetic Browser/MCP-style action can complete successfully without producing its expected effect. This recipe records the difference between **execution evidence** (tool return) and an **observed outcome** read through a separately injected observer boundary:
 
-1. Snapshot the page at `cart`.
-2. Run a tool action that returns `status: "success"` but does not mutate the page.
-3. Snapshot the page again independently.
-4. Compare the observed `cart` page with the expected `checkout` page.
-5. Record `checkoutTransition` as a failed observed outcome.
+1. Construct an action surface and a separate observer with stable `resourceId`.
+2. Observer snapshots the page at `cart`.
+3. Run a tool action that returns `status: "success"` but does not mutate the page.
+4. Observer snapshots again through the same injected boundary (not by reading the tool return).
+5. Compare the observed `cart` page with the expected `checkout` page.
+6. Record `checkoutTransition` as a failed observed outcome.
 
-The recipe uses only in-memory state. It requires no browser, MCP server, network access, secrets, or screenshots.
+The recipe uses only in-memory fixture state. It requires no browser, MCP server, network access, secrets, or screenshots. It does **not** prove an external browser was consulted—only that tool success and observed effect are modeled as distinct evidence paths.
 
 ## How to run
 
@@ -33,4 +34,4 @@ The `check` command exits nonzero because the failed observation is intentional.
 
 ## Expected output
 
-The tool action passes and returns `success`, while the independently observed page remains `cart` and the observed outcome is `failed`. See `expected-output.txt`.
+The tool action passes and returns `success`, while the observer still sees `cart` and the observed outcome is `failed`. See `expected-output.txt`.

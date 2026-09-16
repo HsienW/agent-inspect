@@ -20,14 +20,23 @@ MCP **client** tool-call tracing for AgentInspect (list/call lifecycle).
 npm install agent-inspect @agent-inspect/mcp
 ```
 
+Install matching fixed-group versions (same `agent-inspect` and `@agent-inspect/mcp` release). The MCP package keeps `agent-inspect` external so `wrapMcpClient` shares the application `inspectRun` context. A version mismatch can still produce a second runtime and lose nested MCP steps.
+
 ## Example
 
 ```ts
+import { inspectRun } from "agent-inspect";
 import { wrapMcpClient } from "@agent-inspect/mcp";
 
-const traced = wrapMcpClient(mcpClient, { traceDir: ".agent-inspect" });
-await traced.callTool({ name: "search", arguments: {} });
+const traced = wrapMcpClient(mcpClient, { serverName: "tools" });
+
+await inspectRun("my-agent", async () => {
+  await traced.listTools?.();
+  await traced.callTool({ name: "search", arguments: {} });
+});
 ```
+
+Call wrapped MCP operations **inside** `inspectRun` (or an active inspector run). Outside an active run, `step()` executes without instrumentation.
 
 ## Privacy
 

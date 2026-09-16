@@ -98,6 +98,22 @@ export type ToolArgumentEval =
  * Extract structured tool-argument evidence from a tool event.
  * Preview-only strings and digests do not count as structured evidence.
  */
+function isStructuredArgumentEvidence(value: unknown): value is object {
+  return value !== undefined && value !== null && typeof value === "object";
+}
+
+/**
+ * Extract structured tool-argument evidence from a tool event.
+ *
+ * Precedence (first structured object/array wins):
+ * 1. top-level `attributes.arguments` / `input` / `toolArguments`
+ * 2. nested `attributes.metadata.arguments` / `input` / `toolArguments`
+ *    (manual instrumentation stores caller metadata here)
+ * 3. `inputSummary` when it is already a structured object/array
+ *
+ * Preview strings and digests do not count as structured evidence.
+ * This does not enable default raw argument capture.
+ */
 export function extractToolArgumentPayload(event: {
   attributes?: Record<string, unknown>;
   inputSummary?: unknown;
@@ -105,15 +121,23 @@ export function extractToolArgumentPayload(event: {
   const attrs = event.attributes ?? {};
   for (const key of ["arguments", "input", "toolArguments"] as const) {
     const candidate = attrs[key];
-    if (candidate !== undefined && candidate !== null && typeof candidate === "object") {
+    if (isStructuredArgumentEvidence(candidate)) {
       return { present: true, value: candidate };
     }
   }
-  if (
-    event.inputSummary !== undefined &&
-    event.inputSummary !== null &&
-    typeof event.inputSummary === "object"
-  ) {
+
+  const metadata = attrs.metadata;
+  if (isStructuredArgumentEvidence(metadata) && !Array.isArray(metadata)) {
+    const nested = metadata as Record<string, unknown>;
+    for (const key of ["arguments", "input", "toolArguments"] as const) {
+      const candidate = nested[key];
+      if (isStructuredArgumentEvidence(candidate)) {
+        return { present: true, value: candidate };
+      }
+    }
+  }
+
+  if (isStructuredArgumentEvidence(event.inputSummary)) {
     return { present: true, value: event.inputSummary };
   }
   return { present: false, value: undefined };

@@ -1,5 +1,6 @@
 Browser/MCP observed outcome recipe complete
 Trace directory: ./.agent-inspect
+Resource id: browser://fixture/cart-session
 Tool action: passed
 Returned status: success
 Expected page: checkout

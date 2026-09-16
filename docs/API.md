@@ -474,6 +474,10 @@ Public methods:
 
 `capture` is explicit and metadata-only. `onSuccess: "metadata-only"` records safe type/length/key-count summaries in `outputSummary`; `onError: "metadata-only"` records thrown-value type/name summaries. It does not store raw return values, prompts, outputs, or thrown objects. Use `"none"` to disable a capture side.
 
+Persisted step/run errors keep `name` and `message`. When present, a **bounded safe** `code` is also retained: finite numeric `code`/`status` values (for example HTTP `404`) or short strings matching letters, digits, underscore, hyphen, dot, and colon (max 128 characters). Response bodies, headers, multiline values, and arbitrary enumerable error properties are not persisted.
+
+Pass structured tool arguments for contracts via step `metadata.arguments` / `metadata.input` / `metadata.toolArguments` (or top-level attributes with the same keys). TraceContract tool-argument checks read those locations; they do not enable default raw capture.
+
 `traceDir` and `silent` on `createInspector()` are context metadata for compatibility with existing helpers. They do not configure persistence or terminal output. Prefer writer-owned output configuration such as `fileWriter({ dir })` or `fileWriter({ filePath })`.
 
 `createInspectorRuntime()` is available from `agent-inspect/advanced` as the low-level isolation primitive. Most users should prefer `createInspector()` and `inspector.getDiagnostics()`.

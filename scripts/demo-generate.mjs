@@ -45,6 +45,16 @@ function run(args, opts = {}) {
   return result.stdout;
 }
 
+/** Rewrite absolute machine paths in verify JSON to portable repo-relative paths. */
+function sanitizeVerifyJson(raw, sampleDest) {
+  const parsed = JSON.parse(raw);
+  const relativeRoot = path.relative(root, path.join(sampleDest, "evidence"));
+  if (typeof parsed.root === "string") {
+    parsed.root = relativeRoot.split(path.sep).join("/");
+  }
+  return `${JSON.stringify(parsed, null, 2)}\n`;
+}
+
 if (!existsSync(cli)) {
   console.error("[demo:generate] Build the CLI first (pnpm build).");
   process.exit(1);
@@ -95,7 +105,8 @@ for (const sample of samples) {
     "directory",
   ]);
 
-  const verifyOut = run(["bundle", "verify", evidenceDir, "--json"]);
+  const verifyOutRaw = run(["bundle", "verify", evidenceDir, "--json"]);
+  const verifyOut = sanitizeVerifyJson(verifyOutRaw, dest);
   writeFileSync(path.join(dest, "bundle-verify.json"), verifyOut);
 
   writeFileSync(
@@ -218,7 +229,8 @@ if (existsSync(demoAgent)) {
     "--evidence-format",
     "directory",
   ]);
-  const verifyOut = run(["bundle", "verify", evidenceDir, "--json"]);
+  const verifyOutRaw = run(["bundle", "verify", evidenceDir, "--json"]);
+  const verifyOut = sanitizeVerifyJson(verifyOutRaw, dest);
   writeFileSync(path.join(dest, "bundle-verify.json"), verifyOut);
 
   writeFileSync(

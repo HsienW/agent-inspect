@@ -42,7 +42,7 @@ Attach under run or step metadata that your writer already accepts (for example 
 
 Rules:
 
-- `pass` means no violation was found among **evaluated** decisions, not proof that every possible architectural rule passed.
+- `pass` means no violation was found among the **decision/rule checks actually evaluated**, not proof that every decision or every possible architectural rule was evaluated or passed.
 - Omit fields the producer cannot populate honestly.
 - Hash or alias sensitive ids before attaching them.
 - Do not attach matched terms or private policy contents by default.

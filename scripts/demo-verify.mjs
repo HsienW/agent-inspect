@@ -6,6 +6,7 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -85,6 +86,10 @@ if (existsSync(path.join(evidenceRoot, "terminal-demo.txt"))) {
 }
 
 if (existsSync(evidenceRoot)) {
+  const home = os.homedir();
+  const absHomePrefix = `${home}${path.sep}`;
+  const pkgVersion = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"))
+    .version;
   for (const file of walkSync(evidenceRoot)) {
     if (file.toLowerCase().endsWith(".zip")) {
       fail(`committed demo ZIP not allowed: ${path.relative(root, file)}`);
@@ -92,6 +97,60 @@ if (existsSync(evidenceRoot)) {
     const st = statSync(file);
     if (st.size > 512 * 1024) {
       fail(`demo asset exceeds 512KB: ${path.relative(root, file)} (${st.size})`);
+    }
+    const rel = path.relative(root, file);
+    if (file.endsWith(".json") || file.endsWith(".jsonl") || file.endsWith(".html") || file.endsWith(".md") || file.endsWith(".txt")) {
+      const text = readFileSync(file, "utf8");
+      if (text.includes(absHomePrefix) || /\/Users\/[^/\s"]+\//.test(text) || /\\\\Users\\\\[^\\s"]+\\\\/.test(text)) {
+        fail(`committed demo contains absolute home/machine path: ${rel}`);
+      }
+      if (file.endsWith("evidence.json")) {
+        try {
+          const evidence = JSON.parse(text);
+          const generatorVersion =
+            evidence?.generator?.version ??
+            evidence?.meta?.generatorVersion ??
+            evidence?.packageVersion;
+          if (
+            typeof generatorVersion === "string" &&
+            generatorVersion !== pkgVersion
+          ) {
+            fail(
+              `stale Evidence generator version in ${rel}: ${generatorVersion} != ${pkgVersion}`,
+            );
+          }
+        } catch {
+          // non-JSON handled elsewhere
+        }
+      }
+      if (file.endsWith("bundle-verify.json")) {
+        try {
+          const verify = JSON.parse(text);
+          if (typeof verify.root === "string" && path.isAbsolute(verify.root)) {
+            fail(`bundle-verify root must be repo-relative, not absolute: ${rel}`);
+          }
+          // Integrity: reread stored bytes referenced by the verify result when present.
+          if (verify.ok === true && Array.isArray(verify.files)) {
+            for (const entry of verify.files) {
+              if (typeof entry?.path !== "string" || typeof entry?.sha256 !== "string") {
+                continue;
+              }
+              const candidate = path.isAbsolute(entry.path)
+                ? entry.path
+                : path.join(path.dirname(file), entry.path);
+              if (!existsSync(candidate)) continue;
+              const actual = createHash("sha256")
+                .update(readFileSync(candidate))
+                .digest("hex");
+              if (actual !== entry.sha256) {
+                fail(`integrity reread mismatch for ${rel} → ${entry.path}`);
+              }
+            }
+          }
+        } catch {
+          fail(`invalid bundle-verify JSON: ${rel}`);
+        }
+      }
     }
   }
 }
