@@ -2,7 +2,6 @@
 "agent-inspect": patch
 "@agent-inspect/mcp": patch
 "@agent-inspect/openai-agents": patch
-"@agent-inspect/cli": patch
 ---
 
 Published runtime and fidelity patches for the post-6.29.1 adoption train:
