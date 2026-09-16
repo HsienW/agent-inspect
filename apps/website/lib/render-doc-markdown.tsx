@@ -20,7 +20,43 @@ function getTextContent(node: unknown): string {
   return "";
 }
 
+/**
+ * Repo Markdown uses paths like `../assets/demos/foo.gif` (from docs/).
+ * On the static site those resolve under /docs/… and 404 unless rewritten
+ * to the build-copied public assets under /assets/demos.
+ */
+export function rewriteDocMediaSrc(src: string | undefined): string | undefined {
+  if (!src) return src;
+  if (
+    src.startsWith("http://") ||
+    src.startsWith("https://") ||
+    src.startsWith("data:") ||
+    src.startsWith("/")
+  ) {
+    return src;
+  }
+
+  const demos = /^(?:\.\.\/|\.\/)?assets\/demos\/(.+)$/.exec(src);
+  if (demos?.[1]) {
+    return `/assets/demos/${demos[1]}`;
+  }
+
+  const showcase = /^(?:\.\.\/|\.\/)?assets\/showcase\/(.+)$/.exec(src);
+  if (showcase?.[1]) {
+    return `/showcase/${showcase[1]}`;
+  }
+
+  return src;
+}
+
 const components: Components = {
+  img({ src, alt, ...props }) {
+    const resolved = rewriteDocMediaSrc(
+      typeof src === "string" ? src : undefined,
+    );
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={resolved} alt={alt ?? ""} {...props} />;
+  },
   pre({ children }) {
     return <>{children}</>;
   },

@@ -31,6 +31,7 @@ examples/starters/**/evidence/
 examples/starters/**/demo-pii.safe.jsonl
 docs/demo-kit/
 apps/website/public/showcase/
+apps/website/public/assets/
 examples/adapter-sdk/**/.agent-inspect-minimal-adapter/
 examples/adapter-sdk/**/.agent-inspect-custom-renderer/
 examples/adapter-sdk/**/.agent-inspect-custom-transform/

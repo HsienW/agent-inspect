@@ -49,6 +49,8 @@ Project source:
 
 `apps/website/vercel.json` sets the same values so redeploys stay consistent.
 
+Build copies `docs/assets/showcase` → `public/showcase` and `docs/assets/demos` → `public/assets/demos`. Doc Markdown image paths (`../assets/demos/…`) are rewritten to `/assets/demos/…` at render time.
+
 ### Why not Framework = Next.js?
 
 With static export, `next build` writes HTML/CSS/JS to `out/` and does **not** produce `routes-manifest.json`. The Next.js preset looks for that file and fails even when the build succeeds.
