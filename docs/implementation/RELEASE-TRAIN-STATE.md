@@ -13,27 +13,31 @@ trainStatus: "blocked-external"
 executionMode: "maintainer-reviewed"
 namedTrain: "agentinspect-adoption-after-6291-v6.29.2-to-v6.32"
 branch: "main"
-currentChunk: "published-6292-stop"
-lastConfirmedCommit: "4756c065"
-lastValidationLevel: "Trusted Publish 6.29.2 (scoped via 35066572853; root via workflow_dispatch 35068189474)"
+currentChunk: "published-6293-stop"
+lastConfirmedCommit: "bd5b5466"
+lastValidationLevel: "Trusted Publish 6.29.3 (https://github.com/rajudandigam/agent-inspect/actions/runs/35114350395)"
 nextAction: "Keep 6.30+ blocked until EVIDENCE GATE APPROVED; maintenance-only otherwise"
 pendingManualGate: "main branch protection; Dependabot majors close/split independently"
 githubIssues:
   "209": "keep open — cross-platform packed-consumer matrix PARTIAL"
-  "411": "closed by suite-init fix in 6.29.2"
-  "413": "MCP split runtime — shipped in 6.29.2"
-  "414": "nested metadata arguments — shipped in 6.29.2"
-  "415": "bounded error codes — shipped in 6.29.2"
-  "416": "OpenAI cached tokens — shipped in 6.29.2"
-  "417": "browser observer — shipped in 6.29.2"
-  "418": "Evidence fixtures — shipped in 6.29.2"
-  "419": "Glama pin/non-root — shipped in 6.29.2"
+  "411": "closed — suite-init fix in 6.29.2"
+  "413": "closed — MCP split runtime in 6.29.2"
+  "414": "closed — nested metadata arguments in 6.29.2"
+  "415": "closed — bounded error codes in 6.29.2"
+  "416": "closed — OpenAI cached tokens in 6.29.2"
+  "417": "closed — browser observer in 6.29.2"
+  "418": "closed — Evidence fixtures in 6.29.2"
+  "419": "closed — Glama pin/non-root in 6.29.2"
+  "420": "closed — MCP Proxy wrap in 6.29.3"
+  "423": "closed — usage fidelity bug in 6.29.3"
+  "424": "closed — usage fidelity PR cherry-picked into 6.29.3"
 canonicalRoadmap: "docs/implementation/ROADMAP.md"
 activePlan: "docs/implementation/active/NEXT-RELEASES.md"
 completedChunks:
   - "prior train through 6.29.1 published"
   - "adoption train activated"
-  - "6.29.2–6.29.3 themes published as agent-inspect@6.29.2 (Trusted Publish)"
+  - "6.29.2 themes published as agent-inspect@6.29.2"
+  - "6.29.3 corrective patch published (MCP Proxy + usage fidelity)"
 blockedTrains:
   - "6.30.0 portable Evidence / interop (BLOCKED_ON_6_30_EXTERNAL_INPUTS)"
   - "6.31.0 failure-first review UX (BLOCKED_ON_6_31_REVIEW_FIXTURE)"
@@ -44,7 +48,7 @@ worktreeIgnoreOnly:
   - "redstamp-proposal-issue-body.md"
 stopMarker: |
   BLOCKED_ON_EXTERNAL_EVIDENCE (for inventing 6.30.0+)
-  LAST_PUBLISHED_RELEASE: 6.29.2
+  LAST_PUBLISHED_RELEASE: 6.29.3
   V7_DECISION: NO-GO
 updatedAt: "2026-09-16"
 ```

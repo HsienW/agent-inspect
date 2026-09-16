@@ -1,8 +1,8 @@
 # AgentInspect Canonical Roadmap (permanent)
 
-**Baseline:** `agent-inspect@6.29.2`
-**Roadmap horizon:** adoption themes through planned 6.29.3 **published as 6.29.2**; inventing `6.30.0+` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
-**Status:** **6.29.2 published**; `6.30+` blocked on external evidence; **V7_DECISION: NO-GO**
+**Baseline:** `agent-inspect@6.29.3`
+**Roadmap horizon:** adoption themes through 6.29.2 + corrective 6.29.3 published; inventing `6.30.0+` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
+**Status:** **6.29.3 published**; `6.30+` blocked on external evidence; **V7_DECISION: NO-GO**
 **Primary objective:** Keep published MCP runtime identity, CLI/check integrity, adapter/Evidence fidelity—without schema 1.1, hosted SaaS, or fabricated external evidence
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
@@ -68,8 +68,8 @@ The canonical release sequence is:
 
 6.29.0  Provider usage fidelity and adapter compatibility  (published)
 6.29.1  Post-6.29 hardening (redaction, OTLP honesty, recovery, AI SDK, Evidence, DX)  (published)
-6.29.2  Published runtime/CLI integrity + adapter/Evidence fidelity  (published; includes planned 6.29.3 themes)
-6.29.3  (themes folded into 6.29.2 publish)
+6.29.2  Published runtime/CLI integrity + adapter/Evidence fidelity  (published)
+6.29.3  Corrective: MCP Proxy wrap + persisted usage fidelity  (published)
 6.29.4  Reserved corrective patch only
 
 6.30.0  Portable Evidence and interoperability contracts — BLOCKED_ON_6_30_EXTERNAL_INPUTS

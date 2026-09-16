@@ -3,7 +3,7 @@
 ```yaml
 executionMode: maintainer-reviewed
 namedTrain: agentinspect-adoption-after-6291-v6.29.2-to-v6.32
-currentTrain: published-6292
+currentTrain: published-6293
 trainStatus: blocked-external
 currentChunk: stop
 nextAction: "Do not invent 6.30.0 without EVIDENCE GATE APPROVED + retained fixtures"
@@ -17,19 +17,12 @@ worktreeIgnoreOnly:
 
 ## Published baseline
 
-**6.29.2** on npm (fixed group of 18 packages). Schema **1.0**. Root Node `>=20`.
+**6.29.3** on npm (fixed group of 18 packages). Schema **1.0**. Root Node `>=20`.
 
-Shipped in this publish (themes labeled 6.29.2 + 6.29.3 in the adoption plan):
+Shipped through this publish:
 
-- MCP externalizes `agent-inspect` + packed ESM/CJS shared-runtime e2e (#413)
-- Suite init refuses overwrite (#411 / #412)
-- Nested `metadata.arguments` for tool-argument checks (#414)
-- Bounded safe error codes (#415)
-- OpenAI Agents `input_tokens_details.cached_tokens` (#416)
-- Browser observed-outcome injected observer (#417)
-- Public Evidence regen + private-path reject (#418)
-- Glama pin/non-root (#419)
-- Interop pass wording + transport evidence docs
+- **6.29.2 themes:** MCP externalizes `agent-inspect` + packed ESM/CJS shared-runtime e2e (#413); suite init refuses overwrite (#411 / #412); nested `metadata.arguments` (#414); bounded safe error codes (#415); OpenAI Agents `input_tokens_details.cached_tokens` (#416); browser observed-outcome injected observer (#417); public Evidence regen + private-path reject (#418); Glama pin/non-root (#419); interop/transport docs
+- **6.29.3 corrective:** MCP `wrapMcpClient` Proxy preserves prototype methods (#420); persisted usage round-trip keeps `cacheWrite` / `reasoning` (#423 / #424)
 
 ## Freeze language
 
@@ -39,6 +32,6 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 
 ```text
 BLOCKED_ON_EXTERNAL_EVIDENCE
-LAST_PUBLISHED_RELEASE: 6.29.2
+LAST_PUBLISHED_RELEASE: 6.29.3
 V7_DECISION: NO-GO
 ```
