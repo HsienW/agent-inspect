@@ -1,5 +1,12 @@
 # @agent-inspect/jest
 
+## 6.29.2
+
+### Patch Changes
+
+- Updated dependencies [555052d]
+  - agent-inspect@6.29.2
+
 ## 6.29.1
 
 ### Patch Changes
