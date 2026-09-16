@@ -34,38 +34,47 @@ function baseMetadata(
 /**
  * Wraps an MCP client so tools/list and tools/call emit local tool steps.
  * Telemetry only — does not proxy network behavior beyond the wrapped client.
+ *
+ * Uses a Proxy over the original client so prototype methods (`connect`,
+ * `close`, `listResources`, …), private SDK state, and `instanceof` stay intact.
+ * A shallow object spread would drop prototype methods and copy private fields.
  */
 export function wrapMcpClient<T extends McpClientLike>(
   client: T,
   options: McpClientTracerOptions = {},
 ): T {
   const maxSummaryLength = options.maxSummaryLength ?? 240;
-  const wrapped = { ...client } as T;
 
-  if (typeof client.listTools === "function") {
-    const listTools = client.listTools.bind(client);
-    wrapped.listTools = async (params?: unknown) =>
-      step(
-        "mcp:tools/list",
-        async () => {
-          const result = await listTools(params);
-          return result;
-        },
-        {
-          type: "tool",
-          metadata: baseMetadata(options, {
-            toolName: "tools/list",
-            toolCallId: nextToolCallId(options.toolCallIdPrefix),
-          }),
-        },
-      );
-  }
+  const listToolsImpl =
+    typeof client.listTools === "function"
+      ? client.listTools.bind(client)
+      : undefined;
+  const callToolImpl = client.callTool.bind(client);
 
-  const callTool = client.callTool.bind(client);
-  wrapped.callTool = async (params) =>
+  const wrappedListTools = listToolsImpl
+    ? async (params?: unknown) =>
+        step(
+          "mcp:tools/list",
+          async () => {
+            const result = await listToolsImpl(params);
+            return result;
+          },
+          {
+            type: "tool",
+            metadata: baseMetadata(options, {
+              toolName: "tools/list",
+              toolCallId: nextToolCallId(options.toolCallIdPrefix),
+            }),
+          },
+        )
+    : undefined;
+
+  const wrappedCallTool = async (
+    params: Parameters<McpClientLike["callTool"]>[0],
+  ) =>
     step(
       `mcp:${params.name}`,
-      async () => callTool(params),
+      async () => callToolImpl(params),
       {
         type: "tool",
         metadata: baseMetadata(options, {
@@ -79,7 +88,21 @@ export function wrapMcpClient<T extends McpClientLike>(
       },
     );
 
-  return wrapped;
+  return new Proxy(client, {
+    get(target, property, receiver) {
+      if (property === "listTools" && wrappedListTools !== undefined) {
+        return wrappedListTools;
+      }
+      if (property === "callTool") {
+        return wrappedCallTool;
+      }
+      const value = Reflect.get(target, property, receiver);
+      if (typeof value === "function") {
+        return value.bind(target);
+      }
+      return value;
+    },
+  }) as T;
 }
 
 /** @internal resets tool call ids for deterministic tests */

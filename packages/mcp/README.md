@@ -38,6 +38,8 @@ await inspectRun("my-agent", async () => {
 
 Call wrapped MCP operations **inside** `inspectRun` (or an active inspector run). Outside an active run, `step()` executes without instrumentation.
 
+`wrapMcpClient` returns a Proxy over the original client so prototype methods (`connect`, `close`, `listResources`, …) and private SDK state remain available. Do not discard the original client reference solely to work around missing methods.
+
 ## Privacy
 
 - Local JSONL only; no MCP traffic sent to AgentInspect cloud (there is none)
