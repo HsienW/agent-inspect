@@ -250,7 +250,7 @@
     "perf:baseline": "node scripts/performance-baseline.mjs",
     "examples:check": "pnpm install && pnpm --filter agent-inspect-example-01-basic run start",
     "changeset": "changeset",
-    "version:packages": "changeset version && pnpm public-truth:sync && pnpm demo:generate && pnpm public-truth:check && pnpm demo:verify && pnpm package-licenses:check",
+    "version:packages": "changeset version && pnpm public-truth:sync && pnpm build:cli && pnpm demo:generate && pnpm public-truth:check && pnpm demo:verify && pnpm package-licenses:check",
     "release": "changeset publish",
     "website:dev": "pnpm --filter @agent-inspect/website dev",
     "website:build": "pnpm --filter @agent-inspect/website build",
