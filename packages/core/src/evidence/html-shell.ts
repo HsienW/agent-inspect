@@ -273,9 +273,9 @@ ${nav}
         : ""
     }</p>
     <p>Profile: <code>${escapeHtml(input.redactionProfile)}</code> · Verification: <code>${escapeHtml(input.verificationPolicy)}</code></p>
-    ${
+${
       input.contractBinding !== undefined
-        ? `<p>Contract binding: <code>${escapeHtml(input.contractBinding.status)}</code>${
+        ? `    <p>Contract binding: <code>${escapeHtml(input.contractBinding.status)}</code>${
             input.contractBinding.ruleCount !== undefined
               ? ` · Rules: <code>${escapeHtml(String(input.contractBinding.ruleCount))}</code>`
               : ""
@@ -285,12 +285,11 @@ ${nav}
               : ""
           }</p>${
             input.contractBinding.note !== undefined && input.contractBinding.note.trim() !== ""
-              ? `<p class="muted">${escapeHtml(input.contractBinding.note)}</p>`
+              ? `\n    <p class="muted">${escapeHtml(input.contractBinding.note)}</p>`
               : ""
-          }`
+          }\n`
         : ""
-    }
-    <p>Generator: <code>${escapeHtml(input.generatorName)}@${escapeHtml(input.generatorVersion)}</code>
+    }    <p>Generator: <code>${escapeHtml(input.generatorName)}@${escapeHtml(input.generatorVersion)}</code>
     ${input.createdAt ? ` · Created: <code>${escapeHtml(input.createdAt)}</code>` : ""}</p>
     <h3>Runs</h3>
     <ul class="runs">${runList}</ul>
