@@ -40,7 +40,7 @@ Pick by the job you are doing. Every cell below is derived from the recipe's own
 [NETWORK-BEHAVIOR.md](../../docs/NETWORK-BEHAVIOR.md) — nothing here is asserted
 independently of those sources.
 
-**All 47 recipes need no API key and make no network calls.** They are mocks-only and
+**All recipes need no API key and make no network calls.** They are mocks-only and
 local by construction; the two MCP rows note where network enters once a recipe is
 pointed at something real, per NETWORK-BEHAVIOR.md.
 
@@ -51,6 +51,7 @@ pointed at something real, per NETWORK-BEHAVIOR.md.
 | [bounded-read-recovery](bounded-read-recovery) | Gate safe read-tool recovery (`retry.operations`) | `agent-inspect` | No | Synthetic fixtures only | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-bounded-read-recovery start` |
 | [circuit-breaker-basic](circuit-breaker-basic) | Trip a circuit breaker | `@agent-inspect/circuit` | No | No network | Supported | `pnpm --filter agent-inspect-recipe-circuit-breaker-basic start` |
 | [cohort-baseline-candidate](cohort-baseline-candidate) | Compare a cohort baseline | `agent-inspect` (CLI only) | No | No network | Beta <sup>Suites / cohorts / gates</sup> | `pnpm --filter agent-inspect-recipe-cohort-baseline-candidate start` |
+| [comparable-cohort-runs](comparable-cohort-runs) | Optional run-comparability provenance | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-comparable-cohort-runs start` |
 | [decision-metadata](decision-metadata) | Record decisions without chain-of-thought | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-decision-metadata start` |
 | [deterministic-ci-checks](deterministic-ci-checks) | CI trajectory regression | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-deterministic-ci-checks start` |
 | [eval-ci-artifacts](eval-ci-artifacts) | Gate CI on an eval | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-eval-ci-artifacts start` |
@@ -70,6 +71,7 @@ pointed at something real, per NETWORK-BEHAVIOR.md.
 | [mcp-expected-rejection](mcp-expected-rejection) | Assert an expected MCP rejection without rewriting history | `@agent-inspect/mcp`<br>`agent-inspect` | No | Recipe is offline; fixture client only | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-mcp-expected-rejection start` |
 | [mcp-behavioral-session](mcp-behavioral-session) | Dual-axis MCP behavioral session: tool error vs outcome pass/fail (#362) | `agent-inspect` | No | Synthetic fixtures only | Beta <sup>TraceContract API</sup> | `pnpm --filter agent-inspect-recipe-mcp-behavioral-session start` |
 | [mcp-client-tracing](mcp-client-tracing) | MCP client tracing | `@agent-inspect/mcp`<br>`agent-inspect` | No | Recipe is offline; the adapter calls **your** MCP servers when pointed at a real one | Supported | `pnpm --filter agent-inspect-recipe-mcp-client-tracing start` |
+| [mcp-transport-retry-429](mcp-transport-retry-429) | Explicit 429→retry transport identity | `agent-inspect` | No | Synthetic fixtures only | Stable | `pnpm --filter agent-inspect-recipe-mcp-transport-retry-429 start` |
 | [multi-agent-handoff](multi-agent-handoff) | Follow a multi-agent handoff | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-multi-agent-handoff start` |
 | [nestjs-json-logging](nestjs-json-logging) | Turn existing logs into a tree | `agent-inspect` | No | No network | Stable | `pnpm --filter agent-inspect-recipe-nestjs-json-logging start` |
 | [nestjs-langgraph-local](nestjs-langgraph-local) | LangGraph tracing in NestJS | `@agent-inspect/langchain`<br>`agent-inspect` | No | No network | Supported | `pnpm --filter agent-inspect-recipe-nestjs-langgraph-local start` |

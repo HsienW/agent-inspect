@@ -1,0 +1,3 @@
+operationId: op-list-tools-1
+attempts: 1:429:retryable,2:200:success:retryOf=attempt-1
+final: success

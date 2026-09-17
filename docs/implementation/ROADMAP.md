@@ -1,14 +1,14 @@
 # AgentInspect Canonical Roadmap (permanent)
 
 **Baseline:** `agent-inspect@6.29.3`
-**Roadmap horizon:** adoption themes through 6.29.2 + corrective 6.29.3 published; inventing `6.30.0+` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
-**Status:** **6.29.3 published**; `6.30+` blocked on external evidence; **V7_DECISION: NO-GO**
-**Primary objective:** Keep published MCP runtime identity, CLI/check integrity, adapter/Evidence fidelity—without schema 1.1, hosted SaaS, or fabricated external evidence
+**Roadmap horizon:** 6.29.4 MCP/package trust integrity; inventing `6.30.0+` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
+**Status:** **6.29.3 published**; P0 green-main restored; **6.29.4 in progress**; `6.30+` blocked on external evidence; **V7_DECISION: NO-GO**
+**Primary objective:** Make MCP risk metadata, package licensing, generated Evidence sync, and run-comparability/retry guidance complete—without schema 1.1, hosted SaaS, or fabricated external evidence
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
 **Network policy:** no new default network behavior
 **Product boundary:** local-first and customer-owned; no maintainer-hosted SaaS
-**Named train:** `agentinspect-adoption-after-6291-v6.29.2-to-v6.32`
+**Named train:** `post-6293-trust-and-adoption-v6.29.4-to-v6.32`
 **Active plan:** [active/NEXT-RELEASES.md](./active/NEXT-RELEASES.md)
 
 ---
@@ -70,12 +70,13 @@ The canonical release sequence is:
 6.29.1  Post-6.29 hardening (redaction, OTLP honesty, recovery, AI SDK, Evidence, DX)  (published)
 6.29.2  Published runtime/CLI integrity + adapter/Evidence fidelity  (published)
 6.29.3  Corrective: MCP Proxy wrap + persisted usage fidelity  (published)
-6.29.4  Reserved corrective patch only
+6.29.4  MCP and package trust integrity (annotations, LICENSE, demo sync, comparability/retry guidance)
+6.29.5  Reserved corrective patch only
 
-6.30.0  Portable Evidence and interoperability contracts — BLOCKED_ON_6_30_EXTERNAL_INPUTS
+6.30.0  Comparable Evidence and portable interoperability contracts — BLOCKED_ON_6_30_EXTERNAL_INPUTS
 6.30.1  Interoperability corrections only
 
-6.31.0  Failure-first review and adoption UX — BLOCKED_ON_6_31_REVIEW_FIXTURE
+6.31.0  Failure-first review and compact diagnosis — BLOCKED_ON_6_31_REVIEW_FIXTURE
 6.31.1  Review-UX corrections only
 
 6.32.0  Conditional external conformance and support review — BLOCKED_ON_EXTERNAL_EVIDENCE

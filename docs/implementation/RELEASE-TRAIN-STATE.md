@@ -7,39 +7,27 @@
 ```yaml
 baselineVersion: "6.29.3"
 publishedVersion: "6.29.3"
-pendingPublishVersion: null
-currentTrain: "adoption-after-6291-published"
-trainStatus: "blocked-external"
+pendingPublishVersion: "6.29.4"
+currentTrain: "post-6293-trust-and-adoption"
+trainStatus: "awaiting-prepare-release-6294"
 executionMode: "maintainer-reviewed"
-namedTrain: "agentinspect-adoption-after-6291-v6.29.2-to-v6.32"
+namedTrain: "post-6293-trust-and-adoption-v6.29.4-to-v6.32"
 branch: "main"
-currentChunk: "published-6293-stop"
-lastConfirmedCommit: "bd5b5466"
-lastValidationLevel: "Trusted Publish 6.29.3 (https://github.com/rajudandigam/agent-inspect/actions/runs/35114350395)"
-nextAction: "Keep 6.30+ blocked until EVIDENCE GATE APPROVED; maintenance-only otherwise"
-pendingManualGate: "main branch protection; Dependabot majors close/split independently"
+currentChunk: "6.29.4-implementation-complete"
+lastConfirmedCommit: "pending-after-6294-commit"
+lastValidationLevel: "docs:check + mcp-server tests + recipes:check + package-licenses:check"
+nextAction: "PREPARE RELEASE 6.29.4 — add Changeset, Version Packages, Trusted Publish"
+pendingManualGate: "PREPARE RELEASE auth; #422 factual review; Dependabot majors split"
 githubIssues:
   "209": "keep open — cross-platform packed-consumer matrix PARTIAL"
-  "411": "closed — suite-init fix in 6.29.2"
-  "413": "closed — MCP split runtime in 6.29.2"
-  "414": "closed — nested metadata arguments in 6.29.2"
-  "415": "closed — bounded error codes in 6.29.2"
-  "416": "closed — OpenAI cached tokens in 6.29.2"
-  "417": "closed — browser observer in 6.29.2"
-  "418": "closed — Evidence fixtures in 6.29.2"
-  "419": "closed — Glama pin/non-root in 6.29.2"
-  "420": "closed — MCP Proxy wrap in 6.29.3"
-  "423": "closed — usage fidelity bug in 6.29.3"
-  "424": "closed — usage fidelity PR cherry-picked into 6.29.3"
 canonicalRoadmap: "docs/implementation/ROADMAP.md"
 activePlan: "docs/implementation/active/NEXT-RELEASES.md"
 completedChunks:
-  - "prior train through 6.29.1 published"
-  - "adoption train activated"
-  - "6.29.2 themes published as agent-inspect@6.29.2"
-  - "6.29.3 corrective patch published (MCP Proxy + usage fidelity)"
+  - "P0 green-main Evidence regen (ce4b4247)"
+  - "train activation post-6293"
+  - "6.29.4 MCP annotations + LICENSE matrix + demo sync + comparability/retry"
 blockedTrains:
-  - "6.30.0 portable Evidence / interop (BLOCKED_ON_6_30_EXTERNAL_INPUTS)"
+  - "6.30.0 comparable Evidence / interop (BLOCKED_ON_6_30_EXTERNAL_INPUTS)"
   - "6.31.0 failure-first review UX (BLOCKED_ON_6_31_REVIEW_FIXTURE)"
   - "6.32.0 external conformance (BLOCKED_ON_EXTERNAL_EVIDENCE)"
   - "v7.0.0 (assessment only — V7_DECISION: NO-GO)"
@@ -47,8 +35,9 @@ worktreeIgnoreOnly:
   - ".redstamp/"
   - "redstamp-proposal-issue-body.md"
 stopMarker: |
-  BLOCKED_ON_EXTERNAL_EVIDENCE (for inventing 6.30.0+)
+  RELEASE_6_29_4_IMPLEMENTATION_COMPLETE
+  AWAITING: PREPARE RELEASE 6.29.4 OR CONTINUE DECISION
   LAST_PUBLISHED_RELEASE: 6.29.3
   V7_DECISION: NO-GO
-updatedAt: "2026-09-16"
+updatedAt: "2026-09-17"
 ```

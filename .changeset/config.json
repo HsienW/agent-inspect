@@ -50,6 +50,8 @@
     "agent-inspect-recipe-langgraph-gate-evidence",
     "agent-inspect-recipe-mcp-behavioral-session",
     "agent-inspect-recipe-bounded-read-recovery",
-    "agent-inspect-vscode"
+    "agent-inspect-vscode",
+    "agent-inspect-recipe-comparable-cohort-runs",
+    "agent-inspect-recipe-mcp-transport-retry-429"
   ]
 }

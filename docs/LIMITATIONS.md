@@ -10,6 +10,7 @@ This document states what AgentInspect **does not** provide today. It complement
 - **No automatic universal instrumentation** of every framework: integration is explicit (manual traces, log ingest, optional adapters).
 - **No retry execution engine:** TraceContract `retry` rules (including additive `retry.operations[]` recovery oracles in 6.27) evaluate attempt identity and evidence only. AgentInspect does not retry tools, remediates nothing, and does not treat a client `idempotencyKey` as proof of exactly-once writes. Write-tool timeout/unknown completion is unevaluable without authoritative idempotency evidence; write-retry is not safe by default.
 - **Transport facts are source-boundary only:** HTTP status, server-advertised retry delay, selected delay, and their sources must be captured at the transport/fetch boundary. An MCP wrapper cannot recover facts already collapsed into an SDK error message.
+- **Run comparability is optional guidance:** Ordinary trajectory checks do not fail when cohort/prompt/tool commitments are absent. See [RUN-COMPARABILITY.md](./RUN-COMPARABILITY.md). A machine-readable comparable-run profile is not a default gate in this line.
 - **Omitted-payload digests** (`createOmittedPayloadCommitment`) are bounded (1 MiB preflight). Digests prove omitted bytes existed; they are not redaction or authorization.
 
 ## Correlation metadata (v1.3.0)

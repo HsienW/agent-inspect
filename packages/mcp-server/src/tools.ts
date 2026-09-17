@@ -31,10 +31,53 @@ export interface McpServerContext {
   redactionProfile: "local" | "share" | "strict";
 }
 
+export interface McpToolAnnotations {
+  readOnlyHint: boolean;
+  destructiveHint: boolean;
+  idempotentHint: boolean;
+  openWorldHint: boolean;
+}
+
+/** MCP protocol hints for local read-only AgentInspect tools (not authorization). */
+export const LOCAL_READONLY_TOOL_ANNOTATIONS: McpToolAnnotations = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+};
+
 export interface McpToolDefinition {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
+  annotations: McpToolAnnotations;
+}
+
+export function withReadonlyAnnotations(
+  tool: Omit<McpToolDefinition, "annotations">,
+): McpToolDefinition {
+  return {
+    ...tool,
+    annotations: { ...LOCAL_READONLY_TOOL_ANNOTATIONS },
+  };
+}
+
+/** Fail if any tool is missing complete local-readonly annotations. */
+export function assertToolsFullyAnnotated(tools: McpToolDefinition[]): void {
+  for (const tool of tools) {
+    const a = tool.annotations;
+    if (
+      !a ||
+      a.readOnlyHint !== true ||
+      a.destructiveHint !== false ||
+      a.idempotentHint !== true ||
+      a.openWorldHint !== false
+    ) {
+      throw new Error(
+        `MCP tool "${tool.name}" is missing required local-readonly annotations`,
+      );
+    }
+  }
 }
 
 /** Concise trust-boundary suffix for tools that return trace-derived strings. */
@@ -130,7 +173,7 @@ export const FLAGSHIP_TOOLS: McpToolDefinition[] = [
     ),
     inputSchema: RUN_ID_SCHEMA,
   },
-];
+].map(withReadonlyAnnotations);
 
 /** Legacy tool names retained for compatibility. */
 export const LEGACY_TOOLS: McpToolDefinition[] = [
@@ -197,9 +240,11 @@ export const LEGACY_TOOLS: McpToolDefinition[] = [
     description: "Create an in-memory share-safe bundle manifest and redacted exports.",
     inputSchema: RUN_ID_SCHEMA,
   },
-];
+].map(withReadonlyAnnotations);
 
 export const READ_ONLY_TOOLS: McpToolDefinition[] = [...FLAGSHIP_TOOLS, ...LEGACY_TOOLS];
+
+assertToolsFullyAnnotated(READ_ONLY_TOOLS);
 
 /** Map flagship names to legacy handler cases (additive aliases). */
 const FLAGSHIP_HANDLER_ALIAS: Record<string, string> = {

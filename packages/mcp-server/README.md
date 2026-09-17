@@ -52,6 +52,8 @@ remain explicit rather than being fabricated.
 
 Results are redacted (share profile by default), bounded, and deterministic for the same inputs.
 
+Every `tools/list` entry includes MCP **hint** annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`). Hints are not authorization or attestation—see [MCP.md](https://github.com/rajudandigam/agent-inspect/blob/main/docs/MCP.md).
+
 ## Privacy
 
 - Reads local trace directory only

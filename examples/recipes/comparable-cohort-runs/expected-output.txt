@@ -1,0 +1,6 @@
+comparability:
+  comparable-a: comparable
+  comparable-b: comparable
+  partial-only: partially_comparable
+  unknown-run: unknown
+classes: comparable,comparable,partially_comparable,unknown

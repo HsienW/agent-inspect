@@ -63,6 +63,8 @@ const RECIPES = [
   "langgraph-gate-evidence",
   "external-persisted-session-reader",
   "architectural-intent-trace",
+  "comparable-cohort-runs",
+  "mcp-transport-retry-429",
 ];
 
 const LOG_RECIPE_FILES = {
