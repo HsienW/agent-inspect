@@ -1,9 +1,9 @@
 # AgentInspect Canonical Roadmap (permanent)
 
-**Baseline:** `agent-inspect@6.29.3`
-**Roadmap horizon:** 6.29.4 MCP/package trust integrity; inventing `6.30.0+` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
-**Status:** **6.29.3 published**; P0 green-main restored; **6.29.4 in progress**; `6.30+` blocked on external evidence; **V7_DECISION: NO-GO**
-**Primary objective:** Make MCP risk metadata, package licensing, generated Evidence sync, and run-comparability/retry guidance complete—without schema 1.1, hosted SaaS, or fabricated external evidence
+**Baseline:** `agent-inspect@6.29.4`
+**Roadmap horizon:** inventing `6.30.0+` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
+**Status:** **6.29.4 published**; `6.30+` blocked on external evidence; **V7_DECISION: NO-GO**
+**Primary objective:** Hold the post-6.29.4 trust baseline; advance only with explicit external evidence gates—without schema 1.1, hosted SaaS, or fabricated external evidence
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
 **Network policy:** no new default network behavior

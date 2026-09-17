@@ -1,9 +1,9 @@
 # Active execution plan — post-6.29.3 trust and adoption
 
 **Authority:** [../ROADMAP.md](../ROADMAP.md)
-**Baseline:** **published** `agent-inspect@6.29.3` · schema `1.0`
+**Baseline:** **published** `agent-inspect@6.29.4` · schema `1.0`
 **Named train:** `post-6293-trust-and-adoption-v6.29.4-to-v6.32`
-**Program status:** P0 green-main restored; **6.29.4 in progress**; `6.30+` **BLOCKED_ON_EXTERNAL_EVIDENCE**
+**Program status:** **6.29.4 published**; `6.30+` **BLOCKED_ON_EXTERNAL_EVIDENCE**
 
 ## Freeze language
 
@@ -12,7 +12,7 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 ## Sequence
 
 1. **P0 green-main** — Evidence regen via `pnpm demo:generate` — **done** (`ce4b4247`)
-2. **6.29.4** — MCP annotations; LICENSE in all public tarballs; demo/version sync; RUN-COMPARABILITY + retry guidance — **active**
+2. **6.29.4** — MCP annotations; LICENSE in all public tarballs; demo/version sync; RUN-COMPARABILITY + retry guidance — **published**
 3. **6.29.5** — Reserved corrective patch only
 4. **6.30.0** — Comparable Evidence + portable interop — only with `EVIDENCE GATE APPROVED`
 5. **6.31.0** — Failure-first review — only with paired incident fixture
@@ -21,7 +21,7 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 
 ## Current chunk
 
-6.29.4 implementation **complete** — await `PREPARE RELEASE 6.29.4` (no Changeset until then).
+**6.29.4 published** via Trusted Publish. Stop — do not invent `6.30.0` without `EVIDENCE GATE APPROVED`.
 
 ## Stop rules
 
