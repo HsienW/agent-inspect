@@ -1,9 +1,9 @@
 # Active execution plan — post-6.29.4 correctness
 
 **Authority:** [../ROADMAP.md](../ROADMAP.md)
-**Baseline:** **published** `agent-inspect@6.30.0` · schema `1.0`
+**Baseline:** **published** `agent-inspect@6.31.0` · schema `1.0`
 **Named train:** `post-6294-correctness-v6.29.5-to-v6.32`
-**Program status:** **6.31.0 implementation done** (typed cross-kind ordering); next PREPARE RELEASE; **6.32.0** remains gated; **V7_DECISION: NO-GO**
+**Program status:** **6.31.0 published**; **6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE**; **V7_DECISION: NO-GO**
 
 ## Freeze language
 
@@ -15,13 +15,13 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 2. **6.29.5** — Confidence validation; uncertain-write fail-closed; circuit logical-event/kind/run-scope; extension accounting — **published**
 3. **6.29.6** — Residual safe sharing; CI/outcome help; Jest association; capture investigation (library fix only with repro); recipe corrections as ready — **published**
 4. **6.30.0** — Strict CLI access to existing rich TraceContract engine (**amends** prior comparable-Evidence allocation) — **published**
-5. **6.31.0** — Scoped typed cross-kind ordering (**amends** prior failure-first review-UX allocation) — **implementation done**
-6. **6.32.0** — Conditional external conformance + compact failure review — only with accepted partner inputs
+5. **6.31.0** — Scoped typed cross-kind ordering (**amends** prior failure-first review-UX allocation) — **published**
+6. **6.32.0** — Conditional external conformance + compact failure review — **BLOCKED_ON_EXTERNAL_EVIDENCE**
 7. **v7** — assessment only; **V7_DECISION: NO-GO**
 
 ## Current chunk
 
-**6.31.0 done** — `steps.orderRelations` TOOL↔LLM ordering; TOOL-only `requiredOrder` / `orderRules` unchanged. Next: **PREPARE RELEASE 6.31.0**.
+**Stop.** Do not start 6.32.0 implementation or PREPARE RELEASE until maintainer-accepted partner conformance inputs exist. Do not mark `EVIDENCE GATE APPROVED` from private case studies alone.
 
 ## Stop rules
 
@@ -34,8 +34,8 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 ## External stop marker
 
 ```text
-LAST_PUBLISHED_RELEASE: 6.30.0
-ACTIVE: PREPARE RELEASE 6.31.0
+LAST_PUBLISHED_RELEASE: 6.31.0
+ACTIVE: 6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE
 V7_DECISION: NO-GO
 EVIDENCE_GATE: not approved
 ```

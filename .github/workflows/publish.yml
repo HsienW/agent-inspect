@@ -58,6 +58,8 @@ jobs:
       # Break-glass (OIDC failure / first-publish recovery only):
       #   Temporarily set repo secret NPM_TOKEN with publish access on every package,
       #   re-run this workflow, then remove the secret. Do not keep NPM_TOKEN for routine releases.
+      # Verify already ran release-train gates. Skip root prepublishOnly re-runs during
+      # parallel changeset publish (repo-wide clean/prepublish races deleted dist mid-test).
       - name: Publish to npm (OIDC)
         uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1
         with:
@@ -65,5 +67,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
+          AGENT_INSPECT_SKIP_PREPUBLISH_CHECKS: "1"
           # Break-glass only — omit from routine path; OIDC Trusted Publishing is the default.
           # NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

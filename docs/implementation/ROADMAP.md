@@ -1,7 +1,7 @@
 # AgentInspect Canonical Roadmap (permanent)
 
 **Baseline:** `agent-inspect@6.29.4`
-**Roadmap horizon:** trustworthy checks (6.29.5) → sharing/integration (6.29.6) → rich CLI contracts (6.30.0); partner conformance remains gated; **V7_DECISION: NO-GO**
+**Roadmap horizon:** through **published 6.31.0** (typed cross-kind ordering); **6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE**; **V7_DECISION: NO-GO**
 **Status:** **6.29.4 published**; **6.29.5 in progress** (confidence / recovery / circuit / accounting); **V7_DECISION: NO-GO**
 **Primary objective:** Make existing checks and sharing reliable before widening CLI contract vocabulary—without schema 1.1, hosted SaaS, or fabricated external evidence
 **Persisted trace schema:** remains `1.0`

@@ -7,16 +7,16 @@
 ```yaml
 baselineVersion: "6.31.0"
 publishedVersion: "6.31.0"
-pendingPublishVersion: "6.31.0"
+pendingPublishVersion: null
 currentTrain: "post-6294-correctness"
-trainStatus: "implement-6310-done"
+trainStatus: "blocked-6320-external-evidence"
 executionMode: "maintainer-reviewed"
 namedTrain: "post-6294-correctness-v6.29.5-to-v6.32"
 branch: "main"
-currentChunk: "6.31.0 typed cross-kind step ordering done"
-lastConfirmedCommit: "11a8b901"
-lastValidationLevel: "pnpm exec vitest run packages/core/test/checks/contract.test.ts packages/cli/test/check.test.ts (61 passed)"
-nextAction: "PREPARE RELEASE 6.31.0 (Version Packages + Trusted Publish)"
+currentChunk: "6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE"
+lastConfirmedCommit: "d32da31b"
+lastValidationLevel: "Trusted Publish 6.31.0 green (run 35401326250); npm latest agent-inspect@6.31.0"
+nextAction: "Stop until partner conformance evidence; do not invent EVIDENCE GATE APPROVED; V7 NO-GO"
 pendingManualGate: "6.32.0 partner evidence; #422 factual review"
 githubIssues:
   "209": "keep open — cross-platform packed-consumer matrix PARTIAL"
@@ -25,8 +25,8 @@ activePlan: "docs/implementation/active/NEXT-RELEASES.md"
 completedChunks:
   - "6.29.5 trustworthy checks + Trusted Publish"
   - "6.29.6 safe sharing + integration + Trusted Publish (#427)"
-  - "6.30.0 rich CLI TraceContracts + Trusted Publish"
-  - "6.31.0 typed cross-kind step ordering"
+  - "6.30.0 rich CLI TraceContracts + Trusted Publish (#428)"
+  - "6.31.0 typed cross-kind step ordering + Trusted Publish (#429 + root recovery 35401326250)"
 blockedTrains:
   - "6.32.0 external conformance (BLOCKED_ON_EXTERNAL_EVIDENCE)"
   - "v7.0.0 (assessment only — V7_DECISION: NO-GO)"
@@ -37,8 +37,8 @@ worktreeIgnoreOnly:
   - ".redstamp/"
   - "redstamp-proposal-issue-body.md"
 stopMarker: |
-  LAST_PUBLISHED_RELEASE: 6.30.0
-  ACTIVE: PREPARE RELEASE 6.31.0
+  LAST_PUBLISHED_RELEASE: 6.31.0
+  ACTIVE: 6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE
   V7_DECISION: NO-GO
   EVIDENCE_GATE: not approved
 updatedAt: "2026-09-18"

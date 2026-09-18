@@ -8,7 +8,7 @@ Internal reference for repository maintainers. Not shipped as primary user docum
 - **Do not** version-bump in unrelated PRs.
 - **`version-packages.yml`** — on changeset pushes to `main` (or `workflow_dispatch`), `changesets/action` opens/updates the Version Packages PR only (`version: pnpm run version:packages`). Permissions: `contents: write`, `pull-requests: write`. No `id-token`, no `NPM_TOKEN`.
 - **`publish.yml`** — after a Version Packages merge (commit message contains `Version Packages`) or `workflow_dispatch`, runs release-train gates then `publish: pnpm run release` (`changeset publish`) via npm Trusted Publishing (OIDC). Permissions: `contents: write` (tags/releases), `id-token: write`. No `pull-requests: write`. Routine path does **not** use `NPM_TOKEN`.
-- **`prepublishOnly`** runs full gate locally on `npm publish` — contributors should not publish manually without running checks.
+- **`prepublishOnly`** runs full gate locally on `npm publish` — contributors should not publish manually without running checks. Trusted Publish sets `AGENT_INSPECT_SKIP_PREPUBLISH_CHECKS=1` because `publish.yml` Verify already ran those gates; `prepack` rebuilds without a repo-wide `clean` so parallel package publishes cannot wipe `dist/` mid-test.
 - Settings checklist: [MAINTAINER-SETTINGS-CHECKLIST-6191.md](../implementation/MAINTAINER-SETTINGS-CHECKLIST-6191.md).
 
 ### npm Trusted Publishing
