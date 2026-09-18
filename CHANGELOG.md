@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.31.0
+
+### Minor Changes
+
+- 11a8b90: Add TraceContract `steps.orderRelations` for typed TOOL↔LLM step ordering (additive; TOOL-only `requiredOrder` / `orderRules` unchanged).
+
 ## 6.30.0
 
 ### Minor Changes
