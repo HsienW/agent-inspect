@@ -668,6 +668,21 @@ describe("built-in run, tool, and LLM checks", () => {
     expect(result.findings).toHaveLength(0);
   });
 
+  it("hints when a required tool name exists only under a non-TOOL kind", () => {
+    const llm = persisted("event-llm", {
+      kind: "LLM",
+      name: "generate",
+      attributes: { model: "fixture" },
+    });
+    const result = runTraceChecks(
+      { read: readResult([llm]) },
+      { rules: [createToolUsageRule({ required: ["generate"] })] },
+    );
+    expect(result.status).toBe("fail");
+    expect(result.findings[0]?.message).toContain("non-TOOL kind");
+    expect(result.findings[0]?.message).toContain("LLM");
+  });
+
   it("reports LLM model, provider, finish reason, call count, and token-budget violations", () => {
     const first = persisted("event-a", {
       kind: "LLM",

@@ -25,6 +25,8 @@ Contracts compile to deterministic check rules for common cases:
 
 ## `tools.requiredOrder` semantics
 
+`requiredOrder` / `orderRules` match **TOOL** events only (via canonical tool names). LLM / LOGIC / other kinds with the same display name do not satisfy the order and are not relabeled as tools. When a required name exists only under another kind, `tool.usage` reports that kind in the finding message.
+
 `requiredOrder` is expanded into **adjacent pair** ordering rules with unique ids:
 
 ```text
@@ -42,15 +44,16 @@ Contracts compile to deterministic check rules for common cases:
 - `all-occurrences` requires every `before` occurrence to finish before every `after` occurrence starts (`max(before.end) <= min(after.start)`);
 - causal modes fail when a required interval boundary cannot be resolved instead of falling back to encounter order.
 
-Examples for `requiredOrder: ["retrieve", "generate"]`:
+Examples for `requiredOrder: ["retrieve_policy", "send_email"]` (both TOOL-typed):
 
 | Trajectory | Result |
 | --- | --- |
-| `retrieve → generate` | PASS |
-| `retrieve → rerank → generate` | PASS |
-| `retrieve → generate → retrieve` | PASS under omitted / `first-occurrence`; FAIL under `all-occurrences` |
-| `generate → retrieve` | FAIL (order) |
-| `cache_lookup → generate` | FAIL (missing `retrieve` via implied presence) |
+| `retrieve_policy → send_email` | PASS |
+| `retrieve_policy → rerank_docs → send_email` | PASS |
+| `retrieve_policy → send_email → retrieve_policy` | PASS under omitted / `first-occurrence`; FAIL under `all-occurrences` |
+| `send_email → retrieve_policy` | FAIL (order) |
+| `cache_lookup → send_email` | FAIL (missing `retrieve_policy` via implied presence) |
+| LLM named `generate` present, no TOOL `generate` | FAIL presence with non-TOOL kind diagnostic; not treated as a tool |
 
 Low-level `createToolOrderingRule({ before, after })` alone may still pass when an endpoint is missing (compositional). TraceContract `requiredOrder` does not.
 
@@ -111,7 +114,7 @@ defineTraceContract({
       {
         id: "retrieve",
         contract: {
-          tools: { required: ["retrieve"], requiredOrder: ["retrieve", "generate"] },
+          tools: { required: ["retrieve_policy"], requiredOrder: ["retrieve_policy", "send_email"] },
           observations: { required: ["retrieval-context-valid"] },
         },
       },

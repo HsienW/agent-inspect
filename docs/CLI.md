@@ -337,7 +337,7 @@ Options:
 - `--correlate-group`: when using `--session`, also match synthetic `group:` session keys
 - `--guardrails <rule>`: optional deterministic guardrail rules (`banned-phrase`, `pii-leak`, `prompt-injection`, …); repeatable
 - `--circuit <rule>`: optional circuit analyzers (`same-tool-repetition`, `max-retries`, …); repeatable
-- `--fail-on-observation <status>`: add `outcome.status` rule; repeatable (`failed`, `passed`, `unknown`, `skipped`; default when flag present without value: `failed`)
+- `--fail-on-observation <status>`: **outcome gate** — adds `outcome.status` with `requireAny=true` (needs ≥1 OUTCOME event). Comma-separated statuses: `failed`, `passed`, `unknown`, `skipped`. Does **not** invent a passed outcome from tool/LLM/run success. For adapter structure without outcomes, use `--preset trajectory` (plus `--required-tool` etc.); a trajectory pass is not share safety (`verify-safe`).
 - `--preset <trajectory|safety|comprehensive|behavioral-session>`: additive check preset (does not change the default when omitted)
   - `behavioral-session` (6.26): require harness completion + score OUTCOME events (`--fail-on-observation failed` by default); does **not** treat every TOOL `error` as a failed run
   - `trajectory`: completion/structure/relationship focus; excludes share-safety findings

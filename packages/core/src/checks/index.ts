@@ -1766,8 +1766,36 @@ export function createToolUsageRule(options: ToolUsageRuleOptions): TraceCheckRu
 
       for (const required of options.required ?? []) {
         if (!nameSet.has(required)) {
+          const otherKinds = [
+            ...new Set(
+              context.events
+                .filter((event) => {
+                  const kind = typeof event.kind === "string" ? event.kind.toUpperCase() : "";
+                  if (kind === "TOOL") return false;
+                  return (
+                    resolveCanonicalToolName(event) === required ||
+                    event.name === required ||
+                    event.name === `tool:${required}` ||
+                    event.name.endsWith(`:${required}`)
+                  );
+                })
+                .map((event) =>
+                  typeof event.kind === "string" ? event.kind.toUpperCase() : "UNKNOWN",
+                ),
+            ),
+          ].sort();
+          const hint =
+            otherKinds.length > 0
+              ? ` Required name appears under non-TOOL kind(s): ${otherKinds.join(", ")}. tools.required / requiredOrder match TOOL events only.`
+              : "";
           findings.push(
-            failFinding("tool.usage", `Required tool ${required} did not appear.`, runEvidence(context.selectedRun), required, names),
+            failFinding(
+              "tool.usage",
+              `Required tool ${required} did not appear.${hint}`,
+              runEvidence(context.selectedRun),
+              required,
+              names,
+            ),
           );
         }
       }

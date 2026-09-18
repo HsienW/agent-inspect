@@ -403,7 +403,7 @@ export function createCliProgram(): Command {
     .option("--detect-stalls", "add run.stall for running or incomplete events")
     .option(
       "--fail-on-observation <status>",
-      "fail when observed outcomes match status (passed, failed, unknown, skipped; comma-separated)",
+      "outcome gate: require ≥1 OUTCOME and fail when status matches (passed,failed,unknown,skipped; comma-separated). Does not invent outcomes from tool/LLM/run success; use --preset trajectory for structural checks",
     )
     .option("--session <id>", "check all runs in a workflow session (requires --dir)")
     .option("--group <id>", "check all runs sharing a groupId (requires --dir)")
@@ -422,7 +422,7 @@ export function createCliProgram(): Command {
       (value, previous: string[] = []) => [...previous, value],
     )
     .addOption(
-      new Option("--preset <name>", "additive check preset")
+      new Option("--preset <name>", "additive check preset (trajectory=structure only; safety=share checks; not interchangeable)")
         .choices(["trajectory", "safety", "comprehensive", "behavioral-session"]),
     )
     .addOption(
