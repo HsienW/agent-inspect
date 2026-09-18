@@ -1050,6 +1050,41 @@ describe("built-in structure and safety checks", () => {
     expect(paths.some((path) => path.endsWith("taskStatus"))).toBe(false);
     expect(JSON.stringify(result.findings)).not.toContain("Summarize the invoice");
   });
+
+  it("skips fully redacted raw-content values but not residual text beside a marker", () => {
+    const scrubbed = persisted("event-scrubbed", {
+      attributes: {
+        currentTask: "[REDACTED]",
+        task: "[REDACTED]",
+        userId: "[REDACTED]",
+        sessionId: "[REDACTED]",
+        prompt: "[REDACTED:prompt]",
+      },
+    });
+    const scrubbedResult = runTraceChecks(
+      { read: readResult([scrubbed]) },
+      { rules: [createSafetyRawContentRule(), createSafetyRedactionRule()] },
+    );
+    expect(scrubbedResult.status).toBe("pass");
+    expect(scrubbedResult.findings.filter((f) => f.ruleId === "safety.rawPrompt")).toEqual([]);
+
+    const residual = persisted("event-residual", {
+      attributes: {
+        currentTask: "[REDACTED] still has task text",
+        prompt: "keep this prompt",
+      },
+    });
+    const residualResult = runTraceChecks(
+      { read: readResult([residual]) },
+      { rules: [createSafetyRawContentRule()] },
+    );
+    const residualPaths = residualResult.findings
+      .filter((finding) => finding.ruleId === "safety.rawPrompt")
+      .map((finding) => finding.evidence[0]?.path ?? "");
+    expect(residualPaths).toEqual(
+      expect.arrayContaining(["attributes.currentTask", "attributes.prompt"]),
+    );
+  });
 });
 
 describe("built-in baseline regression checks", () => {

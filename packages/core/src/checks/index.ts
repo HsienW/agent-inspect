@@ -511,6 +511,11 @@ export interface SafetyRawContentRuleOptions {
    * treated as metrics rather than raw prompts (e.g. `tokenUsage`, `usage`).
    */
   safePathPrefixes?: readonly string[];
+  /**
+   * When a raw-content key's value is entirely a redaction/hash marker, skip
+   * the finding. Partial `[REDACTED] + residual text` still fails.
+   */
+  redactedMarkers?: readonly string[];
   includeSummaries?: boolean;
   maxFindings?: number;
 }
@@ -1281,6 +1286,26 @@ function limitFindings(
 
 function hasRedactionMarker(value: string, markers: readonly string[]): boolean {
   return markers.some((marker) => value.includes(marker)) || /^\[HASH:[A-Za-z0-9_-]+\]$/.test(value);
+}
+
+/**
+ * True when the entire string is a redaction/hash placeholder — not merely
+ * contains a marker beside residual sensitive text.
+ */
+function isFullyRedactedValue(
+  value: unknown,
+  markers: readonly string[] = ["[REDACTED]", "[REDACTED:"],
+): boolean {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return false;
+  if (/^\[HASH:[A-Za-z0-9_-]+\]$/.test(trimmed)) return true;
+  if (/^\[REDACTED:[^\]]*\]$/.test(trimmed)) return true;
+  for (const marker of markers) {
+    if (marker.endsWith(":")) continue;
+    if (trimmed === marker) return true;
+  }
+  return false;
 }
 
 function isSensitiveKey(key: string | undefined, sensitiveKeys: readonly string[]): boolean {
@@ -2643,6 +2668,7 @@ export function createSafetyRawContentRule(
 ): TraceCheckRule {
   const forbiddenKeys = options.forbiddenKeys ?? DEFAULT_RAW_CONTENT_KEYS;
   const safePathPrefixes = options.safePathPrefixes ?? DEFAULT_SAFE_RAW_CONTENT_PATH_PREFIXES;
+  const markers = options.redactedMarkers ?? ["[REDACTED]", "[REDACTED:"];
   return {
     id: "safety.rawPrompt",
     category: "safety",
@@ -2653,6 +2679,9 @@ export function createSafetyRawContentRule(
         for (const entry of eventValueEntries(event, { includeSummaries: options.includeSummaries })) {
           const key = entry.key ?? lastPathSegment(entry.path);
           if (!isRawContentPath(entry.path, key, forbiddenKeys, safePathPrefixes)) continue;
+          // Fully scrubbed values are share-safe placeholders; key presence alone
+          // must not fail after redact --profile share.
+          if (isFullyRedactedValue(entry.value, markers)) continue;
           findings.push(
             failFinding(
               "safety.rawPrompt",

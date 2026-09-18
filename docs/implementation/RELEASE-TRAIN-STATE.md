@@ -7,30 +7,24 @@
 ```yaml
 baselineVersion: "6.29.5"
 publishedVersion: "6.29.5"
-pendingPublishVersion: "6.29.5"
+pendingPublishVersion: "6.29.6"
 currentTrain: "post-6294-correctness"
-trainStatus: "prepare-release-6295"
+trainStatus: "implement-6296"
 executionMode: "maintainer-reviewed"
 namedTrain: "post-6294-correctness-v6.29.5-to-v6.32"
 branch: "main"
-currentChunk: "R-6.29.5"
-lastConfirmedCommit: "27d4307b"
-lastValidationLevel: "build + typecheck + test (2224) + size + fixtures + pack:smoke + repo:health + git diff --check"
-nextAction: "Commit + push 6.29.5 Changeset; merge Version Packages; verify Trusted Publish; continue 6.29.6"
-pendingManualGate: "6.32.0 partner evidence; #422 factual review; Dependabot majors split"
+currentChunk: "6.29.6-05-sharing"
+lastConfirmedCommit: "b5bf374a"
+lastValidationLevel: "npm view fixed-group 6.29.5; vitest N-8 sharing regressions"
+nextAction: "Finish 6.29.6 (05–07, 08–10 as ready); PREPARE RELEASE; then 6.30/6.31; stop 6.32 on external gate"
+pendingManualGate: "6.32.0 partner evidence; #422 factual review"
 githubIssues:
   "209": "keep open — cross-platform packed-consumer matrix PARTIAL"
 canonicalRoadmap: "docs/implementation/ROADMAP.md"
 activePlan: "docs/implementation/active/NEXT-RELEASES.md"
 completedChunks:
-  - "P0 green-main Evidence regen (ce4b4247)"
-  - "6.29.4 MCP/LICENSE/demo/comparability (f905050c) + Trusted Publish"
-  - "C0 stale operational docs hygiene"
-  - "00 roadmap reconcile for post-6294 correctness train"
-  - "6.29.5-01 confidence vocabulary"
-  - "6.29.5-02 uncertain write completion"
-  - "6.29.5-03 circuit logical/kind/run scope"
-  - "6.29.5-04 extension execution accounting"
+  - "6.29.5 trustworthy checks + Trusted Publish (3e8750f1 / #426)"
+  - "6.29.6-05 sharing (local)"
 blockedTrains:
   - "6.32.0 external conformance (BLOCKED_ON_EXTERNAL_EVIDENCE)"
   - "v7.0.0 (assessment only — V7_DECISION: NO-GO)"
@@ -41,8 +35,8 @@ worktreeIgnoreOnly:
   - ".redstamp/"
   - "redstamp-proposal-issue-body.md"
 stopMarker: |
-  LAST_PUBLISHED_RELEASE: 6.29.4
-  ACTIVE: PREPARE RELEASE 6.29.5
+  LAST_PUBLISHED_RELEASE: 6.29.5
+  ACTIVE: 6.29.6 implementation
   V7_DECISION: NO-GO
   EVIDENCE_GATE: not approved
 updatedAt: "2026-09-18"

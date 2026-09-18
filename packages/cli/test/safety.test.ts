@@ -156,6 +156,34 @@ describe("scan and verify-safe commands", () => {
     expect(verified.redactionSummary?.findings).toBeGreaterThan(0);
   });
 
+  it("treats fully scrubbed task metadata as share-safe on the artifact (N-8)", async () => {
+    const file = await writeTrace(
+      tmp,
+      "task-metadata.jsonl",
+      jsonl(
+        event("event-a", {
+          attributes: {
+            currentTask: "Summarize the invoice for customer",
+            task: "pilot triage",
+            userId: "user-synth-001",
+            sessionId: "session-synth-001",
+          },
+        }),
+      ),
+    );
+
+    const scan = await runSafety(scanCommand, file);
+    expect(scan.status).toBe("UNSAFE");
+    expect(scan.findings?.some((f) => f.ruleId === "safety.rawPrompt")).toBe(true);
+
+    const verified = await runSafety(verifySafeCommand, file);
+    expect(verified.sourceAssessment?.status).toBe("UNSAFE");
+    expect(["SAFE", "SAFE WITH WARNINGS"]).toContain(verified.artifactAssessment?.status);
+    expect(["SAFE", "SAFE WITH WARNINGS"]).toContain(verified.status);
+    expect(process.exitCode).toBe(0);
+    expect(JSON.stringify(verified)).not.toContain("Summarize the invoice");
+  });
+
   it("redacts key/value credentials so artifact verify-safe no longer reports key-value-secret (#327)", async () => {
     const secret = "internal_token=synthetic-house-secret-123456";
     const file = await writeTrace(
