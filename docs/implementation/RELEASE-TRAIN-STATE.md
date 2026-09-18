@@ -14,7 +14,7 @@ executionMode: "maintainer-reviewed"
 namedTrain: "post-6294-correctness-v6.29.5-to-v6.32"
 branch: "main"
 currentChunk: "6.31.0 typed cross-kind step ordering done"
-lastConfirmedCommit: pending-push
+lastConfirmedCommit: "11a8b901"
 lastValidationLevel: "pnpm exec vitest run packages/core/test/checks/contract.test.ts packages/cli/test/check.test.ts (61 passed)"
 nextAction: "PREPARE RELEASE 6.31.0 (Version Packages + Trusted Publish)"
 pendingManualGate: "6.32.0 partner evidence; #422 factual review"
