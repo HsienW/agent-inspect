@@ -39,9 +39,25 @@ function open(
 }
 
 function isToolEvent(event: CircuitTraceEvent): boolean {
+  const kind = typeof event.kind === "string" ? event.kind.toLowerCase() : "";
+  if (kind === "tool") return true;
+  if (
+    kind === "llm" ||
+    kind === "run" ||
+    kind === "agent" ||
+    kind === "logic" ||
+    kind === "log" ||
+    kind === "outcome" ||
+    kind === "chain" ||
+    kind === "retriever" ||
+    kind === "decision" ||
+    kind === "result" ||
+    kind === "error"
+  ) {
+    return false;
+  }
   const name = event.name.toLowerCase();
   return (
-    event.kind === "tool" ||
     name.startsWith("tool:") ||
     name.startsWith("function:") ||
     name.includes(".tool.") ||
@@ -50,8 +66,25 @@ function isToolEvent(event: CircuitTraceEvent): boolean {
 }
 
 function isLlmEvent(event: CircuitTraceEvent): boolean {
+  const kind = typeof event.kind === "string" ? event.kind.toLowerCase() : "";
+  if (kind === "llm") return true;
+  if (
+    kind === "tool" ||
+    kind === "run" ||
+    kind === "agent" ||
+    kind === "logic" ||
+    kind === "log" ||
+    kind === "outcome" ||
+    kind === "chain" ||
+    kind === "retriever" ||
+    kind === "decision" ||
+    kind === "result" ||
+    kind === "error"
+  ) {
+    return false;
+  }
   const name = event.name.toLowerCase();
-  return event.kind === "llm" || name.startsWith("llm:") || name.includes(".llm.") || name.includes("generation");
+  return name.startsWith("llm:") || name.includes(".llm.") || name.includes("generation");
 }
 
 function toolLabel(event: CircuitTraceEvent): string {

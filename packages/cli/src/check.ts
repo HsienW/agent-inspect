@@ -39,6 +39,8 @@ import {
   createStructureRelationshipRule,
   createToolUsageRule,
   runTraceChecks,
+  ATTRIBUTION_CONFIDENCES,
+  isAttributionConfidence,
   type LlmUsageRuleOptions,
   type RunStatusRuleOptions,
   type SafetyOversizedAttributeRuleOptions,
@@ -411,7 +413,7 @@ const SAFETY_KEYS = new Set([
   "maxFindings",
 ]);
 const RUN_EXPECTED = new Set(["ok", "error", "running"]);
-const CONFIDENCE_VALUES = new Set(["exact", "high", "medium", "low", "inferred"]);
+const CONFIDENCE_LIST = ATTRIBUTION_CONFIDENCES.join(", ");
 
 class CheckConfigError extends Error {
   readonly code: TraceCheckDiagnosticCode;
@@ -571,13 +573,13 @@ function parseStructureSection(
   rejectUnknownKeys(record, STRUCTURE_KEYS, "checks.structure");
   const out: NonNullable<CheckConfig["checks"]>["structure"] = {};
   if (record.minConfidence !== undefined) {
-    if (typeof record.minConfidence !== "string" || !CONFIDENCE_VALUES.has(record.minConfidence)) {
+    if (!isAttributionConfidence(record.minConfidence)) {
       throw new CheckConfigError(
         "AI_CHECK_CONFIG_INVALID_VALUE",
-        `checks.structure.minConfidence must be one of: exact, high, medium, low, inferred.`,
+        `checks.structure.minConfidence must be one of: ${CONFIDENCE_LIST}.`,
       );
     }
-    out.minConfidence = record.minConfidence as StructureRelationshipRuleOptions["minConfidence"];
+    out.minConfidence = record.minConfidence;
   }
   if (record.requireParentBeforeChild !== undefined) {
     out.requireParentBeforeChild = requireBoolean(
@@ -1229,6 +1231,7 @@ export async function checkCommand(
             {
               ...(options.guardrails ? { guardrails: options.guardrails } : {}),
               ...(options.circuit ? { circuits: options.circuit } : {}),
+              runId: meta.runId,
             },
           ),
         );
@@ -1289,6 +1292,7 @@ export async function checkCommand(
         {
           ...(options.guardrails ? { guardrails: options.guardrails } : {}),
           ...(options.circuit ? { circuits: options.circuit } : {}),
+          ...(options.run !== undefined ? { runId: options.run } : {}),
         },
       );
     }

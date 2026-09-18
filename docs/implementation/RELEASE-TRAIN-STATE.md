@@ -7,39 +7,43 @@
 ```yaml
 baselineVersion: "6.29.4"
 publishedVersion: "6.29.4"
-pendingPublishVersion: null
-currentTrain: "post-6293-trust-and-adoption"
-trainStatus: "published-6294-stop"
+pendingPublishVersion: "6.29.5"
+currentTrain: "post-6294-correctness"
+trainStatus: "prepare-release-6295"
 executionMode: "maintainer-reviewed"
-namedTrain: "post-6293-trust-and-adoption-v6.29.4-to-v6.32"
+namedTrain: "post-6294-correctness-v6.29.5-to-v6.32"
 branch: "main"
-currentChunk: "stop-after-6294"
-lastConfirmedCommit: "3a906f94"
-lastValidationLevel: "Trusted Publish 6.29.4 + public-truth/demo sync + main CI green on sync commit"
-nextAction: "STOP — do not invent 6.30.0 without EVIDENCE GATE APPROVED"
-pendingManualGate: "#422 factual review; Dependabot majors split; 6.30+ external evidence"
+currentChunk: "R-6.29.5"
+lastConfirmedCommit: "27d4307b"
+lastValidationLevel: "build + typecheck + test (2224) + size + fixtures + pack:smoke + repo:health + git diff --check"
+nextAction: "Commit + push 6.29.5 Changeset; merge Version Packages; verify Trusted Publish; continue 6.29.6"
+pendingManualGate: "6.32.0 partner evidence; #422 factual review; Dependabot majors split"
 githubIssues:
   "209": "keep open — cross-platform packed-consumer matrix PARTIAL"
 canonicalRoadmap: "docs/implementation/ROADMAP.md"
 activePlan: "docs/implementation/active/NEXT-RELEASES.md"
 completedChunks:
   - "P0 green-main Evidence regen (ce4b4247)"
-  - "train activation post-6293"
-  - "6.29.4 MCP annotations + LICENSE matrix + demo sync + comparability/retry (f905050c)"
-  - "PREPARE RELEASE + Trusted Publish 6.29.4 (ab4b8c3d / publish run 35192486423)"
-  - "public-truth + Evidence demos synced to 6.29.4 (3a906f94)"
+  - "6.29.4 MCP/LICENSE/demo/comparability (f905050c) + Trusted Publish"
+  - "C0 stale operational docs hygiene"
+  - "00 roadmap reconcile for post-6294 correctness train"
+  - "6.29.5-01 confidence vocabulary"
+  - "6.29.5-02 uncertain write completion"
+  - "6.29.5-03 circuit logical/kind/run scope"
+  - "6.29.5-04 extension execution accounting"
 blockedTrains:
-  - "6.30.0 comparable Evidence / interop (BLOCKED_ON_6_30_EXTERNAL_INPUTS)"
-  - "6.31.0 failure-first review UX (BLOCKED_ON_6_31_REVIEW_FIXTURE)"
   - "6.32.0 external conformance (BLOCKED_ON_EXTERNAL_EVIDENCE)"
   - "v7.0.0 (assessment only — V7_DECISION: NO-GO)"
+amendments:
+  - "6.30.0 now: rich CLI TraceContracts (was comparable-Evidence/interop)"
+  - "6.31.0 now: typed cross-kind ordering (was failure-first review UX)"
 worktreeIgnoreOnly:
   - ".redstamp/"
   - "redstamp-proposal-issue-body.md"
 stopMarker: |
-  RELEASE_6_29_4_PUBLISHED
-  STOP: do not invent 6.30.0 without EVIDENCE GATE APPROVED
   LAST_PUBLISHED_RELEASE: 6.29.4
+  ACTIVE: PREPARE RELEASE 6.29.5
   V7_DECISION: NO-GO
-updatedAt: "2026-09-17"
+  EVIDENCE_GATE: not approved
+updatedAt: "2026-09-18"
 ```

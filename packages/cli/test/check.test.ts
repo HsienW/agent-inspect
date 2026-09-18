@@ -52,6 +52,8 @@ async function runCheck(target: string, options: Parameters<typeof checkCommand>
     status?: string;
     diagnostics?: { code?: string; message?: string }[];
     findings?: { ruleId?: string; message?: string }[];
+    summary?: { rulesEvaluated?: number; failed?: number; errors?: number };
+    ruleExecutions?: { ruleId?: string; status?: string; findingCount?: number }[];
   };
 }
 
@@ -143,6 +145,40 @@ describe("check command", () => {
     expect(process.exitCode).toBe(0);
     expect(result.status).toBe("pass");
     expect(result.diagnostics).toEqual([]);
+  });
+
+  it("rejects obsolete structure.minConfidence values", () => {
+    expect(() =>
+      parseCheckConfig({
+        checks: {
+          structure: { minConfidence: "exact" },
+        },
+      }),
+    ).toThrow(/unknown, heuristic, correlated, explicit/);
+    expect(() =>
+      parseCheckConfig({
+        checks: {
+          structure: { minConfidence: "high" },
+        },
+      }),
+    ).toThrow(/minConfidence/);
+  });
+
+  it("accepts canonical structure.minConfidence values", () => {
+    expect(
+      parseCheckConfig({
+        checks: {
+          structure: { minConfidence: "explicit" },
+        },
+      }).checks?.structure?.minConfidence,
+    ).toBe("explicit");
+    expect(
+      parseCheckConfig({
+        checks: {
+          structure: { minConfidence: "unknown" },
+        },
+      }).checks?.structure?.minConfidence,
+    ).toBe("unknown");
   });
 
   it("returns exit code 1 for rule failures", async () => {
@@ -534,6 +570,59 @@ describe("check command", () => {
     expect(existsSync(path.join(evidenceDir, "evidence.json"))).toBe(true);
     expect(existsSync(path.join(evidenceDir, "evidence.html"))).toBe(true);
   });
+
+  it("records selected circuit rules in ruleExecutions and Evidence JSON", async () => {
+    const file = await writeTrace(tmp, "circuit-account.jsonl", [
+      event("tool-1", {
+        eventId: "t1",
+        kind: "TOOL",
+        name: "retrieve_policy",
+        attributes: { toolName: "retrieve_policy" },
+      }),
+      event("tool-2", {
+        eventId: "t2",
+        kind: "TOOL",
+        name: "retrieve_policy",
+        attributes: { toolName: "retrieve_policy" },
+      }),
+      event("tool-3", {
+        eventId: "t3",
+        kind: "TOOL",
+        name: "retrieve_policy",
+        attributes: { toolName: "retrieve_policy" },
+      }),
+      event("tool-4", {
+        eventId: "t4",
+        kind: "TOOL",
+        name: "retrieve_policy",
+        attributes: { toolName: "retrieve_policy" },
+      }),
+    ]);
+    const evidenceDir = path.join(tmp, "evidence-out");
+    const result = await runCheck(file, {
+      requireCompleted: true,
+      circuit: ["same-tool-repetition"],
+      evidenceOn: "fail",
+      evidenceDir,
+      evidenceProfile: "local",
+    });
+    expect(result.status).toBe("fail");
+    expect(
+      result.ruleExecutions?.some((item) => item.ruleId === "circuit.same-tool-repetition"),
+    ).toBe(true);
+    expect(result.summary?.rulesEvaluated).toBeGreaterThanOrEqual(2);
+    expect(result.ruleExecutions?.some((item) => item.ruleId === "run.requireCompleted")).toBe(
+      true,
+    );
+    const checkResultsPath = path.join(evidenceDir, "check-results.json");
+    expect(existsSync(checkResultsPath)).toBe(true);
+    const evidenceChecks = JSON.parse(readFileSync(checkResultsPath, "utf-8")) as {
+      evaluatedRuleIds?: string[];
+      rulesEvaluated?: number;
+    };
+    expect(evidenceChecks.evaluatedRuleIds).toContain("circuit.same-tool-repetition");
+    expect(evidenceChecks.rulesEvaluated).toBe(result.summary?.rulesEvaluated);
+  });
 });
 
 describe.skipIf(!builtCliHasCheckCommand)("built check CLI", () => {
@@ -604,6 +693,139 @@ describe.skipIf(!builtCliHasCheckCommand)("built check CLI", () => {
       };
       expect(parsed.status).toBe("fail");
       expect(parsed.findings?.some((item) => item.ruleId === "outcome.status")).toBe(true);
+    } finally {
+      await rm(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it("packed CLI rejects obsolete minConfidence and fails heuristic below explicit", async () => {
+    if (!builtCliHasCheckCommand) {
+      return;
+    }
+    const tmp = await mkdtemp(path.join(os.tmpdir(), "agent-inspect-packed-conf-"));
+    try {
+      const file = path.join(tmp, "heuristic.jsonl");
+      await writeFile(
+        file,
+        jsonl(event("event-a", { confidence: "heuristic", kind: "LOGIC", name: "step" })),
+        "utf-8",
+      );
+      const badConfig = path.join(tmp, "bad.json");
+      await writeFile(
+        badConfig,
+        JSON.stringify({
+          checks: { select: ["structure.relationship"], structure: { minConfidence: "exact" } },
+        }),
+        "utf-8",
+      );
+      const goodConfig = path.join(tmp, "good.json");
+      await writeFile(
+        goodConfig,
+        JSON.stringify({
+          checks: {
+            select: ["structure.relationship"],
+            structure: { minConfidence: "explicit" },
+          },
+        }),
+        "utf-8",
+      );
+      const passConfig = path.join(tmp, "pass.json");
+      await writeFile(
+        passConfig,
+        JSON.stringify({
+          checks: {
+            select: ["structure.relationship"],
+            structure: { minConfidence: "heuristic" },
+          },
+        }),
+        "utf-8",
+      );
+
+      const invalid = spawnSync(
+        process.execPath,
+        [cliDist, "check", file, "--config", badConfig, "--json"],
+        {
+          encoding: "utf-8",
+          env: { ...process.env, NODE_OPTIONS: "" },
+          maxBuffer: 4 * 1024 * 1024,
+        },
+      );
+      expect(invalid.status, `${invalid.stdout}\n${invalid.stderr}`).toBe(2);
+
+      const fail = spawnSync(
+        process.execPath,
+        [cliDist, "check", file, "--config", goodConfig, "--json"],
+        {
+          encoding: "utf-8",
+          env: { ...process.env, NODE_OPTIONS: "" },
+          maxBuffer: 4 * 1024 * 1024,
+        },
+      );
+      expect(fail.status, `${fail.stdout}\n${fail.stderr}`).toBe(1);
+      const failParsed = JSON.parse(fail.stdout) as { status?: string };
+      expect(failParsed.status).toBe("fail");
+
+      const pass = spawnSync(
+        process.execPath,
+        [cliDist, "check", file, "--config", passConfig, "--json"],
+        {
+          encoding: "utf-8",
+          env: { ...process.env, NODE_OPTIONS: "" },
+          maxBuffer: 4 * 1024 * 1024,
+        },
+      );
+      expect(pass.status, `${pass.stdout}\n${pass.stderr}`).toBe(0);
+    } finally {
+      await rm(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it("packed CLI fails unknown --circuit without silent green accounting", async () => {
+    const tmp = await mkdtemp(path.join(os.tmpdir(), "agent-inspect-packed-circuit-"));
+    try {
+      const file = path.join(tmp, "unknown-circuit.jsonl");
+      await writeFile(
+        file,
+        jsonl(
+          event("tool-a", {
+            eventId: "ta",
+            kind: "TOOL",
+            name: "search",
+            attributes: { toolName: "search" },
+          }),
+        ),
+        "utf-8",
+      );
+      const result = spawnSync(
+        process.execPath,
+        [
+          cliDist,
+          "check",
+          file,
+          "--require-completed",
+          "--circuit",
+          "not-a-real-circuit",
+          "--json",
+        ],
+        {
+          encoding: "utf-8",
+          env: { ...process.env, NODE_OPTIONS: "" },
+          maxBuffer: 4 * 1024 * 1024,
+        },
+      );
+      expect(result.status, `${result.stdout}\n${result.stderr}`).not.toBe(0);
+      const parsed = JSON.parse(result.stdout) as {
+        status?: string;
+        ruleExecutions?: { ruleId?: string; status?: string }[];
+        summary?: { rulesEvaluated?: number };
+      };
+      expect(parsed.status).toBe("error");
+      expect(
+        parsed.ruleExecutions?.some(
+          (item) => item.ruleId === "not-a-real-circuit" && item.status === "error",
+        ),
+      ).toBe(true);
+      expect(parsed.summary?.rulesEvaluated).toBeGreaterThanOrEqual(1);
     } finally {
       await rm(tmp, { recursive: true, force: true });
     }

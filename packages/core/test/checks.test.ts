@@ -841,6 +841,41 @@ describe("built-in structure and safety checks", () => {
     expect(JSON.stringify(result.findings)).not.toContain("missing-parent secret value");
   });
 
+  it("accepts canonical minConfidence thresholds and rejects obsolete values", () => {
+    const heuristic = persisted("event-a", { confidence: "heuristic" });
+    const read = readResult([heuristic]);
+
+    const failExplicit = runTraceChecks(
+      { read },
+      { rules: [createStructureRelationshipRule({ minConfidence: "explicit" })] },
+    );
+    expect(failExplicit.status).toBe("fail");
+    expect(failExplicit.findings[0]?.message).toMatch(/below explicit/);
+
+    const passHeuristic = runTraceChecks(
+      { read },
+      { rules: [createStructureRelationshipRule({ minConfidence: "heuristic" })] },
+    );
+    expect(passHeuristic.status).toBe("pass");
+
+    const passUnknown = runTraceChecks(
+      { read },
+      { rules: [createStructureRelationshipRule({ minConfidence: "unknown" })] },
+    );
+    expect(passUnknown.status).toBe("pass");
+
+    expect(() =>
+      createStructureRelationshipRule({
+        minConfidence: "exact" as never,
+      }),
+    ).toThrow(/minConfidence must be one of/);
+    expect(() =>
+      createStructureRelationshipRule({
+        minConfidence: "high" as never,
+      }),
+    ).toThrow(/minConfidence must be one of/);
+  });
+
   it("reports retrieval, guardrail, and decision signal violations", () => {
     const retrieval = persisted("event-a", {
       kind: "RETRIEVER",

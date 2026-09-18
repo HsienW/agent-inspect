@@ -36,6 +36,8 @@ examples/adapter-sdk/**/.agent-inspect-minimal-adapter/
 examples/adapter-sdk/**/.agent-inspect-custom-renderer/
 examples/adapter-sdk/**/.agent-inspect-custom-transform/
 docs-local
+.redstamp/
+redstamp-proposal-issue-body.md
 fixtures/studio/.agent-inspect/*.db*
 fixtures/studio/.agent-inspect/*.db-shm
 fixtures/studio/.agent-inspect/*.db-wal

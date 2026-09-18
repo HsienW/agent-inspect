@@ -1,14 +1,14 @@
 # AgentInspect Canonical Roadmap (permanent)
 
 **Baseline:** `agent-inspect@6.29.4`
-**Roadmap horizon:** inventing `6.30.0+` remains `BLOCKED_ON_EXTERNAL_EVIDENCE`; **V7_DECISION: NO-GO**
-**Status:** **6.29.4 published**; `6.30+` blocked on external evidence; **V7_DECISION: NO-GO**
-**Primary objective:** Hold the post-6.29.4 trust baseline; advance only with explicit external evidence gates—without schema 1.1, hosted SaaS, or fabricated external evidence
+**Roadmap horizon:** trustworthy checks (6.29.5) → sharing/integration (6.29.6) → rich CLI contracts (6.30.0); partner conformance remains gated; **V7_DECISION: NO-GO**
+**Status:** **6.29.4 published**; **6.29.5 in progress** (confidence / recovery / circuit / accounting); **V7_DECISION: NO-GO**
+**Primary objective:** Make existing checks and sharing reliable before widening CLI contract vocabulary—without schema 1.1, hosted SaaS, or fabricated external evidence
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
 **Network policy:** no new default network behavior
 **Product boundary:** local-first and customer-owned; no maintainer-hosted SaaS
-**Named train:** `post-6293-trust-and-adoption-v6.29.4-to-v6.32`
+**Named train:** `post-6294-correctness-v6.29.5-to-v6.32`
 **Active plan:** [active/NEXT-RELEASES.md](./active/NEXT-RELEASES.md)
 
 ---
@@ -70,19 +70,22 @@ The canonical release sequence is:
 6.29.1  Post-6.29 hardening (redaction, OTLP honesty, recovery, AI SDK, Evidence, DX)  (published)
 6.29.2  Published runtime/CLI integrity + adapter/Evidence fidelity  (published)
 6.29.3  Corrective: MCP Proxy wrap + persisted usage fidelity  (published)
-6.29.4  MCP and package trust integrity (annotations, LICENSE, demo sync, comparability/retry guidance)
-6.29.5  Reserved corrective patch only
+6.29.4  MCP and package trust integrity (annotations, LICENSE, demo sync, comparability/retry guidance)  (published)
+6.29.5  Trustworthy existing checks (confidence; uncertain-write fail-closed; circuit count/kind/scope; accounting)
+6.29.6  Safe sharing + CI/outcome guidance + Jest association; capture investigate-only until library repro
 
-6.30.0  Comparable Evidence and portable interoperability contracts — BLOCKED_ON_6_30_EXTERNAL_INPUTS
-6.30.1  Interoperability corrections only
+6.30.0  Strict CLI access to existing rich TraceContract engine  (amends prior comparable-Evidence allocation)
+6.30.1  Rich-CLI contract corrections only
 
-6.31.0  Failure-first review and compact diagnosis — BLOCKED_ON_6_31_REVIEW_FIXTURE
-6.31.1  Review-UX corrections only
+6.31.0  Scoped typed cross-kind ordering  (amends prior failure-first review-UX allocation)
+6.31.1  Ordering-relation corrections only
 
-6.32.0  Conditional external conformance and support review — BLOCKED_ON_EXTERNAL_EVIDENCE
+6.32.0  Conditional external conformance + compact failure review — BLOCKED_ON_EXTERNAL_EVIDENCE
 
 7.0.0   Assessment only — V7_DECISION: NO-GO
 ```
+
+**Amendment (2026-09-18):** Prior `6.30.0` comparable-Evidence / interop and `6.31.0` failure-first review-UX allocations are superseded by the sequence above. Do **not** mark `EVIDENCE GATE APPROVED` from private case-study summaries alone.
 
 No major version is required. No new trace schema. No TrueForge-specific package. No full-content capture mode. No general temporal/workflow DSL.
 
@@ -178,8 +181,12 @@ Fail-closed deterministic gate hardening:
 | **6.26.0** | Outcome-aware behavioral sessions | #362 dual-axis summaries | Published |
 | **6.27.0** | Bounded safe recovery | read-recovery oracle first | Published |
 | **6.28.0** | Reviewer-reproducible Evidence | resolved contract binding | Published |
-| **6.29.0** | Provider usage / adapters | cache/reasoning usage; isolated matrices | Published |
-| **6.30.0** | External conformance | conditional | **BLOCKED_ON_EXTERNAL_EVIDENCE** |
+| **6.29.0**–**6.29.4** | Usage fidelity through MCP/package trust | published line | Published |
+| **6.29.5** | Trustworthy existing checks | confidence; write recovery; circuit; accounting | Active |
+| **6.29.6** | Safe sharing + integration clarity | N8; outcome help; Jest; N9 investigate | Next |
+| **6.30.0** | Rich CLI TraceContracts | amends prior comparable-Evidence plan | After 6.29.6 |
+| **6.31.0** | Typed cross-kind ordering | amends prior review-UX plan | Fixture-gated |
+| **6.32.0** | External conformance + compact review | conditional | **BLOCKED_ON_EXTERNAL_EVIDENCE** |
 
 ### 3.1 v6.18.0 — adapter capture parity (#311)
 

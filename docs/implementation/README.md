@@ -2,25 +2,26 @@
 
 Maintainer-facing docs. **Public docs:** [../README.md](../README.md).
 
-## Active — Repository health, evidence UX, and stable niche (v6.16.0 → pre-v7)
+## Active pointers
 
 | File | Purpose |
 | ---- | ------- |
 | [RELEASE-TRAIN-STATE.md](./RELEASE-TRAIN-STATE.md) | Current train status |
 | [CURRENT-TASK.md](./CURRENT-TASK.md) | Active assignment |
 | [ROADMAP.md](./ROADMAP.md) | **Permanent** canonical product/implementation roadmap |
-| [active/EXECUTION-PLAN.md](./active/EXECUTION-PLAN.md) | Single active release plan |
-| [active/WORKING-AUDIT.md](./active/WORKING-AUDIT.md) | Current cleanup / audit worksheet |
+| [active/NEXT-RELEASES.md](./active/NEXT-RELEASES.md) | Ordered release sequence and gates |
+| [active/EXECUTION-PLAN.md](./active/EXECUTION-PLAN.md) | Single active execution plan |
 
-**Published line:** `6.16.0` (eighteen fixed-group packages). Schema **1.0** unchanged. Active train: **v6.16.1 repository health**; **v7 not scheduled**.
+**Published baseline:** `agent-inspect@6.29.4` (eighteen fixed-group packages). Schema **1.0**. **v7:** NO-GO.
 
-Named autonomous train: `agentinspect-repository-health-evidence-ux-v6.16-to-pre-v7`.
-
-## Stable companions (created during 6.16.1)
+## Stable companions
 
 | Path | Purpose |
 | ---- | ------- |
 | [../history/](../history/) | Compact historical summaries |
 | [../decisions/](../decisions/) | Architecture decision records |
+| [active/EXTERNAL-ACCEPTANCE-GATE.md](./active/EXTERNAL-ACCEPTANCE-GATE.md) | External evidence / conformance gates |
+| [active/ISSUE-PR-PARK-LIST.md](./active/ISSUE-PR-PARK-LIST.md) | Parked issue/PR recommendations |
+| [active/DEPENDABOT-TRIAGE.md](./active/DEPENDABOT-TRIAGE.md) | Dependabot split guidance |
 
-Superseded version-named roadmaps, completed release-train plans, and `docs/archive/` are removed during `6.16.1` (Git history retains them).
+Superseded train worksheets, email drafts, and one-off readiness notes are deleted from `active/` when complete (Git history retains them). Prefer delete over a new in-repo archive.

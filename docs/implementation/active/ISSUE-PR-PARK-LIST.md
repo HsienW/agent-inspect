@@ -1,19 +1,19 @@
-# Issue / PR park list (post-6.25 gate)
+# Issue / PR park list
 
 Recommendations only — do not close/comment without maintainer authorization.
 
 | Item | Recommendation | Rationale |
 | --- | --- | --- |
-| **#65** VS Code onboarding screenshots | Park/close | Marketplace unpublished (6.24 Option A) |
-| **#66** / **PR #295** Open Sample Trace | Park/close unless product surface reopened | Same VS Code deferral |
-| **#115** / **PR #142** ADPA recipe | Close unless active external partner | CONFLICTING; no current partner gate |
-| **#209** packed-consumer matrix | **Keep open** | PARTIAL; still material |
-| **#362** MCP behavioral sessions | **Schedule 6.26.0** | Maintainer train; sanitize fixtures |
-| **PR #297** fixed-group README check | Evaluate later | CONFLICTING; not blocking 6.25.1 |
-| **PR #352** residual redact | Separate maintainer track | CONFLICTING; not this train |
+| **PR #422** OrcaReplay compare | Request factual edits before merge | Bounded-preview wording; no drift-prone install claims; replay ≠ determinism / not AgentInspect replay |
+| **#209** packed-consumer matrix | **Keep open** | PARTIAL; Windows Node 24/npm 12 validated; broader matrix unfinished |
+| **#65** / **#66** / **PR #295** VS Code | Park/close unless Marketplace owner exists | Unpublished / deferred |
+| **#115** / **PR #142** ADPA recipe | Park/close unless active design partner | No current partner gate |
+| **Dependabot #373** (dev majors) | Do **not** merge as one event | Split Changesets / TypeScript / Vitest / Tailwind / Node types |
+| Other Dependabot action majors (**#367–#372**) | Review/split independently | Not a single train gate |
 
 ## Product decision reminders
 
 - VS Code Marketplace: deferred / not publishing
 - Retained-use claims: `BLOCKED_ON_EXTERNAL_EVIDENCE`
+- Check pass ≠ every possible rule/effect evaluated
 - v7: assessment only / NO-GO

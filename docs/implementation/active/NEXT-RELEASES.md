@@ -1,9 +1,9 @@
-# Active execution plan — post-6.29.3 trust and adoption
+# Active execution plan — post-6.29.4 correctness
 
 **Authority:** [../ROADMAP.md](../ROADMAP.md)
 **Baseline:** **published** `agent-inspect@6.29.4` · schema `1.0`
-**Named train:** `post-6293-trust-and-adoption-v6.29.4-to-v6.32`
-**Program status:** **6.29.4 published**; `6.30+` **BLOCKED_ON_EXTERNAL_EVIDENCE**
+**Named train:** `post-6294-correctness-v6.29.5-to-v6.32`
+**Program status:** **PREPARE RELEASE 6.29.5**; then 6.29.6→6.31.0; **6.32.0** remains gated; **V7_DECISION: NO-GO**
 
 ## Freeze language
 
@@ -11,22 +11,22 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 
 ## Sequence
 
-1. **P0 green-main** — Evidence regen via `pnpm demo:generate` — **done** (`ce4b4247`)
-2. **6.29.4** — MCP annotations; LICENSE in all public tarballs; demo/version sync; RUN-COMPARABILITY + retry guidance — **published**
-3. **6.29.5** — Reserved corrective patch only
-4. **6.30.0** — Comparable Evidence + portable interop — only with `EVIDENCE GATE APPROVED`
-5. **6.31.0** — Failure-first review — only with paired incident fixture
-6. **6.32.0** — Conditional external conformance
+1. **6.29.4** — MCP annotations; LICENSE matrix; demo sync; comparability/retry — **published**
+2. **6.29.5** — Confidence validation; uncertain-write fail-closed; circuit logical-event/kind/run-scope; extension accounting — **PREPARE RELEASE**
+3. **6.29.6** — Residual safe sharing; CI/outcome help; Jest association; capture investigation (library fix only with repro); recipe corrections as ready
+4. **6.30.0** — Strict CLI access to existing rich TraceContract engine (**amends** prior comparable-Evidence allocation)
+5. **6.31.0** — Scoped typed cross-kind ordering (**amends** prior failure-first review-UX allocation)
+6. **6.32.0** — Conditional external conformance + compact failure review — only with accepted partner inputs
 7. **v7** — assessment only; **V7_DECISION: NO-GO**
 
 ## Current chunk
 
-**6.29.4 published** via Trusted Publish. Stop — do not invent `6.30.0` without `EVIDENCE GATE APPROVED`.
+**PREPARE RELEASE 6.29.5** (Changeset → Version Packages → `publish.yml`). Maintainer authorized delivery through 6.32.0 train; stop at external evidence for 6.32.0.
 
 ## Stop rules
 
 - No schema 1.1; no root OTel dependency; no default network; no pricing engine; no replay; no retry execution
-- Do not invent `6.30.0` without sanitized retained external fixtures
+- Do not invent partner conformance success or mark `EVIDENCE GATE APPROVED` from private reports alone
 - Do not implement v7 from the assessment file alone
 - Trusted Publish only via `publish.yml` (no local `npm publish`)
 - Ignore-only: `.redstamp/`, `redstamp-proposal-issue-body.md`
@@ -34,7 +34,8 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 ## External stop marker
 
 ```text
-BLOCKED_ON_EXTERNAL_EVIDENCE (for inventing 6.30.0+)
-LAST_PUBLISHED_RELEASE: 6.29.3
+LAST_PUBLISHED_RELEASE: 6.29.4
+ACTIVE: PREPARE RELEASE 6.29.5
 V7_DECISION: NO-GO
+EVIDENCE_GATE: not approved
 ```

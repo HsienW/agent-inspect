@@ -17,6 +17,28 @@ const toolEvents = (count: number, args: unknown = { q: "x" }): CircuitTraceEven
   }));
 
 describe("@agent-inspect/circuit", () => {
+  it("treats uppercase TOOL kind as a tool without name prefix", () => {
+    const events: CircuitTraceEvent[] = Array.from({ length: 4 }, (_, index) => ({
+      eventId: `e-${index}`,
+      name: "retrieve_policy",
+      kind: "TOOL",
+      attributes: { toolName: "retrieve_policy" },
+    }));
+    const result = evaluateSameToolRepetition(events, 3);
+    expect(result.status).toBe("open");
+    expect(result.evidence[0]?.count).toBe(4);
+  });
+
+  it("does not treat explicit LOGIC kind as a tool from an ambiguous name", () => {
+    const events: CircuitTraceEvent[] = Array.from({ length: 5 }, (_, index) => ({
+      eventId: `e-${index}`,
+      name: "tool:retrieve_policy",
+      kind: "LOGIC",
+    }));
+    const result = evaluateSameToolRepetition(events, 3);
+    expect(result.status).toBe("closed");
+  });
+
   it("opens on same tool repetition", () => {
     const result = evaluateSameToolRepetition(toolEvents(4), 3);
     expect(result.status).toBe("open");

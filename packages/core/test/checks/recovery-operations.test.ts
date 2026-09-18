@@ -372,6 +372,81 @@ describe("bounded safe recovery operations (6.27)", () => {
     ).toBe(true);
   });
 
+  it("does not treat client idempotencyKey or producer flags as write-completion proof", () => {
+    const contract = defineTraceContract({
+      retry: {
+        operations: [
+          {
+            tool: "charge",
+            sideEffectClass: "write",
+            maxAttempts: 2,
+            requireTerminalSuccess: true,
+          },
+        ],
+      },
+    });
+
+    const withKey = [
+      runEvent("run-1"),
+      tool(
+        "t1",
+        "run-1",
+        "charge",
+        "2026-09-12T00:00:01.000Z",
+        "2026-09-12T00:00:02.000Z",
+        {
+          operationId: "op-w",
+          attemptId: "a1",
+          attemptNumber: 1,
+          timeout: true,
+          idempotencyKey: "client-key-1",
+        },
+        "unknown",
+      ),
+      tool("t2", "run-1", "charge", "2026-09-12T00:00:03.000Z", "2026-09-12T00:00:04.000Z", {
+        operationId: "op-w",
+        attemptId: "a2",
+        attemptNumber: 2,
+        idempotencyKey: "client-key-1",
+      }),
+    ];
+    const keyResult = evaluateTraceContract({ read: readOf(withKey) }, contract);
+    expect(keyResult.ok).toBe(false);
+    expect(
+      keyResult.findings.some(
+        (finding) => finding.ruleId === "contract.retry.operations.write-completion-unevaluable",
+      ),
+    ).toBe(true);
+
+    for (const flag of [{ noSideEffect: true }, { sideEffect: false }] as const) {
+      const events = [
+        runEvent("run-1"),
+        tool(
+          "t1",
+          "run-1",
+          "charge",
+          "2026-09-12T00:00:01.000Z",
+          "2026-09-12T00:00:02.000Z",
+          {
+            operationId: "op-flag",
+            attemptId: "a1",
+            attemptNumber: 1,
+            timeout: true,
+            ...flag,
+          },
+          "unknown",
+        ),
+      ];
+      const result = evaluateTraceContract({ read: readOf(events) }, contract);
+      expect(result.ok).toBe(false);
+      expect(
+        result.findings.some(
+          (finding) => finding.ruleId === "contract.retry.operations.write-completion-unevaluable",
+        ),
+      ).toBe(true);
+    }
+  });
+
   it("treats key-order-different structured args as equal (canonical)", () => {
     const events = [
       runEvent("run-1"),

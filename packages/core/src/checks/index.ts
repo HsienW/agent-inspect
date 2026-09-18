@@ -4,6 +4,11 @@ import type {
   InspectNode,
   InspectRunTree,
 } from "../types/inspect-event.js";
+import {
+  ATTRIBUTION_CONFIDENCES,
+  ATTRIBUTION_CONFIDENCE_RANK,
+  isAttributionConfidence,
+} from "../types/inspect-event.js";
 import type { PersistedInspectEvent } from "../types/persisted-inspect-event.js";
 import { formatProgrammaticDiagnostic } from "../diagnostics/programmatic.js";
 import {
@@ -631,12 +636,7 @@ const STATUS_RANK: Record<TraceCheckFindingStatus, number> = {
   pass: 2,
 };
 
-const CONFIDENCE_RANK: Record<AttributionConfidence, number> = {
-  unknown: 0,
-  heuristic: 1,
-  correlated: 2,
-  explicit: 3,
-};
+const CONFIDENCE_RANK = ATTRIBUTION_CONFIDENCE_RANK;
 
 const DEFAULT_SENSITIVE_KEYS = DEFAULT_CREDENTIAL_SENSITIVE_KEYS;
 
@@ -2272,6 +2272,16 @@ export function createStructureCycleRule(): TraceCheckRule {
 export function createStructureRelationshipRule(
   options: StructureRelationshipRuleOptions = {},
 ): TraceCheckRule {
+  if (
+    options.minConfidence !== undefined &&
+    !isAttributionConfidence(options.minConfidence)
+  ) {
+    throw new TypeError(
+      `createStructureRelationshipRule: minConfidence must be one of: ${ATTRIBUTION_CONFIDENCES.join(", ")}.`,
+    );
+  }
+  const minConfidence = options.minConfidence;
+
   return {
     id: "structure.relationship",
     category: "structure",
@@ -2279,22 +2289,23 @@ export function createStructureRelationshipRule(
     evaluate(context) {
       const byId = eventMap(semanticEvents(context));
       const findings: TraceCheckFinding[] = [];
-      const minConfidence = options.minConfidence;
 
       for (const event of semanticEvents(context)) {
-        if (
-          minConfidence &&
-          CONFIDENCE_RANK[event.confidence] < CONFIDENCE_RANK[minConfidence]
-        ) {
-          findings.push(
-            failFinding(
-              "structure.relationship",
-              `Event confidence ${event.confidence} is below ${minConfidence}.`,
-              [eventEvidence(event, "confidence")],
-              { minConfidence },
-              event.confidence,
-            ),
-          );
+        if (minConfidence) {
+          const eventRank =
+            CONFIDENCE_RANK[event.confidence] ?? CONFIDENCE_RANK.unknown;
+          const minRank = CONFIDENCE_RANK[minConfidence];
+          if (eventRank < minRank) {
+            findings.push(
+              failFinding(
+                "structure.relationship",
+                `Event confidence ${event.confidence} is below ${minConfidence}.`,
+                [eventEvidence(event, "confidence")],
+                { minConfidence },
+                event.confidence,
+              ),
+            );
+          }
         }
 
         if (!event.parentId) continue;

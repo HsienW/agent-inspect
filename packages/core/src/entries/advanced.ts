@@ -141,6 +141,12 @@ export type {
 } from "../types/inspect-event.js";
 
 export {
+  ATTRIBUTION_CONFIDENCES,
+  ATTRIBUTION_CONFIDENCE_RANK,
+  isAttributionConfidence,
+} from "../types/inspect-event.js";
+
+export {
   serializeEvent,
   validateEvent,
   initializeTraceFile,

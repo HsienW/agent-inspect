@@ -1,4 +1,5 @@
 import type { AttributionConfidence, InspectKind } from "./inspect-event.js";
+import { isAttributionConfidence } from "./inspect-event.js";
 
 export type PersistedSchemaVersion = "0.2" | "1.0";
 
@@ -91,13 +92,6 @@ const INSPECT_KINDS: readonly InspectKind[] = [
   "OUTCOME",
 ];
 
-const ATTRIBUTION_CONFIDENCES: readonly AttributionConfidence[] = [
-  "explicit",
-  "correlated",
-  "heuristic",
-  "unknown",
-];
-
 const PERSISTED_EVENT_SOURCE_TYPES: readonly PersistedEventSourceType[] = [
   "manual",
   "json-log",
@@ -142,13 +136,6 @@ function isInspectKind(value: unknown): value is InspectKind {
   return (
     typeof value === "string" &&
     (INSPECT_KINDS as readonly string[]).includes(value)
-  );
-}
-
-function isAttributionConfidence(value: unknown): value is AttributionConfidence {
-  return (
-    typeof value === "string" &&
-    (ATTRIBUTION_CONFIDENCES as readonly string[]).includes(value)
   );
 }
 

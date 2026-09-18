@@ -10,23 +10,24 @@ This public roadmap describes direction — not a delivery guarantee. See [docs/
 
 ---
 
-## Current — published `6.29.2` (adoption integrity)
+## Current — published `6.29.4`
 
-**Current release line:** **6.29.2** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
+**Current release line:** **6.29.4** (eighteen fixed-group public packages). Persisted schema **1.0**. Node.js **≥ 20**. **MIT**. Actively maintained.
 
-Core boundary frozen; evidence-backed **security, correctness, compatibility, interoperability, and public-truth patches** remain active. Retained-use / conformance claims stay `BLOCKED_ON_EXTERNAL_EVIDENCE`. **`6.30.0` is not invented** without external fixtures. **v7 is NO-GO**.
+Core boundary frozen; evidence-backed **security, correctness, compatibility, interoperability, and public-truth patches** remain active. Retained-use / conformance claims stay gated on accepted external evidence. **v7 is NO-GO**.
 
 | Release | Theme | Status |
 | ------- | ----- | ------ |
-| **6.19.0**–**6.29.0** | Adoption-first through usage fidelity | Published |
-| **6.29.1** | Post-6.29 hardening (redaction, OTLP, recovery, AI SDK, Evidence, DX) | Published |
-| **6.29.2** | Published runtime / CLI integrity + adapter/Evidence fidelity | Published |
-| **6.30.0** | Conditional portable Evidence / interop | **BLOCKED_ON_EXTERNAL_EVIDENCE** |
+| **6.19.0**–**6.29.4** | Adoption-first through MCP/package trust integrity | Published |
+| **6.29.5** | Trustworthy existing checks (confidence, recovery, circuit, accounting) | Next patch |
+| **6.29.6** | Safe sharing and integration clarity | Planned patch |
+| **6.30.0** | Strict CLI access to existing rich TraceContracts | Planned minor |
+| **6.31.0** | Scoped typed cross-kind ordering | Fixture-gated |
+| **6.32.0** | Conditional external conformance + compact review | **BLOCKED_ON_EXTERNAL_EVIDENCE** |
 | **7.0.0** | Major | Assessment only / **NO-GO** |
 
 ```text
-BLOCKED_ON_EXTERNAL_EVIDENCE
-LAST_PUBLISHED_RELEASE: 6.29.2
+LAST_PUBLISHED_RELEASE: 6.29.4
 V7_DECISION: NO-GO
 ```
 

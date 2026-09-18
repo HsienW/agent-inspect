@@ -113,17 +113,6 @@ function sortByTime(events: readonly PersistedInspectEvent[]): PersistedInspectE
   return [...events].sort((a, b) => eventTime(a).localeCompare(eventTime(b)));
 }
 
-function hasIdempotencyEvidence(event: PersistedInspectEvent): boolean {
-  const workflow = workflowFor(event);
-  if (typeof workflow.idempotencyKey === "string" && workflow.idempotencyKey.trim() !== "") {
-    return true;
-  }
-  const attrs = event.attributes ?? {};
-  if (attrs.noSideEffect === true) return true;
-  if (attrs.sideEffect === false) return true;
-  return false;
-}
-
 function errorCodeOf(event: PersistedInspectEvent): string | undefined {
   if (typeof event.error?.code === "string" && event.error.code.trim() !== "") {
     return event.error.code.trim();
@@ -436,13 +425,13 @@ export function evaluateRecoveryOperations(
 
       if (sideEffectClass === "write") {
         for (const event of ordered) {
-          if (isUnevaluableWriteCompletion(event) && !hasIdempotencyEvidence(event)) {
+          if (isUnevaluableWriteCompletion(event)) {
             findings.push(
               fail(
                 "contract.retry.operations.write-completion-unevaluable",
-                `Write tool ${operation.tool} has timeout/unknown completion without authoritative idempotency evidence.`,
+                `Write tool ${operation.tool} has timeout/unknown/running completion that cannot be verified as an authoritative write result.`,
                 [eventEvidence(event)],
-                "idempotencyKey|authoritative completion",
+                "authoritative write completion observation",
                 {
                   code: "AI_CHECK_RECOVERY_WRITE_COMPLETION_UNAVAILABLE",
                   status: event.status,
@@ -608,8 +597,7 @@ export function evaluateRecoveryOperations(
         if (successForDependency) {
           if (
             sideEffectClass === "write" &&
-            isUnevaluableWriteCompletion(successForDependency) &&
-            !hasIdempotencyEvidence(successForDependency)
+            isUnevaluableWriteCompletion(successForDependency)
           ) {
             findings.push(
               fail(

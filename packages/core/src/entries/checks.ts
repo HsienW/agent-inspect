@@ -128,3 +128,10 @@ export {
   PROGRAMMATIC_DIAGNOSTIC_SPECS,
   formatProgrammaticDiagnostic,
 } from "../checks/index.js";
+
+export {
+  ATTRIBUTION_CONFIDENCES,
+  ATTRIBUTION_CONFIDENCE_RANK,
+  isAttributionConfidence,
+} from "../types/inspect-event.js";
+export type { AttributionConfidence } from "../types/inspect-event.js";
