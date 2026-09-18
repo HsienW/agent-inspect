@@ -108,13 +108,26 @@ describe("check command", () => {
         },
       }),
     ).toThrow(/forbiddn/);
-    expect(() =>
+    expect(
       parseCheckConfig({
         contract: {
           scope: { runId: "r1" },
+          tools: { required: ["search"] },
         },
       }),
-    ).toThrow(/contract\.scope/);
+    ).toEqual({
+      contract: {
+        scope: { runId: "r1" },
+        tools: { required: ["search"] },
+      },
+    });
+    expect(() =>
+      parseCheckConfig({
+        contract: {
+          scope: { runIdd: "r1" },
+        },
+      }),
+    ).toThrow(/runIdd/);
     expect(() =>
       parseCheckConfig({
         checks: { select: ["run.status"] },
@@ -131,9 +144,93 @@ describe("check command", () => {
       checkConfigHasEffect({ checks: { tool: { forbidden: ["send_email"] } } }),
     ).toBe(true);
     expect(checkConfigHasEffect({ contract: {} })).toBe(false);
+    expect(checkConfigHasEffect({ contract: { scope: { runId: "r1" } } })).toBe(false);
     expect(
       checkConfigHasEffect({ contract: { tools: { required: ["search"] } } }),
     ).toBe(true);
+    expect(
+      checkConfigHasEffect({
+        contract: {
+          alternatives: {
+            anyOf: [{ id: "a", contract: { tools: { required: ["search"] } } }],
+          },
+        },
+      }),
+    ).toBe(true);
+    expect(
+      checkConfigHasEffect({
+        contract: { controls: { requireDeclaredMatchesEnforced: true } },
+      }),
+    ).toBe(true);
+    expect(
+      checkConfigHasEffect({ contract: { retry: { maxAttempts: 2 } } }),
+    ).toBe(true);
+  });
+
+  it("parses contract scope, alternatives, and rejects nested/unknown keys", () => {
+    expect(
+      parseCheckConfig({
+        contract: {
+          alternatives: {
+            anyOf: [
+              {
+                id: "with-search",
+                description: "search path",
+                contract: { tools: { required: ["search"] } },
+              },
+              {
+                id: "with-lookup",
+                contract: { tools: { required: ["lookup"] } },
+              },
+            ],
+          },
+        },
+      }),
+    ).toEqual({
+      contract: {
+        alternatives: {
+          anyOf: [
+            {
+              id: "with-search",
+              description: "search path",
+              contract: { tools: { required: ["search"] } },
+            },
+            {
+              id: "with-lookup",
+              contract: { tools: { required: ["lookup"] } },
+            },
+          ],
+        },
+      },
+    });
+    expect(() =>
+      parseCheckConfig({
+        contract: {
+          tools: {
+            arguments: [{ tool: "search", path: "/q", operator: "exists", typo: true }],
+          },
+        },
+      }),
+    ).toThrow(/typo/);
+    expect(() =>
+      parseCheckConfig({
+        contract: {
+          alternatives: {
+            anyOf: [
+              {
+                id: "nested",
+                contract: {
+                  tools: { required: ["search"] },
+                  alternatives: {
+                    anyOf: [{ id: "inner", contract: { tools: { required: ["x"] } } }],
+                  },
+                },
+              },
+            ],
+          },
+        },
+      }),
+    ).toThrow(/alternatives/);
   });
 
   it("fails explicit --config when the file has no effective rules", async () => {
@@ -688,6 +785,35 @@ describe("check command", () => {
     expect(process.exitCode).toBe(1);
     expect(fail.status).toBe("fail");
     expect(fail.findings?.some((item) => item.ruleId === "tool.usage")).toBe(true);
+  });
+
+  it("evaluates contract scope with required tools", async () => {
+    const file = await writeTrace(tmp, "contract-scope.jsonl", [
+      event("event-run", {
+        attributes: { metadata: { groupId: "g1" } },
+      }),
+      event("event-tool", {
+        kind: "TOOL",
+        name: "tool:search",
+        attributes: { toolName: "search" },
+      }),
+    ]);
+
+    const configPath = path.join(tmp, "contract-scope.json");
+    await writeFile(
+      configPath,
+      JSON.stringify({
+        contract: {
+          scope: { runId: "run-check-cli" },
+          tools: { required: ["search"] },
+        },
+      }),
+      "utf-8",
+    );
+    const result = await runCheck(file, { config: configPath });
+    expect(process.exitCode).toBe(0);
+    expect(result.status).toBe("pass");
+    expect((result.summary?.rulesEvaluated ?? 0) > 0).toBe(true);
   });
 
   it("fails empty contract --config as no effective rules", async () => {

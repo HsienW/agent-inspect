@@ -21,7 +21,7 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 
 ## Current chunk
 
-**6.30.0-A** — strict top-level `contract` in `check --config` (basic run/tools/llm/observations) + evaluateTraceContract. Then B (rich fields/scope) / C (Evidence binding + docs). Then PREPARE RELEASE 6.30.0.
+**6.30.0-B done** — deferred TraceContract keys (scope, alternatives, arguments, orderRules, controls, retry). Next: **6.30.0-C** (Evidence binding + docs). Then PREPARE RELEASE 6.30.0.
 
 ## Stop rules
 

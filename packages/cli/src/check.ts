@@ -43,16 +43,24 @@ import {
   runTraceChecks,
   ATTRIBUTION_CONFIDENCES,
   isAttributionConfidence,
+  type ControlStage,
   type LlmUsageRuleOptions,
   type RunStatusRuleOptions,
   type SafetyOversizedAttributeRuleOptions,
   type StructureRelationshipRuleOptions,
+  type ToolArgumentCheck,
   type ToolUsageRuleOptions,
   type TraceCheckDiagnostic,
   type TraceCheckDiagnosticCode,
   type TraceCheckResult,
   type TraceCheckRule,
+  type TraceContractAlternatives,
+  type TraceContractBody,
+  type TraceContractControlRules,
   type TraceContractInput,
+  type TraceContractRecoveryOperation,
+  type TraceContractRetryRules,
+  type TraceContractScope,
 } from "@agent-inspect/core/checks";
 
 import {
@@ -390,7 +398,33 @@ function asStringArray(value: unknown): string[] | undefined {
 
 const CHECKS_KEYS = new Set(["select", "run", "tool", "llm", "structure", "safety"]);
 const ROOT_CONFIG_KEYS = new Set(["checks", "contract"]);
-const CONTRACT_KEYS = new Set(["run", "tools", "llm", "observations"]);
+/** Top-level TraceContract keys (includes scope + alternatives). */
+const CONTRACT_KEYS = new Set([
+  "run",
+  "tools",
+  "llm",
+  "observations",
+  "scope",
+  "alternatives",
+  "controls",
+  "retry",
+]);
+/** Body keys only — no nested alternatives. */
+const CONTRACT_BODY_KEYS = new Set([
+  "run",
+  "tools",
+  "llm",
+  "observations",
+  "controls",
+  "retry",
+]);
+const CONTRACT_SCOPE_KEYS = new Set([
+  "runId",
+  "subAgentId",
+  "groupId",
+  "workflowStep",
+  "rootEventId",
+]);
 const CONTRACT_RUN_KEYS = new Set(["requireCompleted", "allowedStatuses", "maxDurationMs"]);
 const CONTRACT_TOOLS_KEYS = new Set([
   "required",
@@ -401,15 +435,96 @@ const CONTRACT_TOOLS_KEYS = new Set([
   "maxCalls",
   "requiredOrder",
   "requiredOrderMode",
+  "arguments",
+  "orderRules",
+  "defaultOccurrenceMode",
 ]);
 const CONTRACT_LLM_KEYS = new Set(["maxCalls", "maxTotalTokens", "allowedModels"]);
-const CONTRACT_OBSERVATION_KEYS = new Set(["required", "failOn"]);
+const CONTRACT_OBSERVATION_KEYS = new Set(["required", "failOn", "requireProvenance"]);
+const CONTRACT_PROVENANCE_KEYS = new Set(["method", "evidence", "sameRunEventReference"]);
+const CONTRACT_CONTROLS_KEYS = new Set([
+  "declaredTools",
+  "enforcedTools",
+  "declaredToolsAttribute",
+  "enforcedToolsAttribute",
+  "requireDeclaredMatchesEnforced",
+  "requireObservedWithinEnforced",
+  "requireObservedWithinDeclared",
+  "requiredStages",
+]);
+const CONTRACT_CONTROL_STAGES = new Set([
+  "declared",
+  "presented",
+  "validated",
+  "enforced",
+  "observed",
+  "accepted",
+]);
+const CONTRACT_CONTROL_STAGE_KEYS = new Set(["stage", "observation"]);
+const CONTRACT_RETRY_KEYS = new Set([
+  "maxAttempts",
+  "requireTerminalResult",
+  "fallbackOnlyAfterFailure",
+  "nonIdempotentTools",
+  "requireIdempotencyEvidenceForRetry",
+  "requireRecoveredFailureVisible",
+  "operations",
+]);
+const CONTRACT_OPERATION_KEYS = new Set([
+  "tool",
+  "maxAttempts",
+  "retryableErrors",
+  "requireFailureBeforeRetry",
+  "requireSameArguments",
+  "requireTerminalSuccess",
+  "requireRecoveredFailureVisible",
+  "successfulResultDependency",
+  "sideEffectClass",
+]);
+const CONTRACT_RETRYABLE_ERRORS_KEYS = new Set(["codes"]);
+const CONTRACT_RESULT_DEP_KEYS = new Set(["consumerKind", "requireExplicitReference"]);
+const CONTRACT_ALT_KEYS = new Set(["anyOf"]);
+const CONTRACT_ALT_BRANCH_KEYS = new Set(["id", "description", "contract"]);
+const CONTRACT_ORDER_RULE_KEYS = new Set([
+  "before",
+  "after",
+  "occurrenceMode",
+  "requireEndpoints",
+]);
+const CONTRACT_ARGUMENT_KEYS = new Set([
+  "tool",
+  "path",
+  "operator",
+  "occurrence",
+  "expected",
+  "oneOf",
+  "type",
+]);
+const CONTRACT_ARGUMENT_OPERATORS = new Set(["exists", "type", "equals", "oneOf"]);
+const CONTRACT_ARGUMENT_OCCURRENCES = new Set(["first", "last", "any", "all"]);
+const CONTRACT_ARGUMENT_TYPES = new Set([
+  "string",
+  "number",
+  "boolean",
+  "object",
+  "array",
+  "null",
+]);
 const CONTRACT_ORDER_MODES = new Set([
   "first-occurrence",
   "happens-before",
   "all-occurrences",
 ]);
 const CONTRACT_FAIL_ON = new Set(["failed", "unknown", "skipped"]);
+const CONTRACT_SIDE_EFFECT_CLASSES = new Set(["read", "write"]);
+/** Bounded list sizes for strict CLI contract JSON. */
+const CONTRACT_MAX_STRING_LIST = 64;
+const CONTRACT_MAX_ARGUMENTS = 32;
+const CONTRACT_MAX_ORDER_RULES = 32;
+const CONTRACT_MAX_ANY_OF = 16;
+const CONTRACT_MAX_OPERATIONS = 32;
+const CONTRACT_MAX_REQUIRED_STAGES = 16;
+const CONTRACT_MAX_ONE_OF = 32;
 const RUN_KEYS = new Set(["expected", "allowIncomplete", "maxDurationMs", "maxDepth"]);
 const TOOL_KEYS = new Set(["required", "forbidden", "allowed", "minCount", "maxCount"]);
 const LLM_KEYS = new Set([
@@ -527,6 +642,64 @@ function requireBoolean(value: unknown, pathPrefix: string): boolean {
     );
   }
   return value;
+}
+
+function requireNonEmptyString(value: unknown, pathPrefix: string): string {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix} must be a non-empty string.`,
+    );
+  }
+  return value;
+}
+
+function requireBoundedArray(
+  value: unknown,
+  pathPrefix: string,
+  max: number,
+): unknown[] {
+  if (!Array.isArray(value)) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix} must be an array.`,
+    );
+  }
+  if (value.length > max) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix} exceeds bound of ${max} items.`,
+    );
+  }
+  return value;
+}
+
+function requireBoundedStringArray(
+  value: unknown,
+  pathPrefix: string,
+  max: number = CONTRACT_MAX_STRING_LIST,
+): string[] {
+  const items = requireBoundedArray(value, pathPrefix, max);
+  if (items.some((item) => typeof item !== "string" || item.trim() === "")) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix} must be an array of non-empty strings.`,
+    );
+  }
+  return items as string[];
+}
+
+function requireOrderMode(
+  value: unknown,
+  pathPrefix: string,
+): "first-occurrence" | "happens-before" | "all-occurrences" {
+  if (typeof value !== "string" || !CONTRACT_ORDER_MODES.has(value)) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix} must be one of: "first-occurrence", "happens-before", "all-occurrences".`,
+    );
+  }
+  return value as "first-occurrence" | "happens-before" | "all-occurrences";
 }
 
 function parseRunSection(value: unknown): NonNullable<CheckConfig["checks"]>["run"] {
@@ -686,136 +859,602 @@ export function checkConfigHasEffect(config: CheckConfig): boolean {
 
 function contractConfigHasEffect(contract: TraceContractInput | undefined): boolean {
   if (contract === undefined) return false;
+  // scope alone is not enough — body rules (or alternatives) required
   if (sectionHasEffect(contract.run as Record<string, unknown> | undefined)) return true;
   if (sectionHasEffect(contract.tools as Record<string, unknown> | undefined)) return true;
   if (sectionHasEffect(contract.llm as Record<string, unknown> | undefined)) return true;
-  if (sectionHasEffect(contract.observations as Record<string, unknown> | undefined)) return true;
+  if (sectionHasEffect(contract.observations as Record<string, unknown> | undefined)) {
+    return true;
+  }
+  if (sectionHasEffect(contract.controls as Record<string, unknown> | undefined)) return true;
+  if (sectionHasEffect(contract.retry as Record<string, unknown> | undefined)) return true;
+  if ((contract.alternatives?.anyOf?.length ?? 0) > 0) return true;
   return false;
 }
 
-function parseContractRunSection(value: unknown): NonNullable<TraceContractInput["run"]> {
-  const record = requireObject(value, "contract.run");
-  rejectUnknownKeys(record, CONTRACT_RUN_KEYS, "contract.run");
-  const out: NonNullable<TraceContractInput["run"]> = {};
+function parseContractRunSection(
+  value: unknown,
+  pathPrefix = "contract.run",
+): NonNullable<TraceContractBody["run"]> {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_RUN_KEYS, pathPrefix);
+  const out: NonNullable<TraceContractBody["run"]> = {};
   if (record.requireCompleted !== undefined) {
-    out.requireCompleted = requireBoolean(record.requireCompleted, "contract.run.requireCompleted");
+    out.requireCompleted = requireBoolean(
+      record.requireCompleted,
+      `${pathPrefix}.requireCompleted`,
+    );
   }
   if (record.allowedStatuses !== undefined) {
-    out.allowedStatuses = requireStringArray(record.allowedStatuses, "contract.run.allowedStatuses");
+    out.allowedStatuses = requireBoundedStringArray(
+      record.allowedStatuses,
+      `${pathPrefix}.allowedStatuses`,
+    );
   }
   if (record.maxDurationMs !== undefined) {
-    out.maxDurationMs = requireNonNegativeNumber(record.maxDurationMs, "contract.run.maxDurationMs");
+    out.maxDurationMs = requireNonNegativeNumber(
+      record.maxDurationMs,
+      `${pathPrefix}.maxDurationMs`,
+    );
   }
   return out;
 }
 
-function parseContractToolsSection(value: unknown): NonNullable<TraceContractInput["tools"]> {
-  const record = requireObject(value, "contract.tools");
-  rejectUnknownKeys(record, CONTRACT_TOOLS_KEYS, "contract.tools");
-  const out: NonNullable<TraceContractInput["tools"]> = {};
-  if (record.required !== undefined) {
-    out.required = requireStringArray(record.required, "contract.tools.required");
-  }
-  if (record.requiredTools !== undefined) {
-    out.requiredTools = requireStringArray(record.requiredTools, "contract.tools.requiredTools");
-  }
-  if (record.forbidden !== undefined) {
-    out.forbidden = requireStringArray(record.forbidden, "contract.tools.forbidden");
-  }
-  if (record.forbiddenTools !== undefined) {
-    out.forbiddenTools = requireStringArray(
-      record.forbiddenTools,
-      "contract.tools.forbiddenTools",
+function parseToolArgumentCheck(value: unknown, pathPrefix: string): ToolArgumentCheck {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_ARGUMENT_KEYS, pathPrefix);
+  const tool = requireNonEmptyString(record.tool, `${pathPrefix}.tool`);
+  if (typeof record.path !== "string") {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix}.path must be a string JSON Pointer (\"\" or start with \"/\").`,
     );
   }
-  if (record.allowed !== undefined) {
-    out.allowed = requireStringArray(record.allowed, "contract.tools.allowed");
+  const pathValue = record.path;
+  if (typeof record.operator !== "string" || !CONTRACT_ARGUMENT_OPERATORS.has(record.operator)) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix}.operator must be one of: "exists", "type", "equals", "oneOf".`,
+    );
   }
-  if (record.maxCalls !== undefined) {
-    out.maxCalls = requireNonNegativeNumber(record.maxCalls, "contract.tools.maxCalls");
-  }
-  if (record.requiredOrder !== undefined) {
-    out.requiredOrder = requireStringArray(record.requiredOrder, "contract.tools.requiredOrder");
-  }
-  if (record.requiredOrderMode !== undefined) {
+  const operator = record.operator as ToolArgumentCheck["operator"];
+  const out: ToolArgumentCheck = { tool, path: pathValue, operator };
+  if (record.occurrence !== undefined) {
     if (
-      typeof record.requiredOrderMode !== "string" ||
-      !CONTRACT_ORDER_MODES.has(record.requiredOrderMode)
+      typeof record.occurrence !== "string" ||
+      !CONTRACT_ARGUMENT_OCCURRENCES.has(record.occurrence)
     ) {
       throw new CheckConfigError(
         "AI_CHECK_CONFIG_INVALID_VALUE",
-        'contract.tools.requiredOrderMode must be one of: "first-occurrence", "happens-before", "all-occurrences".',
+        `${pathPrefix}.occurrence must be one of: "first", "last", "any", "all".`,
       );
     }
-    out.requiredOrderMode = record.requiredOrderMode as
-      | "first-occurrence"
-      | "happens-before"
-      | "all-occurrences";
+    out.occurrence = record.occurrence as ToolArgumentCheck["occurrence"];
+  }
+  if (record.expected !== undefined) {
+    out.expected = record.expected;
+  }
+  if (record.oneOf !== undefined) {
+    out.oneOf = requireBoundedArray(record.oneOf, `${pathPrefix}.oneOf`, CONTRACT_MAX_ONE_OF);
+  }
+  if (record.type !== undefined) {
+    if (typeof record.type !== "string" || !CONTRACT_ARGUMENT_TYPES.has(record.type)) {
+      throw new CheckConfigError(
+        "AI_CHECK_CONFIG_INVALID_VALUE",
+        `${pathPrefix}.type must be one of: "string", "number", "boolean", "object", "array", "null".`,
+      );
+    }
+    out.type = record.type as ToolArgumentCheck["type"];
   }
   return out;
 }
 
-function parseContractLlmSection(value: unknown): NonNullable<TraceContractInput["llm"]> {
-  const record = requireObject(value, "contract.llm");
-  rejectUnknownKeys(record, CONTRACT_LLM_KEYS, "contract.llm");
-  const out: NonNullable<TraceContractInput["llm"]> = {};
+function parseOrderRule(
+  value: unknown,
+  pathPrefix: string,
+): NonNullable<NonNullable<TraceContractBody["tools"]>["orderRules"]>[number] {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_ORDER_RULE_KEYS, pathPrefix);
+  const out: NonNullable<NonNullable<TraceContractBody["tools"]>["orderRules"]>[number] = {
+    before: requireNonEmptyString(record.before, `${pathPrefix}.before`),
+    after: requireNonEmptyString(record.after, `${pathPrefix}.after`),
+  };
+  if (record.occurrenceMode !== undefined) {
+    out.occurrenceMode = requireOrderMode(record.occurrenceMode, `${pathPrefix}.occurrenceMode`);
+  }
+  if (record.requireEndpoints !== undefined) {
+    out.requireEndpoints = requireBoolean(
+      record.requireEndpoints,
+      `${pathPrefix}.requireEndpoints`,
+    );
+  }
+  return out;
+}
+
+function parseContractToolsSection(
+  value: unknown,
+  pathPrefix = "contract.tools",
+): NonNullable<TraceContractBody["tools"]> {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_TOOLS_KEYS, pathPrefix);
+  const out: NonNullable<TraceContractBody["tools"]> = {};
+  if (record.required !== undefined) {
+    out.required = requireBoundedStringArray(record.required, `${pathPrefix}.required`);
+  }
+  if (record.requiredTools !== undefined) {
+    out.requiredTools = requireBoundedStringArray(
+      record.requiredTools,
+      `${pathPrefix}.requiredTools`,
+    );
+  }
+  if (record.forbidden !== undefined) {
+    out.forbidden = requireBoundedStringArray(record.forbidden, `${pathPrefix}.forbidden`);
+  }
+  if (record.forbiddenTools !== undefined) {
+    out.forbiddenTools = requireBoundedStringArray(
+      record.forbiddenTools,
+      `${pathPrefix}.forbiddenTools`,
+    );
+  }
+  if (record.allowed !== undefined) {
+    out.allowed = requireBoundedStringArray(record.allowed, `${pathPrefix}.allowed`);
+  }
   if (record.maxCalls !== undefined) {
-    out.maxCalls = requireNonNegativeNumber(record.maxCalls, "contract.llm.maxCalls");
+    out.maxCalls = requireNonNegativeNumber(record.maxCalls, `${pathPrefix}.maxCalls`);
+  }
+  if (record.requiredOrder !== undefined) {
+    out.requiredOrder = requireBoundedStringArray(
+      record.requiredOrder,
+      `${pathPrefix}.requiredOrder`,
+    );
+  }
+  if (record.requiredOrderMode !== undefined) {
+    out.requiredOrderMode = requireOrderMode(
+      record.requiredOrderMode,
+      `${pathPrefix}.requiredOrderMode`,
+    );
+  }
+  if (record.defaultOccurrenceMode !== undefined) {
+    out.defaultOccurrenceMode = requireOrderMode(
+      record.defaultOccurrenceMode,
+      `${pathPrefix}.defaultOccurrenceMode`,
+    );
+  }
+  if (record.arguments !== undefined) {
+    const items = requireBoundedArray(
+      record.arguments,
+      `${pathPrefix}.arguments`,
+      CONTRACT_MAX_ARGUMENTS,
+    );
+    out.arguments = items.map((item, index) =>
+      parseToolArgumentCheck(item, `${pathPrefix}.arguments[${index}]`),
+    );
+  }
+  if (record.orderRules !== undefined) {
+    const items = requireBoundedArray(
+      record.orderRules,
+      `${pathPrefix}.orderRules`,
+      CONTRACT_MAX_ORDER_RULES,
+    );
+    out.orderRules = items.map((item, index) =>
+      parseOrderRule(item, `${pathPrefix}.orderRules[${index}]`),
+    );
+  }
+  return out;
+}
+
+function parseContractLlmSection(
+  value: unknown,
+  pathPrefix = "contract.llm",
+): NonNullable<TraceContractBody["llm"]> {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_LLM_KEYS, pathPrefix);
+  const out: NonNullable<TraceContractBody["llm"]> = {};
+  if (record.maxCalls !== undefined) {
+    out.maxCalls = requireNonNegativeNumber(record.maxCalls, `${pathPrefix}.maxCalls`);
   }
   if (record.maxTotalTokens !== undefined) {
     out.maxTotalTokens = requireNonNegativeNumber(
       record.maxTotalTokens,
-      "contract.llm.maxTotalTokens",
+      `${pathPrefix}.maxTotalTokens`,
     );
   }
   if (record.allowedModels !== undefined) {
-    out.allowedModels = requireStringArray(record.allowedModels, "contract.llm.allowedModels");
+    out.allowedModels = requireBoundedStringArray(
+      record.allowedModels,
+      `${pathPrefix}.allowedModels`,
+    );
+  }
+  return out;
+}
+
+function parseRequireProvenance(
+  value: unknown,
+  pathPrefix: string,
+): NonNullable<NonNullable<TraceContractBody["observations"]>["requireProvenance"]> {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_PROVENANCE_KEYS, pathPrefix);
+  const out: NonNullable<NonNullable<TraceContractBody["observations"]>["requireProvenance"]> =
+    {};
+  if (record.method !== undefined) {
+    out.method = requireBoolean(record.method, `${pathPrefix}.method`);
+  }
+  if (record.evidence !== undefined) {
+    out.evidence = requireBoolean(record.evidence, `${pathPrefix}.evidence`);
+  }
+  if (record.sameRunEventReference !== undefined) {
+    out.sameRunEventReference = requireBoolean(
+      record.sameRunEventReference,
+      `${pathPrefix}.sameRunEventReference`,
+    );
   }
   return out;
 }
 
 function parseContractObservationsSection(
   value: unknown,
-): NonNullable<TraceContractInput["observations"]> {
-  const record = requireObject(value, "contract.observations");
-  rejectUnknownKeys(record, CONTRACT_OBSERVATION_KEYS, "contract.observations");
-  const out: NonNullable<TraceContractInput["observations"]> = {};
+  pathPrefix = "contract.observations",
+): NonNullable<TraceContractBody["observations"]> {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_OBSERVATION_KEYS, pathPrefix);
+  const out: NonNullable<TraceContractBody["observations"]> = {};
   if (record.required !== undefined) {
-    out.required = requireStringArray(record.required, "contract.observations.required");
+    out.required = requireBoundedStringArray(record.required, `${pathPrefix}.required`);
   }
   if (record.failOn !== undefined) {
-    if (!Array.isArray(record.failOn) || record.failOn.some((item) => typeof item !== "string")) {
-      throw new CheckConfigError(
-        "AI_CHECK_CONFIG_INVALID_VALUE",
-        "contract.observations.failOn must be an array of strings.",
-      );
-    }
-    for (const item of record.failOn) {
-      if (!CONTRACT_FAIL_ON.has(item)) {
+    const items = requireBoundedArray(record.failOn, `${pathPrefix}.failOn`, CONTRACT_MAX_STRING_LIST);
+    for (const item of items) {
+      if (typeof item !== "string" || !CONTRACT_FAIL_ON.has(item)) {
         throw new CheckConfigError(
           "AI_CHECK_CONFIG_INVALID_VALUE",
-          'contract.observations.failOn values must be "failed", "unknown", or "skipped".',
+          `${pathPrefix}.failOn values must be "failed", "unknown", or "skipped".`,
         );
       }
     }
-    out.failOn = record.failOn as Array<"failed" | "unknown" | "skipped">;
+    out.failOn = items as Array<"failed" | "unknown" | "skipped">;
+  }
+  if (record.requireProvenance !== undefined) {
+    out.requireProvenance = parseRequireProvenance(
+      record.requireProvenance,
+      `${pathPrefix}.requireProvenance`,
+    );
+  }
+  return out;
+}
+
+function parseControlRequiredStage(
+  value: unknown,
+  pathPrefix: string,
+): NonNullable<TraceContractControlRules["requiredStages"]>[number] {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_CONTROL_STAGE_KEYS, pathPrefix);
+  if (typeof record.stage !== "string" || !CONTRACT_CONTROL_STAGES.has(record.stage)) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix}.stage must be one of: declared, presented, validated, enforced, observed, accepted.`,
+    );
+  }
+  const out: NonNullable<TraceContractControlRules["requiredStages"]>[number] = {
+    stage: record.stage as ControlStage,
+  };
+  if (record.observation !== undefined) {
+    out.observation = requireNonEmptyString(record.observation, `${pathPrefix}.observation`);
+  }
+  return out;
+}
+
+function parseContractControlsSection(
+  value: unknown,
+  pathPrefix = "contract.controls",
+): TraceContractControlRules {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_CONTROLS_KEYS, pathPrefix);
+  const out: TraceContractControlRules = {};
+  if (record.declaredTools !== undefined) {
+    out.declaredTools = requireBoundedStringArray(
+      record.declaredTools,
+      `${pathPrefix}.declaredTools`,
+    );
+  }
+  if (record.enforcedTools !== undefined) {
+    out.enforcedTools = requireBoundedStringArray(
+      record.enforcedTools,
+      `${pathPrefix}.enforcedTools`,
+    );
+  }
+  if (record.declaredToolsAttribute !== undefined) {
+    out.declaredToolsAttribute = requireNonEmptyString(
+      record.declaredToolsAttribute,
+      `${pathPrefix}.declaredToolsAttribute`,
+    );
+  }
+  if (record.enforcedToolsAttribute !== undefined) {
+    out.enforcedToolsAttribute = requireNonEmptyString(
+      record.enforcedToolsAttribute,
+      `${pathPrefix}.enforcedToolsAttribute`,
+    );
+  }
+  if (record.requireDeclaredMatchesEnforced !== undefined) {
+    out.requireDeclaredMatchesEnforced = requireBoolean(
+      record.requireDeclaredMatchesEnforced,
+      `${pathPrefix}.requireDeclaredMatchesEnforced`,
+    );
+  }
+  if (record.requireObservedWithinEnforced !== undefined) {
+    out.requireObservedWithinEnforced = requireBoolean(
+      record.requireObservedWithinEnforced,
+      `${pathPrefix}.requireObservedWithinEnforced`,
+    );
+  }
+  if (record.requireObservedWithinDeclared !== undefined) {
+    out.requireObservedWithinDeclared = requireBoolean(
+      record.requireObservedWithinDeclared,
+      `${pathPrefix}.requireObservedWithinDeclared`,
+    );
+  }
+  if (record.requiredStages !== undefined) {
+    const items = requireBoundedArray(
+      record.requiredStages,
+      `${pathPrefix}.requiredStages`,
+      CONTRACT_MAX_REQUIRED_STAGES,
+    );
+    out.requiredStages = items.map((item, index) =>
+      parseControlRequiredStage(item, `${pathPrefix}.requiredStages[${index}]`),
+    );
+  }
+  return out;
+}
+
+function parseRecoveryOperation(
+  value: unknown,
+  pathPrefix: string,
+): TraceContractRecoveryOperation {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_OPERATION_KEYS, pathPrefix);
+  const out: TraceContractRecoveryOperation = {
+    tool: requireNonEmptyString(record.tool, `${pathPrefix}.tool`),
+  };
+  if (record.maxAttempts !== undefined) {
+    out.maxAttempts = requireNonNegativeNumber(record.maxAttempts, `${pathPrefix}.maxAttempts`);
+  }
+  if (record.retryableErrors !== undefined) {
+    const errors = requireObject(record.retryableErrors, `${pathPrefix}.retryableErrors`);
+    rejectUnknownKeys(errors, CONTRACT_RETRYABLE_ERRORS_KEYS, `${pathPrefix}.retryableErrors`);
+    const retryableErrors: NonNullable<TraceContractRecoveryOperation["retryableErrors"]> = {};
+    if (errors.codes !== undefined) {
+      retryableErrors.codes = requireBoundedStringArray(
+        errors.codes,
+        `${pathPrefix}.retryableErrors.codes`,
+      );
+    }
+    out.retryableErrors = retryableErrors;
+  }
+  if (record.requireFailureBeforeRetry !== undefined) {
+    out.requireFailureBeforeRetry = requireBoolean(
+      record.requireFailureBeforeRetry,
+      `${pathPrefix}.requireFailureBeforeRetry`,
+    );
+  }
+  if (record.requireSameArguments !== undefined) {
+    if (record.requireSameArguments === true || record.requireSameArguments === false) {
+      out.requireSameArguments = record.requireSameArguments;
+    } else if (record.requireSameArguments === "structured-or-digest") {
+      out.requireSameArguments = "structured-or-digest";
+    } else {
+      throw new CheckConfigError(
+        "AI_CHECK_CONFIG_INVALID_VALUE",
+        `${pathPrefix}.requireSameArguments must be a boolean or "structured-or-digest".`,
+      );
+    }
+  }
+  if (record.requireTerminalSuccess !== undefined) {
+    out.requireTerminalSuccess = requireBoolean(
+      record.requireTerminalSuccess,
+      `${pathPrefix}.requireTerminalSuccess`,
+    );
+  }
+  if (record.requireRecoveredFailureVisible !== undefined) {
+    out.requireRecoveredFailureVisible = requireBoolean(
+      record.requireRecoveredFailureVisible,
+      `${pathPrefix}.requireRecoveredFailureVisible`,
+    );
+  }
+  if (record.successfulResultDependency !== undefined) {
+    const dep = requireObject(
+      record.successfulResultDependency,
+      `${pathPrefix}.successfulResultDependency`,
+    );
+    rejectUnknownKeys(dep, CONTRACT_RESULT_DEP_KEYS, `${pathPrefix}.successfulResultDependency`);
+    if (dep.consumerKind !== "LLM") {
+      throw new CheckConfigError(
+        "AI_CHECK_CONFIG_INVALID_VALUE",
+        `${pathPrefix}.successfulResultDependency.consumerKind must be "LLM".`,
+      );
+    }
+    const dependency: NonNullable<
+      TraceContractRecoveryOperation["successfulResultDependency"]
+    > = { consumerKind: "LLM" };
+    if (dep.requireExplicitReference !== undefined) {
+      dependency.requireExplicitReference = requireBoolean(
+        dep.requireExplicitReference,
+        `${pathPrefix}.successfulResultDependency.requireExplicitReference`,
+      );
+    }
+    out.successfulResultDependency = dependency;
+  }
+  if (record.sideEffectClass !== undefined) {
+    if (
+      typeof record.sideEffectClass !== "string" ||
+      !CONTRACT_SIDE_EFFECT_CLASSES.has(record.sideEffectClass)
+    ) {
+      throw new CheckConfigError(
+        "AI_CHECK_CONFIG_INVALID_VALUE",
+        `${pathPrefix}.sideEffectClass must be "read" or "write".`,
+      );
+    }
+    out.sideEffectClass = record.sideEffectClass as "read" | "write";
+  }
+  return out;
+}
+
+function parseContractRetrySection(
+  value: unknown,
+  pathPrefix = "contract.retry",
+): TraceContractRetryRules {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_RETRY_KEYS, pathPrefix);
+  const out: TraceContractRetryRules = {};
+  if (record.maxAttempts !== undefined) {
+    out.maxAttempts = requireNonNegativeNumber(record.maxAttempts, `${pathPrefix}.maxAttempts`);
+  }
+  if (record.requireTerminalResult !== undefined) {
+    out.requireTerminalResult = requireBoolean(
+      record.requireTerminalResult,
+      `${pathPrefix}.requireTerminalResult`,
+    );
+  }
+  if (record.fallbackOnlyAfterFailure !== undefined) {
+    out.fallbackOnlyAfterFailure = requireBoolean(
+      record.fallbackOnlyAfterFailure,
+      `${pathPrefix}.fallbackOnlyAfterFailure`,
+    );
+  }
+  if (record.nonIdempotentTools !== undefined) {
+    out.nonIdempotentTools = requireBoundedStringArray(
+      record.nonIdempotentTools,
+      `${pathPrefix}.nonIdempotentTools`,
+    );
+  }
+  if (record.requireIdempotencyEvidenceForRetry !== undefined) {
+    out.requireIdempotencyEvidenceForRetry = requireBoolean(
+      record.requireIdempotencyEvidenceForRetry,
+      `${pathPrefix}.requireIdempotencyEvidenceForRetry`,
+    );
+  }
+  if (record.requireRecoveredFailureVisible !== undefined) {
+    out.requireRecoveredFailureVisible = requireBoolean(
+      record.requireRecoveredFailureVisible,
+      `${pathPrefix}.requireRecoveredFailureVisible`,
+    );
+  }
+  if (record.operations !== undefined) {
+    const items = requireBoundedArray(
+      record.operations,
+      `${pathPrefix}.operations`,
+      CONTRACT_MAX_OPERATIONS,
+    );
+    out.operations = items.map((item, index) =>
+      parseRecoveryOperation(item, `${pathPrefix}.operations[${index}]`),
+    );
+  }
+  return out;
+}
+
+function parseContractScopeSection(value: unknown): TraceContractScope {
+  const record = requireObject(value, "contract.scope");
+  rejectUnknownKeys(record, CONTRACT_SCOPE_KEYS, "contract.scope");
+  const out: TraceContractScope = {};
+  if (record.runId !== undefined) {
+    out.runId = requireNonEmptyString(record.runId, "contract.scope.runId");
+  }
+  if (record.subAgentId !== undefined) {
+    out.subAgentId = requireNonEmptyString(record.subAgentId, "contract.scope.subAgentId");
+  }
+  if (record.groupId !== undefined) {
+    out.groupId = requireNonEmptyString(record.groupId, "contract.scope.groupId");
+  }
+  if (record.workflowStep !== undefined) {
+    out.workflowStep = requireNonEmptyString(
+      record.workflowStep,
+      "contract.scope.workflowStep",
+    );
+  }
+  if (record.rootEventId !== undefined) {
+    out.rootEventId = requireNonEmptyString(record.rootEventId, "contract.scope.rootEventId");
   }
   return out;
 }
 
 /**
- * Strict parser for top-level TraceContract JSON (slice A: basic vocabulary).
- * Rejects deferred keys (scope/alternatives/controls/retry/arguments) until later slices.
+ * Parse a contract body (run/tools/llm/observations/controls/retry).
+ * Rejects nested `alternatives` as an unknown key.
+ */
+function parseContractBodySection(value: unknown, pathPrefix: string): TraceContractBody {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_BODY_KEYS, pathPrefix);
+  const out: TraceContractBody = {};
+  if (record.run !== undefined) out.run = parseContractRunSection(record.run, `${pathPrefix}.run`);
+  if (record.tools !== undefined) {
+    out.tools = parseContractToolsSection(record.tools, `${pathPrefix}.tools`);
+  }
+  if (record.llm !== undefined) out.llm = parseContractLlmSection(record.llm, `${pathPrefix}.llm`);
+  if (record.observations !== undefined) {
+    out.observations = parseContractObservationsSection(
+      record.observations,
+      `${pathPrefix}.observations`,
+    );
+  }
+  if (record.controls !== undefined) {
+    out.controls = parseContractControlsSection(record.controls, `${pathPrefix}.controls`);
+  }
+  if (record.retry !== undefined) {
+    out.retry = parseContractRetrySection(record.retry, `${pathPrefix}.retry`);
+  }
+  return out;
+}
+
+function parseContractAlternativesSection(value: unknown): TraceContractAlternatives {
+  const record = requireObject(value, "contract.alternatives");
+  rejectUnknownKeys(record, CONTRACT_ALT_KEYS, "contract.alternatives");
+  if (record.anyOf === undefined) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      "contract.alternatives.anyOf is required.",
+    );
+  }
+  const items = requireBoundedArray(
+    record.anyOf,
+    "contract.alternatives.anyOf",
+    CONTRACT_MAX_ANY_OF,
+  );
+  const anyOf = items.map((item, index) => {
+    const pathPrefix = `contract.alternatives.anyOf[${index}]`;
+    const branch = requireObject(item, pathPrefix);
+    rejectUnknownKeys(branch, CONTRACT_ALT_BRANCH_KEYS, pathPrefix);
+    const id = requireNonEmptyString(branch.id, `${pathPrefix}.id`);
+    if (branch.contract === undefined) {
+      throw new CheckConfigError(
+        "AI_CHECK_CONFIG_INVALID_VALUE",
+        `${pathPrefix}.contract is required.`,
+      );
+    }
+    const out: TraceContractAlternatives["anyOf"][number] = {
+      id,
+      contract: parseContractBodySection(branch.contract, `${pathPrefix}.contract`),
+    };
+    if (branch.description !== undefined) {
+      out.description = requireNonEmptyString(branch.description, `${pathPrefix}.description`);
+    }
+    return out;
+  });
+  return { anyOf };
+}
+
+/**
+ * Strict parser for top-level TraceContract JSON (slice B: deferred keys).
+ * Rejects unknown nested keys; bounds list sizes; no nested alternatives.
  */
 function parseContractSection(value: unknown): TraceContractInput {
   const record = requireObject(value, "contract");
   rejectUnknownKeys(record, CONTRACT_KEYS, "contract");
-  const out: TraceContractInput = {};
-  if (record.run !== undefined) out.run = parseContractRunSection(record.run);
-  if (record.tools !== undefined) out.tools = parseContractToolsSection(record.tools);
-  if (record.llm !== undefined) out.llm = parseContractLlmSection(record.llm);
-  if (record.observations !== undefined) {
-    out.observations = parseContractObservationsSection(record.observations);
+  const bodyOnly: Record<string, unknown> = {};
+  for (const key of Object.keys(record)) {
+    if (CONTRACT_BODY_KEYS.has(key)) bodyOnly[key] = record[key];
+  }
+  const out: TraceContractInput = { ...parseContractBodySection(bodyOnly, "contract") };
+  if (record.scope !== undefined) out.scope = parseContractScopeSection(record.scope);
+  if (record.alternatives !== undefined) {
+    out.alternatives = parseContractAlternativesSection(record.alternatives);
   }
   return out;
 }
