@@ -165,6 +165,76 @@ describe("check command", () => {
     expect(
       checkConfigHasEffect({ contract: { retry: { maxAttempts: 2 } } }),
     ).toBe(true);
+    expect(
+      checkConfigHasEffect({
+        contract: {
+          steps: {
+            orderRelations: [
+              {
+                before: { kind: "TOOL", name: "retrieve_policy" },
+                after: { kind: "LLM", name: "generate_answer" },
+              },
+            ],
+          },
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it("parses contract.steps.orderRelations and rejects unknown step keys", () => {
+    expect(
+      parseCheckConfig({
+        contract: {
+          steps: {
+            orderRelations: [
+              {
+                before: { kind: "TOOL", name: "retrieve_policy" },
+                after: { kind: "LLM", name: "generate_answer" },
+                mode: "happens-before",
+                requireEndpoints: true,
+              },
+            ],
+          },
+        },
+      }),
+    ).toEqual({
+      contract: {
+        steps: {
+          orderRelations: [
+            {
+              before: { kind: "TOOL", name: "retrieve_policy" },
+              after: { kind: "LLM", name: "generate_answer" },
+              mode: "happens-before",
+              requireEndpoints: true,
+            },
+          ],
+        },
+      },
+    });
+    expect(() =>
+      parseCheckConfig({
+        contract: {
+          steps: {
+            orderRelations: [
+              {
+                before: { kind: "TOOL", name: "a" },
+                after: { kind: "LLM", name: "b" },
+                occurrenceMode: "first-occurrence",
+              },
+            ],
+          },
+        },
+      }),
+    ).toThrow(/Unknown check config key "contract\.steps\.orderRelations\[0\]\.occurrenceMode"/);
+    expect(() =>
+      parseCheckConfig({
+        contract: {
+          steps: {
+            orderRelations: [{ before: { kind: "LOGIC", name: "x" }, after: { kind: "LLM", name: "y" } }],
+          },
+        },
+      }),
+    ).toThrow(/kind must be "TOOL" or "LLM"/);
   });
 
   it("parses contract scope, alternatives, and rejects nested/unknown keys", () => {

@@ -10,6 +10,7 @@ import {
   createObservedOutcomeRule,
   createRunDurationRule,
   createRunStatusRule,
+  createStepOrderingRule,
   createStructureIncompleteRule,
   createToolOrderingRule,
   createToolUsageRule,
@@ -174,6 +175,59 @@ export interface TraceContractLlmRules {
 }
 
 /**
+ * Explicit TOOL or LLM step endpoint for typed cross-kind ordering.
+ *
+ * @experimental Additive in 6.31.
+ */
+export type TraceContractStepKind = "TOOL" | "LLM";
+
+/**
+ * Named step endpoint with an explicit event kind.
+ *
+ * @experimental Additive in 6.31.
+ */
+export interface TraceContractStepRef {
+  kind: TraceContractStepKind;
+  name: string;
+}
+
+/**
+ * One typed before/after ordering relation across TOOL and/or LLM steps.
+ *
+ * Unlike `tools.requiredOrder` / `orderRules`, endpoints are kind-qualified so
+ * an LLM named `generate_answer` does not satisfy a TOOL endpoint (and vice versa).
+ *
+ * @experimental Additive in 6.31.
+ */
+export interface TraceContractStepOrderRelation {
+  before: TraceContractStepRef;
+  after: TraceContractStepRef;
+  /**
+   * Ordering semantics for this pair.
+   *
+   * @defaultValue `"first-occurrence"`
+   */
+  mode?: "first-occurrence" | "happens-before" | "all-occurrences";
+  /**
+   * When true (default), missing endpoints of the declared kind fail.
+   * Wrong-kind same-name events do not satisfy the endpoint.
+   *
+   * @defaultValue `true`
+   */
+  requireEndpoints?: boolean;
+}
+
+/**
+ * Cross-kind step ordering (TOOL ↔ LLM). Does not change TOOL-only
+ * `tools.requiredOrder` / `orderRules` semantics.
+ *
+ * @experimental Additive in 6.31.
+ */
+export interface TraceContractStepRules {
+  orderRelations?: TraceContractStepOrderRelation[];
+}
+
+/**
  * Structural provenance requirements for named observed outcomes (#321).
  *
  * These checks prove method/evidence linkage was recorded. They do **not**
@@ -237,6 +291,12 @@ export type TraceContractBody = {
   run?: TraceContractRunRules;
   tools?: TraceContractToolRules;
   llm?: TraceContractLlmRules;
+  /**
+   * Typed cross-kind step ordering (TOOL / LLM endpoints).
+   *
+   * @experimental Additive in 6.31.
+   */
+  steps?: TraceContractStepRules;
   observations?: TraceContractObservationRules;
   /**
    * Declared-versus-enforced control invariants.
@@ -307,6 +367,21 @@ function cloneBody(body: TraceContractBody): TraceContractBody {
         }
       : {}),
     ...(body.llm ? { llm: { ...body.llm } } : {}),
+    ...(body.steps
+      ? {
+          steps: {
+            ...(body.steps.orderRelations
+              ? {
+                  orderRelations: body.steps.orderRelations.map((item) => ({
+                    ...item,
+                    before: { ...item.before },
+                    after: { ...item.after },
+                  })),
+                }
+              : {}),
+          },
+        }
+      : {}),
     ...(body.observations
       ? {
           observations: {
@@ -375,6 +450,7 @@ function bodyHasRules(body: TraceContractBody): boolean {
     body.run !== undefined ||
     body.tools !== undefined ||
     body.llm !== undefined ||
+    body.steps !== undefined ||
     body.observations !== undefined ||
     body.controls !== undefined ||
     body.retry !== undefined
@@ -753,6 +829,19 @@ function contractToRules(contract: TraceContractBody): TraceCheckRule[] {
           ? { maxTotalTokens: contract.llm.maxTotalTokens }
           : {}),
         ...(contract.llm.allowedModels ? { allowedModels: contract.llm.allowedModels } : {}),
+      }),
+    );
+  }
+
+  const orderRelations = contract.steps?.orderRelations ?? [];
+  for (const [index, relation] of orderRelations.entries()) {
+    rules.push(
+      createStepOrderingRule({
+        before: { kind: relation.before.kind, name: relation.before.name },
+        after: { kind: relation.after.kind, name: relation.after.name },
+        id: `contract.step.orderRelation.${index}`,
+        mode: relation.mode ?? "first-occurrence",
+        requireEndpoints: relation.requireEndpoints !== false,
       }),
     );
   }
@@ -1433,6 +1522,17 @@ export function explainTraceContract(contract: TraceContract): string[] {
     if (contract.llm.allowedModels?.length) {
       lines.push(`Base: LLM allowedModels [${contract.llm.allowedModels.join(", ")}].`);
     }
+  }
+  if ((contract.steps?.orderRelations?.length ?? 0) > 0) {
+    const relations = contract.steps!.orderRelations!;
+    const summary = relations
+      .map(
+        (relation) =>
+          `${relation.before.kind}:${relation.before.name} → ${relation.after.kind}:${relation.after.name}` +
+          ` mode=${relation.mode ?? "first-occurrence"}`,
+      )
+      .join("; ");
+    lines.push(`Base: ${relations.length} steps.orderRelations [${summary}].`);
   }
   if (contract.observations?.required?.length) {
     lines.push(`Base: required observations [${contract.observations.required.join(", ")}].`);

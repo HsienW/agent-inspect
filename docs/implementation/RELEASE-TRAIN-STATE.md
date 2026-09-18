@@ -7,16 +7,16 @@
 ```yaml
 baselineVersion: "6.30.0"
 publishedVersion: "6.30.0"
-pendingPublishVersion: "6.30.0"
+pendingPublishVersion: "6.31.0"
 currentTrain: "post-6294-correctness"
-trainStatus: "implement-6300"
+trainStatus: "implement-6310-done"
 executionMode: "maintainer-reviewed"
 namedTrain: "post-6294-correctness-v6.29.5-to-v6.32"
 branch: "main"
-currentChunk: "6.30.0-B-cli-contract-rich done; next 6.30.0-C"
-lastConfirmedCommit: "7b19683d"
-lastValidationLevel: "pnpm exec vitest run packages/cli/test/check.test.ts (37 passed)"
-nextAction: "6.30.0-C Evidence binding + docs; then PREPARE RELEASE"
+currentChunk: "6.31.0 typed cross-kind step ordering done"
+lastConfirmedCommit: pending-push
+lastValidationLevel: "pnpm exec vitest run packages/core/test/checks/contract.test.ts packages/cli/test/check.test.ts (61 passed)"
+nextAction: "PREPARE RELEASE 6.31.0 (Version Packages + Trusted Publish)"
 pendingManualGate: "6.32.0 partner evidence; #422 factual review"
 githubIssues:
   "209": "keep open — cross-platform packed-consumer matrix PARTIAL"
@@ -25,8 +25,8 @@ activePlan: "docs/implementation/active/NEXT-RELEASES.md"
 completedChunks:
   - "6.29.5 trustworthy checks + Trusted Publish"
   - "6.29.6 safe sharing + integration + Trusted Publish (#427)"
-  - "6.30.0-A cli contract basic"
-  - "6.30.0-B cli contract rich fields"
+  - "6.30.0 rich CLI TraceContracts + Trusted Publish"
+  - "6.31.0 typed cross-kind step ordering"
 blockedTrains:
   - "6.32.0 external conformance (BLOCKED_ON_EXTERNAL_EVIDENCE)"
   - "v7.0.0 (assessment only — V7_DECISION: NO-GO)"
@@ -37,8 +37,8 @@ worktreeIgnoreOnly:
   - ".redstamp/"
   - "redstamp-proposal-issue-body.md"
 stopMarker: |
-  LAST_PUBLISHED_RELEASE: 6.29.6
-  ACTIVE: 6.30.0 rich CLI TraceContracts
+  LAST_PUBLISHED_RELEASE: 6.30.0
+  ACTIVE: PREPARE RELEASE 6.31.0
   V7_DECISION: NO-GO
   EVIDENCE_GATE: not approved
 updatedAt: "2026-09-18"

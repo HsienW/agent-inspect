@@ -12,6 +12,7 @@ Contracts compile to deterministic check rules for common cases:
 - tool required / forbidden / allowed / maxCalls / order (`requiredTools` / `forbiddenTools` aliases)
 - selectable `requiredOrderMode` (`first-occurrence` | `happens-before` | `all-occurrences`)
 - additive `tools.orderRules` with per-rule occurrence modes
+- typed cross-kind `steps.orderRelations` (TOOL ↔ LLM endpoints; additive in 6.31)
 - bounded `tools.arguments` JSON Pointer checks (`exists` | `type` | `equals` | `oneOf`)
 - `controls` declared-versus-enforced invariants
 - `retry` / side-effect safety using explicit attempt identity (additive `retry.operations[]` recovery oracles in 6.27)
@@ -60,6 +61,30 @@ Low-level `createToolOrderingRule({ before, after })` alone may still pass when 
 For overlapping first calls, omitted / `first-occurrence` warns while `happens-before` fails.
 
 Immediate or positional `all-pairs` matching is not implemented.
+
+## `steps.orderRelations` (shipped — experimental, 6.31)
+
+Typed before/after relations with explicit `kind: "TOOL" | "LLM"` endpoints. Use this when a TOOL must precede an LLM (or vice versa). It does **not** change TOOL-only `tools.requiredOrder` / `orderRules` semantics.
+
+```ts
+defineTraceContract({
+  steps: {
+    orderRelations: [
+      {
+        before: { kind: "TOOL", name: "retrieve_policy" },
+        after: { kind: "LLM", name: "generate_answer" },
+        // mode?: "first-occurrence" | "happens-before" | "all-occurrences"
+        // requireEndpoints?: boolean // default true
+      },
+    ],
+  },
+});
+```
+
+- Default `mode` is `first-occurrence` (same three modes as tool order).
+- Default `requireEndpoints: true` — missing kind+name fails; a same display name under the other kind does **not** satisfy the endpoint.
+- LLM names match finished LLM events after stripping common prefixes (`llm:`, `generation:`, …).
+- Low-level `createStepOrderingRule` is compositional when `requireEndpoints` is omitted/false.
 
 ### Experimental Vitest / Jest matchers (shipped)
 

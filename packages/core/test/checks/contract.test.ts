@@ -293,6 +293,104 @@ describe("trace contract", () => {
       }
     });
 
+    it("still treats requiredOrder endpoints as TOOL-only when an LLM shares the name", () => {
+      const llmGenerate = persisted("llm-generate", {
+        kind: "LLM",
+        name: "llm:generate",
+        timestamp: "2026-07-11T00:00:02.000Z",
+        startedAt: "2026-07-11T00:00:02.000Z",
+        endedAt: "2026-07-11T00:00:03.000Z",
+      });
+      const result = evaluateTraceContract(
+        { read: readResult("ok", [retrieve1, llmGenerate]) },
+        defineTraceContract({
+          tools: { requiredOrder: ["retrieve", "generate"] },
+        }),
+      );
+      expect(result.status).toBe("fail");
+      expect(failFindings(result).map((finding) => finding.ruleId)).toContain("tool.usage");
+      expect(failFindings(result).some((finding) => finding.message.includes("non-TOOL"))).toBe(
+        true,
+      );
+    });
+  });
+
+  describe("steps.orderRelations cross-kind ordering", () => {
+    const retrievePolicy = tool(
+      "tool-retrieve",
+      "retrieve_policy",
+      "2026-07-11T00:00:00.000Z",
+      "2026-07-11T00:00:01.000Z",
+    );
+    const generateAnswer = persisted("llm-generate", {
+      kind: "LLM",
+      name: "llm:generate_answer",
+      timestamp: "2026-07-11T00:00:02.000Z",
+      startedAt: "2026-07-11T00:00:02.000Z",
+      endedAt: "2026-07-11T00:00:03.000Z",
+    });
+    const relation = {
+      before: { kind: "TOOL" as const, name: "retrieve_policy" },
+      after: { kind: "LLM" as const, name: "generate_answer" },
+    };
+
+    it("passes when TOOL retrieve_policy appears before LLM generate_answer", () => {
+      const result = evaluateTraceContract(
+        { read: readResult("ok", [retrievePolicy, generateAnswer]) },
+        defineTraceContract({ steps: { orderRelations: [relation] } }),
+      );
+      expect(result.status).toBe("pass");
+      expect(failFindings(result)).toHaveLength(0);
+    });
+
+    it("fails when the LLM appears before the TOOL", () => {
+      const result = evaluateTraceContract(
+        { read: readResult("ok", [generateAnswer, retrievePolicy]) },
+        defineTraceContract({ steps: { orderRelations: [relation] } }),
+      );
+      expect(result.status).toBe("fail");
+      expect(failFindings(result)).toEqual([
+        expect.objectContaining({
+          ruleId: "contract.step.orderRelation.0",
+          message: expect.stringContaining("must appear before"),
+        }),
+      ]);
+    });
+
+    it("fails when requireEndpoints and the name exists only under the wrong kind", () => {
+      const toolNamedGenerate = tool(
+        "tool-generate",
+        "generate_answer",
+        "2026-07-11T00:00:02.000Z",
+        "2026-07-11T00:00:03.000Z",
+      );
+      const result = evaluateTraceContract(
+        { read: readResult("ok", [retrievePolicy, toolNamedGenerate]) },
+        defineTraceContract({ steps: { orderRelations: [relation] } }),
+      );
+      expect(result.status).toBe("fail");
+      const failed = failFindings(result);
+      expect(failed.map((finding) => finding.ruleId)).toContain("contract.step.orderRelation.0");
+      expect(failed.some((finding) => finding.message.includes("LLM generate_answer"))).toBe(true);
+      expect(failed.some((finding) => finding.message.includes("non-LLM"))).toBe(true);
+    });
+
+    it("fails when a required endpoint is missing", () => {
+      const result = evaluateTraceContract(
+        { read: readResult("ok", [retrievePolicy]) },
+        defineTraceContract({ steps: { orderRelations: [relation] } }),
+      );
+      expect(result.status).toBe("fail");
+      expect(failFindings(result)).toEqual([
+        expect.objectContaining({
+          ruleId: "contract.step.orderRelation.0",
+          message: expect.stringContaining("LLM generate_answer"),
+        }),
+      ]);
+    });
+  });
+
+  describe("tools.requiredOrder adjacent pairs", () => {
     it("applies all-occurrences mode independently to every adjacent pair", () => {
       const a1 = tool(
         "a-1",

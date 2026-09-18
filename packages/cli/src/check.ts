@@ -404,6 +404,7 @@ const CONTRACT_KEYS = new Set([
   "run",
   "tools",
   "llm",
+  "steps",
   "observations",
   "scope",
   "alternatives",
@@ -415,6 +416,7 @@ const CONTRACT_BODY_KEYS = new Set([
   "run",
   "tools",
   "llm",
+  "steps",
   "observations",
   "controls",
   "retry",
@@ -492,6 +494,15 @@ const CONTRACT_ORDER_RULE_KEYS = new Set([
   "occurrenceMode",
   "requireEndpoints",
 ]);
+const CONTRACT_STEPS_KEYS = new Set(["orderRelations"]);
+const CONTRACT_STEP_ORDER_RELATION_KEYS = new Set([
+  "before",
+  "after",
+  "mode",
+  "requireEndpoints",
+]);
+const CONTRACT_STEP_REF_KEYS = new Set(["kind", "name"]);
+const CONTRACT_STEP_KINDS = new Set(["TOOL", "LLM"]);
 const CONTRACT_ARGUMENT_KEYS = new Set([
   "tool",
   "path",
@@ -864,6 +875,7 @@ function contractConfigHasEffect(contract: TraceContractInput | undefined): bool
   if (sectionHasEffect(contract.run as Record<string, unknown> | undefined)) return true;
   if (sectionHasEffect(contract.tools as Record<string, unknown> | undefined)) return true;
   if (sectionHasEffect(contract.llm as Record<string, unknown> | undefined)) return true;
+  if (sectionHasEffect(contract.steps as Record<string, unknown> | undefined)) return true;
   if (sectionHasEffect(contract.observations as Record<string, unknown> | undefined)) {
     return true;
   }
@@ -1064,6 +1076,78 @@ function parseContractLlmSection(
     out.allowedModels = requireBoundedStringArray(
       record.allowedModels,
       `${pathPrefix}.allowedModels`,
+    );
+  }
+  return out;
+}
+
+function parseStepRef(
+  value: unknown,
+  pathPrefix: string,
+): NonNullable<NonNullable<TraceContractBody["steps"]>["orderRelations"]>[number]["before"] {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_STEP_REF_KEYS, pathPrefix);
+  if (typeof record.kind !== "string" || !CONTRACT_STEP_KINDS.has(record.kind)) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix}.kind must be "TOOL" or "LLM".`,
+    );
+  }
+  return {
+    kind: record.kind as "TOOL" | "LLM",
+    name: requireNonEmptyString(record.name, `${pathPrefix}.name`),
+  };
+}
+
+function parseStepOrderRelation(
+  value: unknown,
+  pathPrefix: string,
+): NonNullable<NonNullable<TraceContractBody["steps"]>["orderRelations"]>[number] {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_STEP_ORDER_RELATION_KEYS, pathPrefix);
+  if (record.before === undefined) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix}.before is required.`,
+    );
+  }
+  if (record.after === undefined) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      `${pathPrefix}.after is required.`,
+    );
+  }
+  const out: NonNullable<NonNullable<TraceContractBody["steps"]>["orderRelations"]>[number] = {
+    before: parseStepRef(record.before, `${pathPrefix}.before`),
+    after: parseStepRef(record.after, `${pathPrefix}.after`),
+  };
+  if (record.mode !== undefined) {
+    out.mode = requireOrderMode(record.mode, `${pathPrefix}.mode`);
+  }
+  if (record.requireEndpoints !== undefined) {
+    out.requireEndpoints = requireBoolean(
+      record.requireEndpoints,
+      `${pathPrefix}.requireEndpoints`,
+    );
+  }
+  return out;
+}
+
+function parseContractStepsSection(
+  value: unknown,
+  pathPrefix = "contract.steps",
+): NonNullable<TraceContractBody["steps"]> {
+  const record = requireObject(value, pathPrefix);
+  rejectUnknownKeys(record, CONTRACT_STEPS_KEYS, pathPrefix);
+  const out: NonNullable<TraceContractBody["steps"]> = {};
+  if (record.orderRelations !== undefined) {
+    const items = requireBoundedArray(
+      record.orderRelations,
+      `${pathPrefix}.orderRelations`,
+      CONTRACT_MAX_ORDER_RULES,
+    );
+    out.orderRelations = items.map((item, index) =>
+      parseStepOrderRelation(item, `${pathPrefix}.orderRelations[${index}]`),
     );
   }
   return out;
@@ -1389,6 +1473,9 @@ function parseContractBodySection(value: unknown, pathPrefix: string): TraceCont
     out.tools = parseContractToolsSection(record.tools, `${pathPrefix}.tools`);
   }
   if (record.llm !== undefined) out.llm = parseContractLlmSection(record.llm, `${pathPrefix}.llm`);
+  if (record.steps !== undefined) {
+    out.steps = parseContractStepsSection(record.steps, `${pathPrefix}.steps`);
+  }
   if (record.observations !== undefined) {
     out.observations = parseContractObservationsSection(
       record.observations,

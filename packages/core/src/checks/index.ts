@@ -363,6 +363,51 @@ export interface ToolUsageRuleOptions {
   maxCount?: number;
 }
 
+/** Kind-aware endpoint for typed step ordering (TOOL / LLM). */
+export type StepOrderingKind = "TOOL" | "LLM";
+
+/**
+ * Named step endpoint with an explicit event kind.
+ *
+ * @experimental Available through `agent-inspect/checks`.
+ */
+export interface StepOrderingEndpoint {
+  kind: StepOrderingKind;
+  name: string;
+}
+
+/**
+ * Experimental options for kind-aware step ordering (cross-kind TOOL↔LLM).
+ *
+ * @experimental Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
+ */
+export interface StepOrderingRuleOptions {
+  before: StepOrderingEndpoint;
+  after: StepOrderingEndpoint;
+  /**
+   * Explicit rule id. Defaults to `step.order`. TraceContract-generated
+   * relations use unique ids such as `contract.step.orderRelation.0`.
+   */
+  id?: string;
+  /**
+   * Ordering semantics. `first-occurrence` preserves first-occurrence encounter
+   * ordering, `happens-before` requires the first before event to finish before
+   * the first after event starts, and `all-occurrences` applies that causal
+   * boundary to every matching occurrence.
+   *
+   * @defaultValue `"first-occurrence"`
+   */
+  mode?: "first-occurrence" | "happens-before" | "all-occurrences";
+  /**
+   * When true, missing endpoints of the declared kind fail (instead of
+   * vacuously passing). Wrong-kind same-name events do not satisfy the
+   * endpoint.
+   *
+   * @defaultValue `false` (compositional low-level default)
+   */
+  requireEndpoints?: boolean;
+}
+
 /**
  * Experimental options for the built-in tool ordering rule.
  *
@@ -1107,6 +1152,50 @@ function toolName(event: PersistedInspectEvent): string {
 }
 
 /**
+ * Canonical display name for a finished TOOL or LLM step endpoint.
+ * TOOL uses {@link resolveCanonicalToolName}; LLM strips common name prefixes.
+ */
+function stepEndpointName(event: PersistedInspectEvent, kind: StepOrderingKind): string {
+  if (kind === "TOOL") return resolveCanonicalToolName(event);
+  for (const prefix of ["llm:", "generation:", "transcription:", "speech:"] as const) {
+    if (event.name.startsWith(prefix)) return event.name.slice(prefix.length);
+  }
+  return event.name;
+}
+
+function formatStepEndpoint(endpoint: StepOrderingEndpoint): string {
+  return `${endpoint.kind} ${endpoint.name}`;
+}
+
+function otherKindsForStepName(
+  context: TraceCheckContext,
+  expectedKind: StepOrderingKind,
+  name: string,
+): string[] {
+  return [
+    ...new Set(
+      semanticEvents(context)
+        .filter((event) => {
+          const kind =
+            typeof event.kind === "string" ? (event.kind.toUpperCase() as string) : "";
+          if (kind === expectedKind) return false;
+          if (kind === "TOOL") return resolveCanonicalToolName(event) === name;
+          if (kind === "LLM") return stepEndpointName(event, "LLM") === name;
+          return (
+            event.name === name ||
+            event.name === `tool:${name}` ||
+            event.name === `llm:${name}` ||
+            event.name.endsWith(`:${name}`)
+          );
+        })
+        .map((event) =>
+          typeof event.kind === "string" ? event.kind.toUpperCase() : "UNKNOWN",
+        ),
+    ),
+  ].sort();
+}
+
+/**
  * Events for built-in semantic/structure rules (logical projection when present).
  * Safety rules continue to walk raw `context.events`.
  */
@@ -1153,15 +1242,6 @@ function finishedEvents(context: TraceCheckContext, kind?: PersistedInspectEvent
  */
 function toolInvocationEvents(context: TraceCheckContext): PersistedInspectEvent[] {
   return semanticEvents(context).filter((event) => event.kind === "TOOL");
-}
-
-function firstIndexByName(events: readonly PersistedInspectEvent[]): Map<string, number> {
-  const index = new Map<string, number>();
-  for (const [position, event] of events.entries()) {
-    const name = toolName(event);
-    if (!index.has(name)) index.set(name, position);
-  }
-  return index;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -1834,29 +1914,117 @@ export function createToolUsageRule(options: ToolUsageRuleOptions): TraceCheckRu
 }
 
 /**
- * Create the experimental built-in tool ordering rule.
+ * Kind-aware step ordering over finished TOOL / LLM events.
  *
- * Low-level default: first-occurrence start/encounter order among finished
- * tool events. Missing endpoints yield no finding (compositional). TraceContract
- * `requiredOrder` additionally requires presence of listed tools.
+ * Low-level default: missing endpoints yield no finding when `requireEndpoints`
+ * is false (compositional). TraceContract `steps.orderRelations` defaults
+ * `requireEndpoints` to true.
  *
- * When order passes by encounter order but intervals overlap, emits a
- * non-failing `tool.order.overlap` warning (not causal happens-before).
+ * TOOL-only pairs preserve historical `tool.order*` finding codes and messages
+ * used by {@link createToolOrderingRule}.
  *
- * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
+ * @experimental Available through `agent-inspect/checks`.
  */
-export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceCheckRule {
-  const ruleId = options.id ?? "tool.order";
+export function createStepOrderingRule(options: StepOrderingRuleOptions): TraceCheckRule {
+  const bothTools = options.before.kind === "TOOL" && options.after.kind === "TOOL";
+  const ruleId = options.id ?? (bothTools ? "tool.order" : "step.order");
   const mode = options.mode ?? "first-occurrence";
+  const requireEndpoints = options.requireEndpoints === true;
+  const beforeLabel = bothTools ? options.before.name : formatStepEndpoint(options.before);
+  const afterLabel = bothTools ? options.after.name : formatStepEndpoint(options.after);
+  const subject = bothTools ? "Tool" : "Step";
+
   return {
     id: ruleId,
-    category: "tool",
+    category: bothTools ? "tool" : "structure",
     defaultSeverity: "error",
     evaluate(context) {
-      const tools = finishedEvents(context, "TOOL");
-      const index = firstIndexByName(tools);
-      const beforeIndex = index.get(options.before);
-      const afterIndex = index.get(options.after);
+      const beforeEvents = finishedEvents(context, options.before.kind).filter(
+        (event) => stepEndpointName(event, options.before.kind) === options.before.name,
+      );
+      const afterEvents = finishedEvents(context, options.after.kind).filter(
+        (event) => stepEndpointName(event, options.after.kind) === options.after.name,
+      );
+
+      if (beforeEvents.length === 0 || afterEvents.length === 0) {
+        if (!requireEndpoints) return [];
+        const findings: TraceCheckFinding[] = [];
+        if (beforeEvents.length === 0) {
+          const otherKinds = otherKindsForStepName(
+            context,
+            options.before.kind,
+            options.before.name,
+          );
+          const hint =
+            otherKinds.length > 0
+              ? ` Required name appears under non-${options.before.kind} kind(s): ${otherKinds.join(", ")}.`
+              : "";
+          findings.push(
+            failFinding(
+              ruleId,
+              `Required ${formatStepEndpoint(options.before)} did not appear.${hint}`,
+              runEvidence(context.selectedRun),
+              options.before,
+              {
+                code: bothTools ? "tool.order.missing-endpoint" : "step.order.missing-endpoint",
+                endpoint: "before",
+                otherKinds,
+              },
+            ),
+          );
+        }
+        if (afterEvents.length === 0) {
+          const otherKinds = otherKindsForStepName(
+            context,
+            options.after.kind,
+            options.after.name,
+          );
+          const hint =
+            otherKinds.length > 0
+              ? ` Required name appears under non-${options.after.kind} kind(s): ${otherKinds.join(", ")}.`
+              : "";
+          findings.push(
+            failFinding(
+              ruleId,
+              `Required ${formatStepEndpoint(options.after)} did not appear.${hint}`,
+              runEvidence(context.selectedRun),
+              options.after,
+              {
+                code: bothTools ? "tool.order.missing-endpoint" : "step.order.missing-endpoint",
+                endpoint: "after",
+                otherKinds,
+              },
+            ),
+          );
+        }
+        return findings;
+      }
+
+      const encounter = finishedEvents(context).filter(
+        (event) =>
+          (event.kind === options.before.kind &&
+            stepEndpointName(event, options.before.kind) === options.before.name) ||
+          (event.kind === options.after.kind &&
+            stepEndpointName(event, options.after.kind) === options.after.name),
+      );
+      let beforeIndex: number | undefined;
+      let afterIndex: number | undefined;
+      for (const [position, event] of encounter.entries()) {
+        if (
+          beforeIndex === undefined &&
+          event.kind === options.before.kind &&
+          stepEndpointName(event, options.before.kind) === options.before.name
+        ) {
+          beforeIndex = position;
+        }
+        if (
+          afterIndex === undefined &&
+          event.kind === options.after.kind &&
+          stepEndpointName(event, options.after.kind) === options.after.name
+        ) {
+          afterIndex = position;
+        }
+      }
       if (beforeIndex === undefined || afterIndex === undefined) {
         return [];
       }
@@ -1865,34 +2033,50 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
         return [
           failFinding(
             ruleId,
-            `Tool ${options.before} must appear before ${options.after}.`,
-            [eventEvidence(tools[beforeIndex]!), eventEvidence(tools[afterIndex]!)],
-            { before: options.before, after: options.after },
-            tools.map(toolName),
+            `${subject} ${beforeLabel} must appear before ${afterLabel}.`,
+            [
+              eventEvidence(encounter[beforeIndex]!),
+              eventEvidence(encounter[afterIndex]!),
+            ],
+            bothTools
+              ? { before: options.before.name, after: options.after.name }
+              : { before: options.before, after: options.after },
+            bothTools
+              ? finishedEvents(context, "TOOL").map(toolName)
+              : encounter.map((event) =>
+                  event.kind === "TOOL" || event.kind === "LLM"
+                    ? `${event.kind}:${stepEndpointName(event, event.kind)}`
+                    : event.name,
+                ),
           ),
         ];
       }
 
-      const beforeEvent = tools[beforeIndex]!;
-      const afterEvent = tools[afterIndex]!;
+      const beforeEvent = beforeEvents[0]!;
+      const afterEvent = afterEvents[0]!;
       const beforeEnd = eventEndMs(beforeEvent);
       const afterStart = eventStartMs(afterEvent);
+      const endpointExpected = bothTools
+        ? { before: options.before.name, after: options.after.name }
+        : { before: options.before, after: options.after };
 
       if (mode === "happens-before") {
         const expected = {
-          before: options.before,
-          after: options.after,
+          ...endpointExpected,
           mode,
           relation: "before.end <= after.start",
         };
-        if (options.before === options.after) {
+        if (
+          options.before.kind === options.after.kind &&
+          options.before.name === options.after.name
+        ) {
           return [
             failFinding(
               ruleId,
-              `Tool ${options.before} cannot causally happen before itself.`,
+              `${subject} ${beforeLabel} cannot causally happen before itself.`,
               [eventEvidence(beforeEvent)],
               expected,
-              { code: "tool.order.same-tool" },
+              { code: bothTools ? "tool.order.same-tool" : "step.order.same-step" },
             ),
           ];
         }
@@ -1900,11 +2084,13 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
           return [
             failFinding(
               ruleId,
-              `Tool order ${options.before} before ${options.after} could not establish causal timing.`,
+              `${subject} order ${beforeLabel} before ${afterLabel} could not establish causal timing.`,
               [eventEvidence(beforeEvent), eventEvidence(afterEvent)],
               expected,
               {
-                code: "tool.order.interval-unresolved",
+                code: bothTools
+                  ? "tool.order.interval-unresolved"
+                  : "step.order.interval-unresolved",
                 beforeEndResolved: beforeEnd !== undefined,
                 afterStartResolved: afterStart !== undefined,
               },
@@ -1915,7 +2101,7 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
           return [
             failFinding(
               ruleId,
-              `Tool ${options.before} must finish before ${options.after} starts.`,
+              `${subject} ${beforeLabel} must finish before ${afterLabel} starts.`,
               [eventEvidence(beforeEvent), eventEvidence(afterEvent)],
               expected,
               {
@@ -1929,22 +2115,22 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
       }
 
       if (mode === "all-occurrences") {
-        const beforeEvents = tools.filter((event) => toolName(event) === options.before);
-        const afterEvents = tools.filter((event) => toolName(event) === options.after);
         const expected = {
-          before: options.before,
-          after: options.after,
+          ...endpointExpected,
           mode,
           relation: "max(before.end) <= min(after.start)",
         };
-        if (options.before === options.after) {
+        if (
+          options.before.kind === options.after.kind &&
+          options.before.name === options.after.name
+        ) {
           return [
             failFinding(
               ruleId,
-              `Tool ${options.before} cannot causally happen before itself.`,
+              `${subject} ${beforeLabel} cannot causally happen before itself.`,
               [eventEvidence(beforeEvent)],
               expected,
-              { code: "tool.order.same-tool" },
+              { code: bothTools ? "tool.order.same-tool" : "step.order.same-step" },
             ),
           ];
         }
@@ -1984,13 +2170,15 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
           return [
             failFinding(
               ruleId,
-              `Tool order ${options.before} before ${options.after} could not establish all causal intervals.`,
+              `${subject} order ${beforeLabel} before ${afterLabel} could not establish all causal intervals.`,
               [firstMissingBefore, firstMissingAfter]
                 .filter((event): event is PersistedInspectEvent => event !== undefined)
                 .map((event) => eventEvidence(event)),
               expected,
               {
-                code: "tool.order.interval-unresolved",
+                code: bothTools
+                  ? "tool.order.interval-unresolved"
+                  : "step.order.interval-unresolved",
                 missingBeforeEnds,
                 missingAfterStarts,
               },
@@ -2001,7 +2189,9 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
           return [
             failFinding(
               ruleId,
-              `Every ${options.before} tool call must finish before any ${options.after} tool call starts.`,
+              bothTools
+                ? `Every ${options.before.name} tool call must finish before any ${options.after.name} tool call starts.`
+                : `Every ${beforeLabel} must finish before any ${afterLabel} starts.`,
               [eventEvidence(latestBefore.event), eventEvidence(earliestAfter.event)],
               expected,
               {
@@ -2025,11 +2215,14 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
             severity: "warning",
             status: "warning",
             message:
-              `Tool order ${options.before} before ${options.after} satisfied start/encounter order, ` +
-              `but intervals overlap so causal completion before the next tool was not established.`,
-            expected: { before: options.before, after: options.after, mode: "first-occurrence" },
+              `${subject} order ${beforeLabel} before ${afterLabel} satisfied start/encounter order, ` +
+              `but intervals overlap so causal completion before the next ${bothTools ? "tool" : "step"} was not established.`,
+            expected: {
+              ...endpointExpected,
+              mode: "first-occurrence",
+            },
             actual: {
-              code: "tool.order.overlap",
+              code: bothTools ? "tool.order.overlap" : "step.order.overlap",
               beforeEndedAt: beforeEvent.endedAt,
               afterStartedAt: afterEvent.startedAt ?? afterEvent.timestamp,
             },
@@ -2041,6 +2234,28 @@ export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceC
       return [];
     },
   };
+}
+
+/**
+ * Create the experimental built-in tool ordering rule.
+ *
+ * Low-level default: first-occurrence start/encounter order among finished
+ * tool events. Missing endpoints yield no finding (compositional). TraceContract
+ * `requiredOrder` additionally requires presence of listed tools.
+ *
+ * When order passes by encounter order but intervals overlap, emits a
+ * non-failing `tool.order.overlap` warning (not causal happens-before).
+ *
+ * @experimental  Available through `agent-inspect/checks`. Additive changes may ship in minor releases; breaking changes require a future major.
+ */
+export function createToolOrderingRule(options: ToolOrderingRuleOptions): TraceCheckRule {
+  return createStepOrderingRule({
+    before: { kind: "TOOL", name: options.before },
+    after: { kind: "TOOL", name: options.after },
+    ...(options.id !== undefined ? { id: options.id } : {}),
+    ...(options.mode !== undefined ? { mode: options.mode } : {}),
+    requireEndpoints: false,
+  });
 }
 
 /**
@@ -3227,6 +3442,10 @@ export {
   type RecoverySideEffectClass,
   type TraceContractRunRules,
   type TraceContractScope,
+  type TraceContractStepKind,
+  type TraceContractStepOrderRelation,
+  type TraceContractStepRef,
+  type TraceContractStepRules,
   type TraceContractToolRules,
   type ControlStage,
   type ToolArgumentCheck,

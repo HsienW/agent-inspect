@@ -464,6 +464,7 @@
       "createSafetyRedactionRule",
       "createSafetySecretPatternRule",
       "createStallDetectionRule",
+      "createStepOrderingRule",
       "createStructureCycleRule",
       "createStructureIncompleteRule",
       "createStructureOrphanRule",
