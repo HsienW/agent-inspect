@@ -816,16 +816,41 @@ describe("check command", () => {
     expect((result.summary?.rulesEvaluated ?? 0) > 0).toBe(true);
   });
 
-  it("fails empty contract --config as no effective rules", async () => {
-    const file = await writeTrace(tmp, "ok.jsonl", [event("event-a")]);
-    const configPath = path.join(tmp, "empty-contract.json");
-    await writeFile(configPath, JSON.stringify({ contract: {} }), "utf-8");
-
-    const result = await runCheck(file, { config: configPath });
-
-    expect(process.exitCode).toBe(2);
-    expect(result.status).toBe("error");
-    expect(result.diagnostics?.[0]?.code).toBe("AI_CHECK_CONFIG_NO_EFFECTIVE_RULES");
+  it("binds TraceContract into Evidence when --evidence-on is used with contract config", async () => {
+    const file = await writeTrace(tmp, "contract-evidence.jsonl", [
+      event("event-run"),
+      event("event-tool", {
+        kind: "TOOL",
+        name: "tool:search",
+        attributes: { toolName: "search" },
+      }),
+    ]);
+    const configPath = path.join(tmp, "contract-evidence.json");
+    await writeFile(
+      configPath,
+      JSON.stringify({ contract: { tools: { forbidden: ["search"] } } }),
+      "utf-8",
+    );
+    const evidenceDir = path.join(tmp, "evidence-contract");
+    const result = await runCheck(file, {
+      config: configPath,
+      evidenceOn: "fail",
+      evidenceDir,
+      evidenceProfile: "local",
+    });
+    expect(result.status).toBe("fail");
+    expect(existsSync(path.join(evidenceDir, "contract.resolved.json"))).toBe(true);
+    expect(existsSync(path.join(evidenceDir, "check-results.json"))).toBe(true);
+    const checkResults = JSON.parse(
+      readFileSync(path.join(evidenceDir, "check-results.json"), "utf-8"),
+    ) as {
+      contract?: {
+        bindingStatus?: string;
+        origin?: { source?: string };
+      };
+    };
+    expect(checkResults.contract?.bindingStatus).toBe("complete");
+    expect(checkResults.contract?.origin?.source).toBe("file");
   });
 });
 

@@ -54,6 +54,7 @@ import {
   type TraceCheckDiagnosticCode,
   type TraceCheckResult,
   type TraceCheckRule,
+  type TraceContract,
   type TraceContractAlternatives,
   type TraceContractBody,
   type TraceContractControlRules,
@@ -1969,6 +1970,7 @@ export async function checkCommand(
   let evidenceRead: TraceReadResult | undefined;
   let evidenceRunIds: string[] = [];
   let evidenceSourceContents: Map<string, string> | undefined;
+  let evidenceContract: TraceContract | undefined;
 
   const sessionId = options.session?.trim();
   const groupId = options.group?.trim();
@@ -1989,6 +1991,9 @@ export async function checkCommand(
     let effectiveOptions = options;
     const useContract =
       config.contract !== undefined && contractConfigHasEffect(config.contract);
+    if (useContract) {
+      evidenceContract = defineTraceContract(config.contract!);
+    }
     const resolved = useContract
       ? undefined
       : resolvePreset(options.preset, {
@@ -2021,9 +2026,7 @@ export async function checkCommand(
       });
       const perRun: TraceCheckResult[] = [];
       const sourceContents = new Map<string, string>();
-      const definedContract = useContract
-        ? defineTraceContract(config.contract!)
-        : undefined;
+      const definedContract = evidenceContract;
       for (const meta of scoped.metas) {
         const read = await openTrace(
           { type: "file", path: meta.filePath },
@@ -2100,10 +2103,10 @@ export async function checkCommand(
           ]),
         );
       }
-      const base = useContract
+      const base = useContract && evidenceContract !== undefined
         ? evaluateTraceContract(
             { read },
-            defineTraceContract(config.contract!),
+            evidenceContract,
             {
               ...(options.run !== undefined ? { runId: options.run } : {}),
             },
@@ -2189,6 +2192,16 @@ export async function checkCommand(
         summaryText: `Check status: ${result.status}`,
         redactionProfile,
         format: evidenceFormat,
+        ...(evidenceContract !== undefined
+          ? {
+              contractPackage: {
+                engineVersion: "",
+                source: "file" as const,
+                contract: evidenceContract,
+                ...(options.config !== undefined ? { path: options.config } : {}),
+              },
+            }
+          : {}),
       });
       if (!options.json) {
         console.log(`Evidence: ${written}`);

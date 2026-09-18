@@ -7,6 +7,7 @@ import {
   getTraceFilePath,
   resolveTraceDir,
   type EvidenceSafeStatus,
+  type BuildEvidenceContractPackageInput,
 } from "@agent-inspect/core/advanced";
 import { createEvidenceCiArtifacts } from "@agent-inspect/core/reporters";
 import type { TraceCheckResult } from "@agent-inspect/core/checks";
@@ -72,6 +73,11 @@ export interface WriteLocalEvidenceInput {
   summaryText?: string;
   redactionProfile?: RedactionProfile;
   format?: EvidenceEmitFormat;
+  /**
+   * When set, bind the evaluated TraceContract into Evidence
+   * (`contract.resolved.json` + check-results digests).
+   */
+  contractPackage?: BuildEvidenceContractPackageInput;
 }
 
 /**
@@ -130,6 +136,9 @@ export async function writeLocalEvidence(
     assessmentStatus,
     checkResultsJson: input.checkResultsJson,
     ...(input.summaryText !== undefined ? { summaryText: input.summaryText } : {}),
+    ...(input.contractPackage !== undefined
+      ? { contractPackage: input.contractPackage }
+      : {}),
   });
 
   const files: Array<[string, string]> = [
@@ -138,6 +147,10 @@ export async function writeLocalEvidence(
     ["check-results.json", evidencePackage["check-results.json"]],
     ["trace.jsonl", evidencePackage["trace.jsonl"]],
   ];
+  const resolvedContract = evidencePackage["contract.resolved.json"];
+  if (resolvedContract !== undefined) {
+    files.push(["contract.resolved.json", resolvedContract]);
+  }
 
   const expected = createEvidenceCiArtifacts({
     redactionProfile: profile,

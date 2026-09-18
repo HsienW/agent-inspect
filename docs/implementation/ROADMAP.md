@@ -182,8 +182,8 @@ Fail-closed deterministic gate hardening:
 | **6.27.0** | Bounded safe recovery | read-recovery oracle first | Published |
 | **6.28.0** | Reviewer-reproducible Evidence | resolved contract binding | Published |
 | **6.29.0**–**6.29.4** | Usage fidelity through MCP/package trust | published line | Published |
-| **6.29.5** | Trustworthy existing checks | confidence; write recovery; circuit; accounting | Active |
-| **6.29.6** | Safe sharing + integration clarity | N8; outcome help; Jest; N9 investigate | Next |
+| **6.29.5** | Trustworthy existing checks | confidence; write recovery; circuit; accounting | Published |
+| **6.29.6** | Safe sharing + integration clarity | N8; outcome help; Jest; N9 investigate | Published |
 | **6.30.0** | Rich CLI TraceContracts | amends prior comparable-Evidence plan | After 6.29.6 |
 | **6.31.0** | Typed cross-kind ordering | amends prior review-UX plan | Fixture-gated |
 | **6.32.0** | External conformance + compact review | conditional | **BLOCKED_ON_EXTERNAL_EVIDENCE** |

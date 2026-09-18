@@ -58,9 +58,9 @@ No new CLI commands were added for branching paths.
 | ---- | ------ |
 | One tool must always run | CLI `--required-tool` / contract `tools.required` |
 | Tool must never run | CLI `--forbidden-tool` / contract `tools.forbidden` |
-| Legitimate alternate paths (OR) | TraceContract `alternatives.anyOf` (not CLI flags) |
-| Causal order between tools | TraceContract `requiredOrder` + `requiredOrderMode` |
-| Read recovery vs write fail-closed | TraceContract `retry.operations` + `sideEffectClass` |
+| Legitimate alternate paths (OR) | TraceContract `alternatives.anyOf` via `--config` `contract` (or TS API) |
+| Causal order between tools | TraceContract `requiredOrder` + `requiredOrderMode` via `--config` `contract` |
+| Read recovery vs write fail-closed | TraceContract `retry.operations` + `sideEffectClass` via `--config` `contract` |
 | Sensitive expected literals in Evidence | Contract binding safety (`unavailable` on credential-like expected); never silent complete packaging |
 | Share-safe offline review package | CLI `bundle` / Evidence CI helpers |
 
@@ -351,7 +351,8 @@ Options:
 
 By default, `check` runs `run.status`. Additional built-in rules can be selected with `--rule` or config when their options are available. Prefer `--preset trajectory` in CI, then `verify-safe` before sharing.
 
-Config files use this shape:
+Config files use either `checks` (flat rule options) or top-level `contract`
+(TraceContract vocabulary). Do not combine both in one file.
 
 ```json
 {
@@ -364,6 +365,27 @@ Config files use this shape:
 }
 ```
 
+Rich TraceContract JSON (6.30+):
+
+```json
+{
+  "contract": {
+    "tools": {
+      "required": ["retrieve_policy"],
+      "forbidden": ["send_email"],
+      "requiredOrder": ["retrieve_policy", "generate_answer"],
+      "requiredOrderMode": "first-occurrence"
+    },
+    "observations": { "failOn": ["failed"] },
+    "scope": { "runId": "optional-run-id" }
+  }
+}
+```
+
+Supported `contract` fields: `run`, `tools` (including `arguments`, `orderRules`),
+`llm`, `observations` (including `requireProvenance`), `scope`, `alternatives.anyOf`,
+`controls`, and `retry`. Unknown keys fail closed (exit 2). With `--evidence-on`,
+contract mode writes `contract.resolved.json` and binds digests into check-results.
 YAML is not supported. TypeScript config files (`.ts`, `.mts`, `.cts`) fail clearly unless a future explicit loader strategy is added; use precompiled JavaScript config instead.
 
 Examples:
