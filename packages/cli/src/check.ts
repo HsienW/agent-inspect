@@ -38,6 +38,8 @@ import {
   createStructureParallelWidthRule,
   createStructureRelationshipRule,
   createToolUsageRule,
+  defineTraceContract,
+  evaluateTraceContract,
   runTraceChecks,
   ATTRIBUTION_CONFIDENCES,
   isAttributionConfidence,
@@ -50,6 +52,7 @@ import {
   type TraceCheckDiagnosticCode,
   type TraceCheckResult,
   type TraceCheckRule,
+  type TraceContractInput,
 } from "@agent-inspect/core/checks";
 
 import {
@@ -321,6 +324,11 @@ type CheckConfig = {
       secretPattern?: boolean;
     };
   };
+  /**
+   * Strict JSON TraceContract body for `check --config`.
+   * Mutually exclusive with an effective top-level `checks` block.
+   */
+  contract?: TraceContractInput;
 };
 
 type RuleBuildResult = {
@@ -381,6 +389,27 @@ function asStringArray(value: unknown): string[] | undefined {
 }
 
 const CHECKS_KEYS = new Set(["select", "run", "tool", "llm", "structure", "safety"]);
+const ROOT_CONFIG_KEYS = new Set(["checks", "contract"]);
+const CONTRACT_KEYS = new Set(["run", "tools", "llm", "observations"]);
+const CONTRACT_RUN_KEYS = new Set(["requireCompleted", "allowedStatuses", "maxDurationMs"]);
+const CONTRACT_TOOLS_KEYS = new Set([
+  "required",
+  "requiredTools",
+  "forbidden",
+  "forbiddenTools",
+  "allowed",
+  "maxCalls",
+  "requiredOrder",
+  "requiredOrderMode",
+]);
+const CONTRACT_LLM_KEYS = new Set(["maxCalls", "maxTotalTokens", "allowedModels"]);
+const CONTRACT_OBSERVATION_KEYS = new Set(["required", "failOn"]);
+const CONTRACT_ORDER_MODES = new Set([
+  "first-occurrence",
+  "happens-before",
+  "all-occurrences",
+]);
+const CONTRACT_FAIL_ON = new Set(["failed", "unknown", "skipped"]);
 const RUN_KEYS = new Set(["expected", "allowIncomplete", "maxDurationMs", "maxDepth"]);
 const TOOL_KEYS = new Set(["required", "forbidden", "allowed", "minCount", "maxCount"]);
 const LLM_KEYS = new Set([
@@ -643,6 +672,7 @@ function sectionHasEffect(section: Record<string, unknown> | undefined): boolean
 
 /** True when the parsed config itself configures rules, select, or disables defaults. */
 export function checkConfigHasEffect(config: CheckConfig): boolean {
+  if (contractConfigHasEffect(config.contract)) return true;
   const checks = config.checks;
   if (checks === undefined) return false;
   if ((checks.select?.length ?? 0) > 0) return true;
@@ -652,6 +682,142 @@ export function checkConfigHasEffect(config: CheckConfig): boolean {
   if (sectionHasEffect(checks.structure as Record<string, unknown> | undefined)) return true;
   if (sectionHasEffect(checks.safety as Record<string, unknown> | undefined)) return true;
   return false;
+}
+
+function contractConfigHasEffect(contract: TraceContractInput | undefined): boolean {
+  if (contract === undefined) return false;
+  if (sectionHasEffect(contract.run as Record<string, unknown> | undefined)) return true;
+  if (sectionHasEffect(contract.tools as Record<string, unknown> | undefined)) return true;
+  if (sectionHasEffect(contract.llm as Record<string, unknown> | undefined)) return true;
+  if (sectionHasEffect(contract.observations as Record<string, unknown> | undefined)) return true;
+  return false;
+}
+
+function parseContractRunSection(value: unknown): NonNullable<TraceContractInput["run"]> {
+  const record = requireObject(value, "contract.run");
+  rejectUnknownKeys(record, CONTRACT_RUN_KEYS, "contract.run");
+  const out: NonNullable<TraceContractInput["run"]> = {};
+  if (record.requireCompleted !== undefined) {
+    out.requireCompleted = requireBoolean(record.requireCompleted, "contract.run.requireCompleted");
+  }
+  if (record.allowedStatuses !== undefined) {
+    out.allowedStatuses = requireStringArray(record.allowedStatuses, "contract.run.allowedStatuses");
+  }
+  if (record.maxDurationMs !== undefined) {
+    out.maxDurationMs = requireNonNegativeNumber(record.maxDurationMs, "contract.run.maxDurationMs");
+  }
+  return out;
+}
+
+function parseContractToolsSection(value: unknown): NonNullable<TraceContractInput["tools"]> {
+  const record = requireObject(value, "contract.tools");
+  rejectUnknownKeys(record, CONTRACT_TOOLS_KEYS, "contract.tools");
+  const out: NonNullable<TraceContractInput["tools"]> = {};
+  if (record.required !== undefined) {
+    out.required = requireStringArray(record.required, "contract.tools.required");
+  }
+  if (record.requiredTools !== undefined) {
+    out.requiredTools = requireStringArray(record.requiredTools, "contract.tools.requiredTools");
+  }
+  if (record.forbidden !== undefined) {
+    out.forbidden = requireStringArray(record.forbidden, "contract.tools.forbidden");
+  }
+  if (record.forbiddenTools !== undefined) {
+    out.forbiddenTools = requireStringArray(
+      record.forbiddenTools,
+      "contract.tools.forbiddenTools",
+    );
+  }
+  if (record.allowed !== undefined) {
+    out.allowed = requireStringArray(record.allowed, "contract.tools.allowed");
+  }
+  if (record.maxCalls !== undefined) {
+    out.maxCalls = requireNonNegativeNumber(record.maxCalls, "contract.tools.maxCalls");
+  }
+  if (record.requiredOrder !== undefined) {
+    out.requiredOrder = requireStringArray(record.requiredOrder, "contract.tools.requiredOrder");
+  }
+  if (record.requiredOrderMode !== undefined) {
+    if (
+      typeof record.requiredOrderMode !== "string" ||
+      !CONTRACT_ORDER_MODES.has(record.requiredOrderMode)
+    ) {
+      throw new CheckConfigError(
+        "AI_CHECK_CONFIG_INVALID_VALUE",
+        'contract.tools.requiredOrderMode must be one of: "first-occurrence", "happens-before", "all-occurrences".',
+      );
+    }
+    out.requiredOrderMode = record.requiredOrderMode as
+      | "first-occurrence"
+      | "happens-before"
+      | "all-occurrences";
+  }
+  return out;
+}
+
+function parseContractLlmSection(value: unknown): NonNullable<TraceContractInput["llm"]> {
+  const record = requireObject(value, "contract.llm");
+  rejectUnknownKeys(record, CONTRACT_LLM_KEYS, "contract.llm");
+  const out: NonNullable<TraceContractInput["llm"]> = {};
+  if (record.maxCalls !== undefined) {
+    out.maxCalls = requireNonNegativeNumber(record.maxCalls, "contract.llm.maxCalls");
+  }
+  if (record.maxTotalTokens !== undefined) {
+    out.maxTotalTokens = requireNonNegativeNumber(
+      record.maxTotalTokens,
+      "contract.llm.maxTotalTokens",
+    );
+  }
+  if (record.allowedModels !== undefined) {
+    out.allowedModels = requireStringArray(record.allowedModels, "contract.llm.allowedModels");
+  }
+  return out;
+}
+
+function parseContractObservationsSection(
+  value: unknown,
+): NonNullable<TraceContractInput["observations"]> {
+  const record = requireObject(value, "contract.observations");
+  rejectUnknownKeys(record, CONTRACT_OBSERVATION_KEYS, "contract.observations");
+  const out: NonNullable<TraceContractInput["observations"]> = {};
+  if (record.required !== undefined) {
+    out.required = requireStringArray(record.required, "contract.observations.required");
+  }
+  if (record.failOn !== undefined) {
+    if (!Array.isArray(record.failOn) || record.failOn.some((item) => typeof item !== "string")) {
+      throw new CheckConfigError(
+        "AI_CHECK_CONFIG_INVALID_VALUE",
+        "contract.observations.failOn must be an array of strings.",
+      );
+    }
+    for (const item of record.failOn) {
+      if (!CONTRACT_FAIL_ON.has(item)) {
+        throw new CheckConfigError(
+          "AI_CHECK_CONFIG_INVALID_VALUE",
+          'contract.observations.failOn values must be "failed", "unknown", or "skipped".',
+        );
+      }
+    }
+    out.failOn = record.failOn as Array<"failed" | "unknown" | "skipped">;
+  }
+  return out;
+}
+
+/**
+ * Strict parser for top-level TraceContract JSON (slice A: basic vocabulary).
+ * Rejects deferred keys (scope/alternatives/controls/retry/arguments) until later slices.
+ */
+function parseContractSection(value: unknown): TraceContractInput {
+  const record = requireObject(value, "contract");
+  rejectUnknownKeys(record, CONTRACT_KEYS, "contract");
+  const out: TraceContractInput = {};
+  if (record.run !== undefined) out.run = parseContractRunSection(record.run);
+  if (record.tools !== undefined) out.tools = parseContractToolsSection(record.tools);
+  if (record.llm !== undefined) out.llm = parseContractLlmSection(record.llm);
+  if (record.observations !== undefined) {
+    out.observations = parseContractObservationsSection(record.observations);
+  }
+  return out;
 }
 
 /**
@@ -664,40 +830,48 @@ export function parseCheckConfig(value: unknown): CheckConfig {
     throw new CheckConfigError("AI_CHECK_CONFIG_INVALID_VALUE", "Config must export an object.");
   }
   const root = value as Record<string, unknown>;
-  if ("contract" in root) {
-    throw new CheckConfigError(
-      "AI_CHECK_CONFIG_UNKNOWN_KEY",
-      'Top-level "contract" is not supported by `agent-inspect check --config`. ' +
-        "Use the TraceContract TypeScript API (`defineTraceContract` / `evaluateTraceContract` " +
-        "from `agent-inspect/checks`), or express tool/run/llm rules under `checks`.",
-    );
-  }
   const rootKeys = Object.keys(root);
   for (const key of rootKeys) {
-    if (key === "checks") continue;
-    const suggestion = closestKey(key, ["checks"]);
+    if (ROOT_CONFIG_KEYS.has(key)) continue;
+    const suggestion = closestKey(key, [...ROOT_CONFIG_KEYS]);
     const hint = suggestion ? ` Did you mean "${suggestion}"?` : "";
     throw new CheckConfigError(
       "AI_CHECK_CONFIG_UNKNOWN_KEY",
-      `Unknown top-level check config key "${key}". Allowed: checks.${hint}`,
+      `Unknown top-level check config key "${key}". Allowed: checks, contract.${hint}`,
     );
   }
-  if (!("checks" in root)) return {};
 
-  const checksRecord = requireObject(root.checks, "checks");
-  rejectUnknownKeys(checksRecord, CHECKS_KEYS, "checks");
-  const checks: NonNullable<CheckConfig["checks"]> = {};
-  if (checksRecord.select !== undefined) {
-    checks.select = requireStringArray(checksRecord.select, "checks.select");
+  const out: CheckConfig = {};
+  if ("checks" in root) {
+    const checksRecord = requireObject(root.checks, "checks");
+    rejectUnknownKeys(checksRecord, CHECKS_KEYS, "checks");
+    const checks: NonNullable<CheckConfig["checks"]> = {};
+    if (checksRecord.select !== undefined) {
+      checks.select = requireStringArray(checksRecord.select, "checks.select");
+    }
+    if (checksRecord.run !== undefined) checks.run = parseRunSection(checksRecord.run);
+    if (checksRecord.tool !== undefined) checks.tool = parseToolSection(checksRecord.tool);
+    if (checksRecord.llm !== undefined) checks.llm = parseLlmSection(checksRecord.llm);
+    if (checksRecord.structure !== undefined) {
+      checks.structure = parseStructureSection(checksRecord.structure);
+    }
+    if (checksRecord.safety !== undefined) checks.safety = parseSafetySection(checksRecord.safety);
+    out.checks = checks;
   }
-  if (checksRecord.run !== undefined) checks.run = parseRunSection(checksRecord.run);
-  if (checksRecord.tool !== undefined) checks.tool = parseToolSection(checksRecord.tool);
-  if (checksRecord.llm !== undefined) checks.llm = parseLlmSection(checksRecord.llm);
-  if (checksRecord.structure !== undefined) {
-    checks.structure = parseStructureSection(checksRecord.structure);
+  if ("contract" in root) {
+    out.contract = parseContractSection(root.contract);
   }
-  if (checksRecord.safety !== undefined) checks.safety = parseSafetySection(checksRecord.safety);
-  return { checks };
+  if (
+    out.contract !== undefined &&
+    contractConfigHasEffect(out.contract) &&
+    checkConfigHasEffect({ checks: out.checks })
+  ) {
+    throw new CheckConfigError(
+      "AI_CHECK_CONFIG_INVALID_VALUE",
+      'Config cannot combine top-level "checks" and "contract". Use one vocabulary per config file.',
+    );
+  }
+  return out;
 }
 
 async function loadConfig(configPath: string | undefined): Promise<CheckConfig> {
@@ -1166,7 +1340,7 @@ export async function checkCommand(
     if (options.config !== undefined && !checkConfigHasEffect(config)) {
       result = errorResult(
         "AI_CHECK_CONFIG_NO_EFFECTIVE_RULES",
-        "Explicit --config has no effective check rules. Configure checks.select, checks.run, checks.tool, checks.llm, checks.structure, or checks.safety.",
+        "Explicit --config has no effective check rules. Configure checks.select, checks.run, checks.tool, checks.llm, checks.structure, checks.safety, or contract.",
       );
       if (options.json) printJson(result);
       else printHuman(result, options);
@@ -1174,15 +1348,21 @@ export async function checkCommand(
       return;
     }
     let effectiveOptions = options;
-    const resolved = resolvePreset(options.preset, {
-      hasToolRules: hasToolRulesConfigured(config, options),
-    });
+    const useContract =
+      config.contract !== undefined && contractConfigHasEffect(config.contract);
+    const resolved = useContract
+      ? undefined
+      : resolvePreset(options.preset, {
+          hasToolRules: hasToolRulesConfigured(config, options),
+        });
     if (resolved !== undefined) {
       const applied = applyResolvedPreset(config, options, resolved);
       config = applied.config;
       effectiveOptions = applied.options;
     }
-    const built = buildRules(config, effectiveOptions, resolved?.select ?? []);
+    const built = useContract
+      ? { rules: [] as TraceCheckRule[], select: [] as string[], diagnostics: [] as TraceCheckDiagnostic[] }
+      : buildRules(config, effectiveOptions, resolved?.select ?? []);
     if (built.diagnostics.some((item) => item.severity === "error")) {
       result = errorResult("AI_CHECK_INVALID_CONFIG", "Invalid check configuration.");
       result.diagnostics = [...built.diagnostics];
@@ -1202,6 +1382,9 @@ export async function checkCommand(
       });
       const perRun: TraceCheckResult[] = [];
       const sourceContents = new Map<string, string>();
+      const definedContract = useContract
+        ? defineTraceContract(config.contract!)
+        : undefined;
       for (const meta of scoped.metas) {
         const read = await openTrace(
           { type: "file", path: meta.filePath },
@@ -1217,23 +1400,22 @@ export async function checkCommand(
             `${read.events.map((event) => JSON.stringify(event)).join("\n")}\n`,
           );
         }
-        perRun.push(
-          mergeSafetyExtensions(
-            runTraceChecks(
+        const base = definedContract
+          ? evaluateTraceContract({ read }, definedContract, { runId: meta.runId })
+          : runTraceChecks(
               { read },
               {
                 rules: built.rules,
                 select: built.select,
                 runId: meta.runId,
               },
-            ),
-            read,
-            {
-              ...(options.guardrails ? { guardrails: options.guardrails } : {}),
-              ...(options.circuit ? { circuits: options.circuit } : {}),
-              runId: meta.runId,
-            },
-          ),
+            );
+        perRun.push(
+          mergeSafetyExtensions(base, read, {
+            ...(options.guardrails ? { guardrails: options.guardrails } : {}),
+            ...(options.circuit ? { circuits: options.circuit } : {}),
+            runId: meta.runId,
+          }),
         );
       }
       evidenceRunIds = scoped.runIds;
@@ -1279,22 +1461,27 @@ export async function checkCommand(
           ]),
         );
       }
-      result = mergeSafetyExtensions(
-        runTraceChecks(
-          { read },
-          {
-            rules: built.rules,
-            select: built.select,
-            ...(options.run !== undefined ? { runId: options.run } : {}),
-          },
-        ),
-        read,
-        {
-          ...(options.guardrails ? { guardrails: options.guardrails } : {}),
-          ...(options.circuit ? { circuits: options.circuit } : {}),
-          ...(options.run !== undefined ? { runId: options.run } : {}),
-        },
-      );
+      const base = useContract
+        ? evaluateTraceContract(
+            { read },
+            defineTraceContract(config.contract!),
+            {
+              ...(options.run !== undefined ? { runId: options.run } : {}),
+            },
+          )
+        : runTraceChecks(
+            { read },
+            {
+              rules: built.rules,
+              select: built.select,
+              ...(options.run !== undefined ? { runId: options.run } : {}),
+            },
+          );
+      result = mergeSafetyExtensions(base, read, {
+        ...(options.guardrails ? { guardrails: options.guardrails } : {}),
+        ...(options.circuit ? { circuits: options.circuit } : {}),
+        ...(options.run !== undefined ? { runId: options.run } : {}),
+      });
     }
   } catch (error) {
     if (phase === "config") {

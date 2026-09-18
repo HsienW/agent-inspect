@@ -7,28 +7,24 @@
 ```yaml
 baselineVersion: "6.29.6"
 publishedVersion: "6.29.6"
-pendingPublishVersion: "6.29.6"
+pendingPublishVersion: "6.30.0"
 currentTrain: "post-6294-correctness"
-trainStatus: "prepare-release-6296"
+trainStatus: "implement-6300"
 executionMode: "maintainer-reviewed"
 namedTrain: "post-6294-correctness-v6.29.5-to-v6.32"
 branch: "main"
-currentChunk: "PREPARE RELEASE 6.29.6"
-lastConfirmedCommit: "5db1f9dc"
-lastValidationLevel: "vitest jest association; browser recipe matrix"
-nextAction: "Changeset + release gates; Version Packages Trusted Publish 6.29.6; then 6.30.0 rich CLI contracts"
+currentChunk: "6.30.0-A-cli-contract-basic"
+lastConfirmedCommit: "3e43162d"
+lastValidationLevel: "npm view agent-inspect@6.29.6; Trusted Publish 35391037125"
+nextAction: "6.30.0 slice A (strict contract config parser + basic evaluate); then B/C; PREPARE RELEASE"
 pendingManualGate: "6.32.0 partner evidence; #422 factual review"
 githubIssues:
   "209": "keep open — cross-platform packed-consumer matrix PARTIAL"
 canonicalRoadmap: "docs/implementation/ROADMAP.md"
 activePlan: "docs/implementation/active/NEXT-RELEASES.md"
 completedChunks:
-  - "6.29.5 trustworthy checks + Trusted Publish (3e8750f1 / #426)"
-  - "6.29.6-05 sharing"
-  - "6.29.6-06 CI/outcome guidance"
-  - "6.29.6-07 Jest association (synthetic); N-9 unverified"
-  - "6.29.6-08 comparable-cohort pairwise commitments"
-  - "6.29.6-09 browser observed-outcome matrix"
+  - "6.29.5 trustworthy checks + Trusted Publish"
+  - "6.29.6 safe sharing + integration + Trusted Publish (#427)"
 blockedTrains:
   - "6.32.0 external conformance (BLOCKED_ON_EXTERNAL_EVIDENCE)"
   - "v7.0.0 (assessment only — V7_DECISION: NO-GO)"
@@ -39,8 +35,8 @@ worktreeIgnoreOnly:
   - ".redstamp/"
   - "redstamp-proposal-issue-body.md"
 stopMarker: |
-  LAST_PUBLISHED_RELEASE: 6.29.5
-  ACTIVE: PREPARE RELEASE 6.29.6
+  LAST_PUBLISHED_RELEASE: 6.29.6
+  ACTIVE: 6.30.0 rich CLI TraceContracts
   V7_DECISION: NO-GO
   EVIDENCE_GATE: not approved
 updatedAt: "2026-09-18"

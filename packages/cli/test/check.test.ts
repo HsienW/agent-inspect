@@ -83,8 +83,8 @@ describe("check command", () => {
     ).toThrow(/forbiddn/);
   });
 
-  it("rejects top-level contract shape with actionable guidance", () => {
-    expect(() =>
+  it("accepts top-level contract config and rejects typos", () => {
+    expect(
       parseCheckConfig({
         contract: {
           tools: {
@@ -92,7 +92,35 @@ describe("check command", () => {
           },
         },
       }),
-    ).toThrow(/TraceContract/);
+    ).toEqual({
+      contract: {
+        tools: {
+          forbidden: ["send_email"],
+        },
+      },
+    });
+    expect(() =>
+      parseCheckConfig({
+        contract: {
+          tools: {
+            forbiddn: ["send_email"],
+          },
+        },
+      }),
+    ).toThrow(/forbiddn/);
+    expect(() =>
+      parseCheckConfig({
+        contract: {
+          scope: { runId: "r1" },
+        },
+      }),
+    ).toThrow(/contract\.scope/);
+    expect(() =>
+      parseCheckConfig({
+        checks: { select: ["run.status"] },
+        contract: { tools: { required: ["search"] } },
+      }),
+    ).toThrow(/cannot combine/);
   });
 
   it("treats empty and effectless configs as having no effect", () => {
@@ -101,6 +129,10 @@ describe("check command", () => {
     expect(checkConfigHasEffect({ checks: { tool: {} } })).toBe(false);
     expect(
       checkConfigHasEffect({ checks: { tool: { forbidden: ["send_email"] } } }),
+    ).toBe(true);
+    expect(checkConfigHasEffect({ contract: {} })).toBe(false);
+    expect(
+      checkConfigHasEffect({ contract: { tools: { required: ["search"] } } }),
     ).toBe(true);
   });
 
@@ -622,6 +654,52 @@ describe("check command", () => {
     };
     expect(evidenceChecks.evaluatedRuleIds).toContain("circuit.same-tool-repetition");
     expect(evidenceChecks.rulesEvaluated).toBe(result.summary?.rulesEvaluated);
+  });
+
+  it("evaluates top-level contract config for required and forbidden tools", async () => {
+    const file = await writeTrace(tmp, "contract-tools.jsonl", [
+      event("event-run"),
+      event("event-tool", {
+        kind: "TOOL",
+        name: "tool:search",
+        attributes: { toolName: "search" },
+      }),
+    ]);
+
+    const passConfig = path.join(tmp, "contract-pass.json");
+    await writeFile(
+      passConfig,
+      JSON.stringify({ contract: { tools: { required: ["search"] } } }),
+      "utf-8",
+    );
+    const pass = await runCheck(file, { config: passConfig });
+    expect(process.exitCode).toBe(0);
+    expect(pass.status).toBe("pass");
+    expect((pass.summary?.rulesEvaluated ?? 0) > 0).toBe(true);
+
+    process.exitCode = 0;
+    const failConfig = path.join(tmp, "contract-fail.json");
+    await writeFile(
+      failConfig,
+      JSON.stringify({ contract: { tools: { forbidden: ["search"] } } }),
+      "utf-8",
+    );
+    const fail = await runCheck(file, { config: failConfig });
+    expect(process.exitCode).toBe(1);
+    expect(fail.status).toBe("fail");
+    expect(fail.findings?.some((item) => item.ruleId === "tool.usage")).toBe(true);
+  });
+
+  it("fails empty contract --config as no effective rules", async () => {
+    const file = await writeTrace(tmp, "ok.jsonl", [event("event-a")]);
+    const configPath = path.join(tmp, "empty-contract.json");
+    await writeFile(configPath, JSON.stringify({ contract: {} }), "utf-8");
+
+    const result = await runCheck(file, { config: configPath });
+
+    expect(process.exitCode).toBe(2);
+    expect(result.status).toBe("error");
+    expect(result.diagnostics?.[0]?.code).toBe("AI_CHECK_CONFIG_NO_EFFECTIVE_RULES");
   });
 });
 
