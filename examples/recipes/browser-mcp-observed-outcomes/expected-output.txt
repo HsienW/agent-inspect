@@ -1,10 +1,13 @@
-Browser/MCP observed outcome recipe complete
-Trace directory: ./.agent-inspect
-Resource id: browser://fixture/cart-session
-Tool action: passed
-Returned status: success
-Expected page: checkout
-Observed page: cart
-Observed outcome: failed
-Try:
-  npx agent-inspect search --dir ./.agent-inspect --observation failed
+browser-observed-outcome-matrix:
+  note: synthetic in-memory observer; not real browser/MCP delivery
+  valid-transition: gate=passed precondition=passed resource=passed postcondition=passed tool=success
+    note: valid start, correct resource, actual transition
+  tool-success-no-effect: gate=failed precondition=passed resource=passed postcondition=failed tool=success
+    note: tool may report success but observed state unchanged
+  wrong-resource-already-target: gate=failed precondition=skipped resource=failed postcondition=skipped tool=success
+    note: observation resource differs from action target — page-value equality must not pass
+  invalid-start: gate=failed precondition=failed resource=passed postcondition=skipped tool=success
+    note: invalid starting state — postcondition skipped
+  observer-incomplete: gate=unknown precondition=unknown resource=unknown postcondition=unknown tool=success
+    note: observer missing/failed/incomplete — never success
+classes: valid-transition:passed,tool-success-no-effect:failed,wrong-resource-already-target:failed,invalid-start:failed,observer-incomplete:unknown

@@ -3,7 +3,7 @@
 **Authority:** [../ROADMAP.md](../ROADMAP.md)
 **Baseline:** **published** `agent-inspect@6.29.5` · schema `1.0`
 **Named train:** `post-6294-correctness-v6.29.5-to-v6.32`
-**Program status:** **6.29.6 in progress** (05 sharing landed); then 6.30→6.31; **6.32.0** remains gated; **V7_DECISION: NO-GO**
+**Program status:** **PREPARE RELEASE 6.29.6** (05–09 landed; 10 deferred); then 6.30→6.31; **6.32.0** remains gated; **V7_DECISION: NO-GO**
 
 ## Freeze language
 
@@ -21,7 +21,7 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 
 ## Current chunk
 
-**6.29.6** — prompt 05 (sharing) landed on main; continue 06–07 (08–10 as ready). Then PREPARE RELEASE 6.29.6.
+**PREPARE RELEASE 6.29.6** — 05–09 complete (N-9 unverified; E1/10 deferred). Then Trusted Publish; start **6.30.0** rich CLI TraceContracts.
 
 ## Stop rules
 
@@ -35,7 +35,7 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 
 ```text
 LAST_PUBLISHED_RELEASE: 6.29.5
-ACTIVE: 6.29.6 implementation
+ACTIVE: PREPARE RELEASE 6.29.6
 V7_DECISION: NO-GO
 EVIDENCE_GATE: not approved
 ```

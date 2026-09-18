@@ -85,6 +85,11 @@ See `expected-output.txt`.
 
 ## Notes and limitations
 
+- Association is **explicit only**: use `associations` and/or `resolveTrace` /
+  `withAgentInspectJestTrace`. Missing maps emit `no-trace-association`; the
+  reporter never guesses by timestamp. Covered by `packages/jest/test/index.test.ts`.
+- Private application capture (navan-edge hotel N-9) remains **unverified** here;
+  zero LLM/tool spans may be honest when mocks bypass callbacks.
 - This recipe is config-oriented until the optional reporter packages are published.
 - No provider SDKs, test-runner dependencies, credentials, network access, hosted upload, GitHub API calls, or repository writes are required.
 - Safe artifacts still need human review before broad sharing.
