@@ -1,5 +1,14 @@
 # @agent-inspect/eval
 
+## 6.30.0
+
+### Patch Changes
+
+- Updated dependencies [094854f]
+  - agent-inspect@6.30.0
+  - @agent-inspect/guardrails@6.30.0
+  - @agent-inspect/circuit@6.30.0
+
 ## 6.29.6
 
 ### Patch Changes
