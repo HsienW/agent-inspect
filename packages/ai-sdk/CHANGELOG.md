@@ -1,5 +1,12 @@
 # @agent-inspect/ai-sdk
 
+## 6.30.0
+
+### Patch Changes
+
+- Updated dependencies [094854f]
+  - agent-inspect@6.30.0
+
 ## 6.29.6
 
 ### Patch Changes
