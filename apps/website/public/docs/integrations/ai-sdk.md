@@ -97,9 +97,14 @@ sensitive free text; redact before sharing. Full contract:
 
 ```bash
 npx agent-inspect list --dir .agent-inspect
-npx agent-inspect open .agent-inspect/<run>.jsonl
-npx agent-inspect check .agent-inspect/<run>.jsonl
+npx agent-inspect view <run-id> --dir .agent-inspect --summary
+npx agent-inspect check <run-id> --dir .agent-inspect --preset trajectory
+npx agent-inspect verify-safe <run-id> --dir .agent-inspect
+npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share --out ./evidence
+npx agent-inspect bundle verify ./evidence
 ```
+
+Use `--fail-on-observation` only when the run records explicit OUTCOME events.
 
 ## Troubleshooting
 

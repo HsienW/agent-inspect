@@ -74,9 +74,10 @@ Checks are deterministic and provider-free: the same trace and rules produce the
 ```bash
 npx agent-inspect check <run-id> --dir .agent-inspect \
   --preset trajectory \
-  --required-tool retrieve_policy \
-  --fail-on-observation failed
+  --required-tool retrieve_policy
 ```
+
+Use `--fail-on-observation failed` only when the run records explicit OUTCOME events (for example the [broken-agent-debugging starter](https://github.com/rajudandigam/agent-inspect/tree/main/examples/starters/broken-agent-debugging)). Trajectory checks do not invent outcomes from tool/LLM/run success.
 
 A passing check exits `0`; a rule failure exits `1`. Invalid configuration and unreadable/unsupported inputs use separate documented exit codes. Use TraceContract, suites, cohorts, Vitest/Jest reporters, or `--evidence-on fail` when the workflow needs more than one CLI check.
 

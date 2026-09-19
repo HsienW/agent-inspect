@@ -56,6 +56,8 @@ npx agent-inspect ci-summary .agent-inspect/jest-artifacts/tests/**/report.json 
 
 `ci-summary` writes local files only. It validates reporter artifact paths as relative paths and includes bounded structural metadata: package/framework, test status counts, trace filenames, artifact paths, redaction profile, and diagnostic counts.
 
+**Jest / Vitest association:** reporters do **not** invent run↔test links from timestamps. Wire an explicit association (`withAgentInspectJestTrace`, reporter `associations` / `resolveTrace`, or the Vitest equivalents) or expect a `no-trace-association` diagnostic. See [`@agent-inspect/jest`](https://github.com/rajudandigam/agent-inspect/blob/main/packages/jest/README.md#trace-association) and [`@agent-inspect/vitest`](https://github.com/rajudandigam/agent-inspect/blob/main/packages/vitest/README.md).
+
 ```bash
 npx agent-inspect export <run-id> --dir ./.agent-inspect \
   --format markdown --redaction-profile share -o ./artifacts/trace.md
