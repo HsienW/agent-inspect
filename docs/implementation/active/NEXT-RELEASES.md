@@ -3,7 +3,7 @@
 **Authority:** [../ROADMAP.md](../ROADMAP.md)
 **Baseline:** **published** `agent-inspect@6.31.0` · commit `988b747` · schema `1.0`
 **Named train:** `website-correctness-post-6310`
-**Program status:** Releasing **6.31.1** (P01–P03); website P04 on main; **6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE**; **V7_DECISION: NO-GO**
+**Program status:** Published through **6.31.3**; **6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE**; **V7_DECISION: NO-GO**
 
 ## Freeze language
 
@@ -11,17 +11,17 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 
 ## Sequence
 
-1. **Website hotfix (now)** — Links, quickstart, TOC anchors, raw MD sync, badges, website CI — **no mandatory npm release**
-2. **6.31.1** — Strict `allowedStatuses` (P01); Trusted Publish skip runner (P02); LangChain callback parentage (P03)
-3. **6.31.2** — README / AI SDK / Jest / observation-flag docs (P05); private-app reruns (P06) for claims only
-4. **6.31.3** — OTLP serialization + Collector conformance (P07)
+1. **Website hotfix** — Links, quickstart, TOC anchors, raw MD sync, badges, website CI — **done**
+2. **6.31.1** — Strict `allowedStatuses` (P01); Trusted Publish skip runner (P02); LangChain callback parentage (P03) — **published**
+3. **6.31.2** — README / AI SDK / Jest / observation-flag docs (P05) — **published**; private-app reruns (P06) remain unclaimed
+4. **6.31.3** — OTLP BigInt timestamps — **published** (automated Collector suite still deferred)
 5. **6.32.0** — Conditional external conformance + compact failure review — **BLOCKED_ON_EXTERNAL_EVIDENCE**
 6. **6.33.0** — Runnable Promptfoo (+ backends after OTLP) only for genuine additive public capability
 7. **v7** — assessment only; **V7_DECISION: NO-GO**
 
 ## Current chunk
 
-**6.31.1 Trusted Publish** — P01 strict `allowedStatuses`, P02 portable prepublish skip, P03 LangChain `handleChainStart` parentage. Do not invent **6.32.0**.
+**Stopped.** Do not invent **6.32.0** or mark `EVIDENCE GATE APPROVED`.
 
 ## Stop rules
 
@@ -34,9 +34,8 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 ## External stop marker
 
 ```text
-LAST_PUBLISHED_RELEASE: 6.31.0
-ACTIVE: 6.31.1 Trusted Publish in progress
-NEXT_PATCH: 6.31.2
+LAST_PUBLISHED_RELEASE: 6.31.3
+ACTIVE: stopped
 RESERVED: 6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE
 V7_DECISION: NO-GO
 EVIDENCE_GATE: not approved

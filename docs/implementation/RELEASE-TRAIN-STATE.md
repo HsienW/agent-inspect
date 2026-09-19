@@ -7,41 +7,39 @@
 ```yaml
 baselineVersion: "6.31.3"
 publishedVersion: "6.31.3"
-pendingPublishVersion: "6.31.1"
+pendingPublishVersion: null
 currentTrain: "website-correctness-post-6310"
-trainStatus: "releasing-6311"
+trainStatus: "complete-through-6313"
 executionMode: "maintainer-reviewed"
 namedTrain: "website-correctness-post-6310"
 branch: "main"
-currentChunk: "P01–P03 + Changeset for 6.31.1"
-lastConfirmedCommit: "464cdd27"
-lastValidationLevel: "focused contract + langchain + prepublish-skip tests"
-nextAction: "Push Changeset; merge Version Packages PR; confirm Trusted Publish"
+currentChunk: "stopped — 6.32.0 still evidence-blocked"
+lastConfirmedCommit: "02ce1695"
+lastValidationLevel: "npm agent-inspect@6.31.3 Trusted Publish success"
+nextAction: "Await partner evidence for 6.32.0; no routine patches consume 6.32"
 pendingManualGate: "6.32.0 partner evidence; #422 factual review"
 githubIssues:
   "209": "keep open — cross-platform packed-consumer matrix PARTIAL"
 canonicalRoadmap: "docs/implementation/ROADMAP.md"
 activePlan: "docs/implementation/active/NEXT-RELEASES.md"
 completedChunks:
-  - "6.29.5 trustworthy checks + Trusted Publish"
-  - "6.29.6 safe sharing + integration + Trusted Publish (#427)"
-  - "6.30.0 rich CLI TraceContracts + Trusted Publish (#428)"
-  - "6.31.0 typed cross-kind step ordering + Trusted Publish (#429 + root recovery)"
-  - "P00 baseline 6.31.0 + website-first train ledger"
-  - "P04 website repair (A–F) on main"
+  - "6.31.0 typed cross-kind step ordering + Trusted Publish"
+  - "P04 website repair (A–F)"
+  - "6.31.1 status validation + prepublish skip + LangChain parentage"
+  - "6.31.2 README / AI SDK / Jest observation-flag docs"
+  - "6.31.3 OTLP BigInt unixNano timestamps"
 blockedTrains:
   - "6.32.0 external conformance (BLOCKED_ON_EXTERNAL_EVIDENCE)"
   - "v7.0.0 (assessment only — V7_DECISION: NO-GO)"
 amendments:
-  - "Post-6.31.0: website-first repair before 6.31.1 correctness patches"
-  - "Do not consume reserved 6.32.0 for website or routine patches"
+  - "Post-6.31.0 website-first train executed through 6.31.3"
+  - "Do not invent or consume reserved 6.32.0"
 worktreeIgnoreOnly:
   - ".redstamp/"
   - "redstamp-proposal-issue-body.md"
 stopMarker: |
-  LAST_PUBLISHED_RELEASE: 6.31.0
-  ACTIVE: 6.31.1 Trusted Publish in progress
-  NEXT_PATCH: 6.31.2
+  LAST_PUBLISHED_RELEASE: 6.31.3
+  ACTIVE: stopped
   RESERVED: 6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE
   V7_DECISION: NO-GO
   EVIDENCE_GATE: not approved
