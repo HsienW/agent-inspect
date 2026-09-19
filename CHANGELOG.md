@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.31.1
+
+### Patch Changes
+
+- 11a0159: Strict `allowedStatuses` validation (typos like `succes` no longer map to permissive `error`); portable `prepublishOnly` skip runner for Trusted Publish; LangChain `handleChainStart` parentage matches CallbackManager runtime arg order.
+
 ## 6.31.0
 
 ### Minor Changes
