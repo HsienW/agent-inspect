@@ -15,6 +15,11 @@ export const docsManifest: DocsManifestEntry[] = [
   { slug: [], source: "docs/README.md", section: "Start" },
   {
     slug: ["getting-started"],
+    source: "docs/FIRST-TRACE-IN-5-MINUTES.md",
+    section: "Start",
+  },
+  {
+    slug: ["getting-started", "guide"],
     source: "docs/GETTING-STARTED.md",
     section: "Start",
   },

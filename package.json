@@ -255,6 +255,8 @@
     "website:dev": "pnpm --filter @agent-inspect/website dev",
     "website:build": "pnpm --filter @agent-inspect/website build",
     "website:typecheck": "pnpm --filter @agent-inspect/website typecheck",
+    "website:check": "pnpm --filter @agent-inspect/website check",
+    "website:crawl": "pnpm --filter @agent-inspect/website crawl",
     "package-licenses:check": "node scripts/validate-package-licenses.mjs",
     "package-licenses:sync": "node scripts/sync-package-licenses.mjs",
     "demo-version-sync:check": "node scripts/check-demo-version-sync.mjs"

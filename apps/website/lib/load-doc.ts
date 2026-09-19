@@ -8,6 +8,7 @@ import {
   getManifestEntry,
   type DocsManifestEntry,
 } from "@/content/docs-manifest";
+import { DocSlugger } from "@/lib/doc-slug";
 
 import type { DocTocItem } from "@/lib/docs";
 
@@ -49,14 +50,8 @@ const REPO_ROOT = resolveRepoRoot();
 /** Canonical docs directory (apps/website → ../../docs). */
 export const DOCS_ROOT = path.join(REPO_ROOT, "docs");
 
-function slugifyHeading(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+export function getRepoRoot(): string {
+  return REPO_ROOT;
 }
 
 function extractFirstH1(markdown: string): string | undefined {
@@ -103,11 +98,19 @@ function extractDescription(
     .slice(0, 220);
 }
 
-function buildToc(markdown: string): DocTocItem[] {
+/** Build TOC; skip fenced code so headings inside fences are ignored. */
+export function buildToc(markdown: string): DocTocItem[] {
   const toc: DocTocItem[] = [];
-  const seen = new Map<string, number>();
+  const slugger = new DocSlugger();
+  let inFence = false;
 
   for (const line of markdown.split("\n")) {
+    if (/^(`{3,}|~{3,})/.test(line.trimStart())) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+
     const match = /^(#{2,3})\s+(.+)$/.exec(line);
     if (!match) continue;
 
@@ -117,14 +120,8 @@ function buildToc(markdown: string): DocTocItem[] {
       .trim();
     if (!rawTitle) continue;
 
-    let id = slugifyHeading(rawTitle);
+    const id = slugger.slug(rawTitle);
     if (!id) continue;
-
-    const count = seen.get(id) ?? 0;
-    seen.set(id, count + 1);
-    if (count > 0) {
-      id = `${id}-${count}`;
-    }
 
     toc.push({ id, title: rawTitle });
   }

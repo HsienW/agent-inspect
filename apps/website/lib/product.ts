@@ -47,12 +47,9 @@ npx agent-inspect init --yes
 node examples/agent-inspect-demo.mjs
 npx agent-inspect list --dir .agent-inspect
 # copy <run-id> from list, then:
-npx agent-inspect report <run-id> --dir .agent-inspect
-npx agent-inspect check <run-id> --dir .agent-inspect
-npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share
+npx agent-inspect view <run-id> --dir .agent-inspect --summary
+npx agent-inspect check <run-id> --dir .agent-inspect --preset trajectory
 npx agent-inspect verify-safe <run-id> --dir .agent-inspect
-# Evidence v2 integrity (path from bundle output):
-npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>
-# Optional coding-agent loop (dry-run by default):
-npx agent-inspect mcp configure --client cursor`,
+npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share --out ./evidence
+npx agent-inspect bundle verify ./evidence`,
 } as const;

@@ -32,9 +32,14 @@ const PAGE_META: Record<string, { title: string; description: string }> = {
       "Local-first docs for tracing, checking, and redacting TypeScript AI agent runs.",
   },
   "getting-started": {
-    title: "Getting started",
+    title: "First trace in 5 minutes",
     description:
-      "Install AgentInspect, run the deterministic demo, inspect a trace, check it, and create share-checked Evidence v2.",
+      "Install AgentInspect, run the keyless demo, inspect a trace, check trajectory, and verify a share-safe Evidence bundle.",
+  },
+  "getting-started/guide": {
+    title: "Getting started (full guide)",
+    description:
+      "Install paths, observe/step instrumentation, adapters, and deeper onboarding beyond the five-minute path.",
   },
   "concepts/local-first": {
     title: "Local-first",
@@ -215,6 +220,8 @@ const NAV_HIDDEN_SLUGS = new Set(["contracts"]);
 
 function navLabel(page: DocPage): string {
   if (page.slug === "") return "Overview";
+  if (page.slug === "getting-started") return "Five-minute path";
+  if (page.slug === "getting-started/guide") return "Full getting started";
   if (page.slug === "integrations") return "Overview";
   if (page.slug === "safe-sharing") return "Safe sharing";
   if (page.slug === "ci") return "CI artifacts";

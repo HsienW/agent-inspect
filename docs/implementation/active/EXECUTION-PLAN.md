@@ -2,7 +2,7 @@
 
 **Train:** `post-6294-correctness-v6.29.5-to-v6.32`
 **Authority:** [../ROADMAP.md](../ROADMAP.md) · [NEXT-RELEASES.md](./NEXT-RELEASES.md)
-**Baseline:** published `agent-inspect@6.31.0` · **6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE** · **V7_DECISION: NO-GO**
+**Baseline:** published `agent-inspect@6.31.0` (`988b747`) · website P04 → **6.31.1+** · **6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE** · **V7_DECISION: NO-GO**
 
 ## Scope
 

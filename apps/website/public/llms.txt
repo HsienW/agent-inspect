@@ -48,6 +48,7 @@ Optional Preview: read-only MCP over the same local facts.
 ## Key docs
 
 - https://agentinspect.vercel.app/docs/getting-started
+- https://agentinspect.vercel.app/docs/getting-started/guide
 - https://agentinspect.vercel.app/docs/trace-facts
 - https://agentinspect.vercel.app/docs/trace-contracts
 - https://agentinspect.vercel.app/docs/evidence-v2
@@ -56,6 +57,9 @@ Optional Preview: read-only MCP over the same local facts.
 - https://github.com/rajudandigam/agent-inspect/blob/main/docs/WHY-AGENTINSPECT.md
 - https://github.com/rajudandigam/agent-inspect/blob/main/docs/DECISION-GUIDE.md
 - https://github.com/rajudandigam/agent-inspect/blob/main/docs/NO-EGRESS-POLICY.md
+- https://github.com/rajudandigam/agent-inspect/blob/main/docs/FIRST-TRACE-IN-5-MINUTES.md
+- Raw Markdown (same sources as HTML): https://agentinspect.vercel.app/docs/getting-started.md
+- Full guide Markdown: https://agentinspect.vercel.app/docs/getting-started/guide.md
 
 ## Safety
 

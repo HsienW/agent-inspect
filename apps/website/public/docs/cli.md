@@ -1,0 +1,1171 @@
+# CLI
+
+This document describes the **stable CLI surface** of AgentInspect.
+
+AgentInspect is **local-first** and **read-only by default** where possible:
+
+- **No upload** (exports write local strings/files only)
+- **No vendor sinks**
+- **No external services required**
+- **No replay/fork execution**
+
+## 1. Overview
+
+The CLI command is:
+
+```bash
+agent-inspect <command> [options]
+```
+
+Core commands:
+
+- `list` — list local runs
+- `view` — render a single run
+- `clean` — safely delete old runs (verified traces only)
+- `logs` — parse structured logs into local execution trees
+- `tail` — live-tail logs into updating local trees
+- `export` — export manual traces to Markdown/HTML/OpenInference/OTLP JSON (local only)
+- `open` — read supported local trace files, directories, or stdin through the canonical reader pipeline
+- `migrate` — convert one local AgentInspect JSONL file to schema 1.0 with dry-run or explicit output
+- `init` — scaffold local AgentInspect config and demo files (v3.1+)
+- `doctor` — diagnose local setup without network or installs (v3.1+)
+- `workspace` — manage a project-local trace workspace (`.agent-inspect/workspace.json`) (v4.0+)
+- `index sqlite` — optional SQLite-backed trace index for faster queries (requires `@agent-inspect/index-sqlite`) (v4.1+)
+- `check` — run deterministic local trace checks with stable JSON and exit codes
+- `eval` — run deterministic local evals over existing traces
+- `redact` — redact a local JSON/JSONL file or trace copy
+- `scan` — best-effort local safety scan for trace capture risks
+- `verify-safe` — best-effort local trace safety verification
+- `artifacts` — create safe local CI trace artifact bundles and optional step summaries
+- `bundle` — create share-safe offline trace bundles (redacted copies + verify-safe)
+- `ci-summary` — summarize local reporter artifact manifests for CI
+- `diff` — compare two manual traces (local, read-only)
+- `timeline` — chronological view of one run (local JSONL)
+- `stats` — local aggregate stats over a trace directory
+- `search` — deterministic local search over traces
+- `sessions` — list workflow sessions; v4.2+ subcommands: `latest`, `activity`, `show`, `handoffs`, `errors`
+- `session` — inspect one session (handoffs, retries, optional timeline)
+- `what` — concise summary of a single run (local JSONL)
+- `report` — markdown or HTML inspection report for a single run
+- `explain` — deterministic local facts/inferences for a trace, with dry-run payloads
+
+## 1.1 CLI vs TraceContract decision table (6.29.3)
+
+Use this table when choosing between CLI check shorthands and TraceContract rules.
+No new CLI commands were added for branching paths.
+
+| Need | Prefer |
+| ---- | ------ |
+| One tool must always run | CLI `--required-tool` / contract `tools.required` |
+| Tool must never run | CLI `--forbidden-tool` / contract `tools.forbidden` |
+| Legitimate alternate paths (OR) | TraceContract `alternatives.anyOf` via `--config` `contract` (or TS API) |
+| Causal order between tools | TraceContract `requiredOrder` + `requiredOrderMode` via `--config` `contract` |
+| Read recovery vs write fail-closed | TraceContract `retry.operations` + `sideEffectClass` via `--config` `contract` |
+| Sensitive expected literals in Evidence | Contract binding safety (`unavailable` on credential-like expected); never silent complete packaging |
+| Share-safe offline review package | CLI `bundle` / Evidence CI helpers |
+
+See [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md) and recipe
+[sensitive-read-outbound-write-anyof](../examples/recipes/sensitive-read-outbound-write-anyof/).
+
+## 2. Environment variables
+
+- **`AGENT_INSPECT_TRACE_DIR`**: default directory for manual trace files (`.jsonl`) when not passed via `--dir` (or API options).
+- **`AGENT_INSPECT_SILENT`**: when `true`, suppresses live terminal tree output during manual tracing (`inspectRun` / `step`). Trace files are still written.
+- **`AGENT_INSPECT`**: enables manual tracing for **`maybeInspectRun`** when set to `1`, `true`, `yes`, `on`, or `enabled` (case-insensitive). Unset or any other value disables tracing. Does **not** change default **`inspectRun`** behavior (which always traces unless `enabled: false` is passed in code). No network upload — local JSONL only.
+
+## 3. Exit code policy
+
+- **0**: command succeeded (even if a diff reports “differences”)
+- **1**: command error (invalid args, missing files, missing runs, parse failures, validation failures, etc.)
+
+Exception: `check` uses CI-oriented semantic exit codes:
+
+- **0**: all selected checks passed
+- **1**: checks ran and at least one error-severity rule failed
+- **2**: invalid arguments or invalid config
+- **3**: trace input could not be read
+- **4**: unsupported or ambiguous trace format
+
+Exception: `eval` uses local eval semantic exit codes:
+
+- **0**: all selected eval rules passed
+- **1**: eval ran and at least one error-severity rule failed
+- **2**: invalid arguments, invalid config, unreadable input, unsupported input, ambiguous input, or run-selection errors
+
+Exception: `scan` and `verify-safe` use local safety status exit codes:
+
+- **0**: status is SAFE or SAFE WITH WARNINGS
+- **1**: status is UNSAFE
+- **2**: status is UNKNOWN, including unreadable, unsupported, ambiguous, or invalid inputs
+
+AgentInspect favors **human-readable errors without stack traces** for expected user mistakes.
+
+## 4. JSON output policy
+
+Many commands support `--json` for scripting. JSON output is intended to be:
+
+- machine-parseable
+- deterministic for the same input files
+- local-only (no network)
+
+## 5. Safety and redaction notes
+
+- Log-derived output includes **confidence** labels and avoids inventing parent-child relationships.
+- Redaction defaults are conservative (e.g. `authorization`, `cookie`, `token`, `apiKey`, `password`, `secret`, `email`).
+- Exported payloads are **redacted by default** unless explicitly configured otherwise.
+- `eval` is deterministic and local-only. It does not replay agents, call model providers, upload traces, or create hosted datasets.
+- `redact` writes or prints a redacted copy. It does not mutate source trace files.
+- `scan` and `verify-safe` are best-effort local checks, not compliance, privacy, security, or regulatory certifications.
+- `artifacts` renders structural summaries and check evidence only; it does not include raw prompt/output bodies, request/response bodies, headers, API keys, secrets, or full tool payloads.
+
+## 6. Command reference
+
+### 6.1 `list`
+
+List recent local runs (trace files).
+
+```bash
+agent-inspect list [options]
+```
+
+Options:
+
+- `--dir <path>`: trace directory
+- `--limit <number>`: max runs to show (default 20, max 100)
+- `--status <running|success|error|unknown>`: filter by status
+- `--name <query>`: substring match on run id/name
+- `--since <duration>`: only include recent runs (e.g. `30s`, `5m`, `2h`, `7d`)
+- `--json`: print list as JSON
+
+### 6.2 `view`
+
+Render a single manual trace by run id.
+
+```bash
+agent-inspect view <run-id> [options]
+```
+
+Options:
+
+- `--dir <path>`: trace directory
+- `--summary`: run summary (counts, max depth, longest step)
+- `--metadata`: file path/size + timestamps
+- `--errors-only`: only error events/failed steps
+- `--verbose`: include extra detail (types, metadata, stacks)
+- `--json`: print raw trace events as JSON
+- `--tui`: open optional interactive TUI viewer (requires `@agent-inspect/tui`)
+
+### 6.3 `clean`
+
+Safely delete old local trace files. This is safety-critical: the CLI verifies trace files before deletion.
+
+```bash
+agent-inspect clean --older-than <duration> [--dry-run] [--yes]
+agent-inspect clean --keep <count> [--dry-run] [--yes]
+```
+
+Options:
+
+- `--dir <path>`: trace directory
+- `--older-than <duration>`: delete runs older than a duration
+- `--keep <count>`: keep N most recent runs
+- `--dry-run`: show what would be deleted
+- `--yes`: skip confirmation prompt
+
+Recommendation: run with `--dry-run` first.
+
+### 6.4 `logs`
+
+Advanced ingestion: use this when your app already emits structured logs. Parse those logs into local execution trees.
+
+```bash
+agent-inspect logs <file> [options]
+```
+
+Options:
+
+- `--format <auto|json|log4js>`
+- `--config <path>`: ingest config JSON (see `docs/SCHEMA.md` for config types)
+- `--run-id-key <keys>`: override runId keys (comma-separated)
+- `--event-key <key>`: override event key
+- `--timestamp-key <key>`: override timestamp key
+- `--message-key <key>`: override message key
+- `--level-key <key>`: override level key
+- `--parent-id-key <key>`: override parent id key
+- `--duration-key <key>`: override duration key
+- `--status-key <key>`: override status key
+- `--json`: emit JSON payload (events/trees/warnings/summary)
+- `--summary`: include summary section in human output
+- `--warnings <none|summary|all>`: warning output mode
+
+Example (fixtures):
+
+```bash
+agent-inspect logs fixtures/logs/proactive-json.log --format json --config fixtures/configs/proactive-agent-inspect.logs.json
+```
+
+### 6.5 `tail`
+
+Live-tail logs into updating execution trees in the terminal.
+
+```bash
+agent-inspect tail [options]
+```
+
+Options:
+
+- `--file <path>`: tail a file (otherwise reads stdin)
+- `--format <auto|json|log4js>`
+- `--config <path>`
+- `--once`: read once and exit (useful for CI/scripting with `--file`)
+- `--warnings <none|summary|all>`
+- `--refresh <ms>`: minimum time between renders
+- `--json`: newline-delimited JSON updates
+
+**Truncation recovery:** when a watched `--file` shrinks below the last read offset (for example a truncate-and-rewrite), `tail` resets the offset, discards any buffered partial line, and continues the same session from the start of the current file contents. Full inode-aware rename/recreate rotation is **not** claimed unless separately implemented and tested.
+
+Important: `tail` is a local developer tool, not a production monitor.
+
+### 6.6 `export`
+
+Export a manual trace run to local formats. **No upload.** Export redaction operates on a **copy** of the run tree — original JSONL files are not modified. Review every export before sharing, even with `--redaction-profile strict`.
+
+```bash
+agent-inspect export <run-id> --format <markdown|html|openinference|otlp-json> [options]
+```
+
+Options:
+
+- `--dir <path>`
+- `--format <format>`
+- `-o, --output <path>`: write file (canonical; `--out` is a legacy alias)
+- `--json`: JSON wrapper output (includes content if not writing to file)
+- `--validate`: validate exported payload shape
+- `--include-attributes`: include bounded attributes (review before sharing)
+- `--no-metadata`: omit summary/metadata sections
+- `--no-errors`: omit error sections
+- `--redaction-profile <profile>`: redaction profile for exported copies — `local` (default), `share`, or `strict`. Key-based safety only; review exports before sharing. (`--profile` is a legacy alias.)
+
+Examples:
+
+```bash
+npx agent-inspect export <run-id> --format markdown --redaction-profile share
+npx agent-inspect export <run-id> --format html --redaction-profile strict
+```
+
+### 6.7 `open`
+
+Open any local trace format supported by the canonical reader pipeline. This command is read-only: it does not mutate input files, upload traces, or run agents.
+
+```bash
+agent-inspect open [input] [options]
+```
+
+`input` may be a file, directory, `-` for stdin, or omitted to read stdin.
+
+Options:
+
+- `--format <agent-inspect-jsonl|openinference-json|otlp-json>`: explicit reader format override
+- `--run <run-id>`: select a run when input contains multiple runs
+- `--json`: print structured JSON output
+- `--diagnostics`: print reader warnings and unsupported fields in human output
+
+Examples:
+
+```bash
+npx agent-inspect open fixtures/traces/minimal-success.jsonl --format agent-inspect-jsonl
+npx agent-inspect open fixtures/traces-v0.2/manual-basic.jsonl --format agent-inspect-jsonl
+npx agent-inspect open packages/core/test/fixtures/openinference-basic.json --format openinference-json
+npx agent-inspect open packages/core/test/fixtures/otlp-basic.json --format otlp-json
+cat packages/core/test/fixtures/openinference-basic.json | npx agent-inspect open - --format openinference-json --json
+```
+
+When a directory or payload contains multiple runs, `open` lists the run ids and exits until you pass `--run <run-id>`.
+
+### 6.8 `migrate`
+
+Convert one local AgentInspect JSONL trace file to the stable schema 1.0 persisted contract. This command is local and non-destructive by default: it does not upload traces, run agents, mutate the input file, or overwrite originals.
+
+```bash
+agent-inspect migrate <input.jsonl> --to 1.0 --dry-run
+agent-inspect migrate <input.jsonl> --to 1.0 --output <output.jsonl>
+```
+
+Options:
+
+- `--to 1.0`: required target schema version
+- `--dry-run`: print deterministic counts and warnings without writing output
+- `-o, --output <path>`: write migrated schema 1.0 JSONL to a separate file
+- `--force`: accepted only for explicit output validation; input overwrite is still refused
+
+Input support:
+
+- v0.1 manual trace rows are converted to schema 1.0 persisted rows.
+- v0.2 and v1.0 persisted rows are preserved/upgraded through the shared persisted contract.
+- malformed JSON and unsupported schema rows are reported as line warnings.
+
+Examples:
+
+```bash
+npx agent-inspect migrate fixtures/traces/minimal-success.jsonl --to 1.0 --dry-run
+npx agent-inspect migrate fixtures/traces/minimal-success.jsonl --to 1.0 --output fixtures/traces/minimal-success.v1.jsonl
+```
+
+### 6.9 `check`
+
+Run deterministic checks against a local trace. This command is local and read-only: it does not rerun agents, call models, upload traces, or mutate input files.
+
+```bash
+agent-inspect check <trace-path-or-run-id> [options]
+```
+
+`<trace-path-or-run-id>` may be a trace file, directory, `-` for stdin, or a run id resolved with `--dir`.
+
+Options:
+
+- `--dir <path>`: trace directory for run-id lookup
+- `--format <agent-inspect-jsonl|openinference-json|otlp-json>`: explicit reader format override
+- `--run <run-id>`: select a run when input contains multiple runs
+- `--config <path>`: check config (`.json`, `.js`, `.mjs`, or `.cjs`)
+- `--json`: print deterministic `TraceCheckResult` JSON
+- `--rule <id>`: select a rule id; repeatable
+- `--max-duration-ms <number>`: add `run.duration`
+- `--required-tool <name>` / `--forbidden-tool <name>` / `--forbid-tool <name>` (alias): add `tool.usage`
+- `--allowed-model <model>` / `--max-total-tokens <number>`: add `llm.usage`
+- `--session <id>`: check all runs in a workflow session (uses `--dir`; target may be `.`)
+- `--group <id>`: check all runs sharing a `groupId` metadata value
+- `--correlate-group`: when using `--session`, also match synthetic `group:` session keys
+- `--guardrails <rule>`: optional deterministic guardrail rules (`banned-phrase`, `pii-leak`, `prompt-injection`, …); repeatable
+- `--circuit <rule>`: optional circuit analyzers (`same-tool-repetition`, `max-retries`, …); repeatable
+- `--fail-on-observation <status>`: **outcome gate** — adds `outcome.status` with `requireAny=true` (needs ≥1 OUTCOME event). Comma-separated statuses: `failed`, `passed`, `unknown`, `skipped`. Does **not** invent a passed outcome from tool/LLM/run success. For adapter structure without outcomes, use `--preset trajectory` (plus `--required-tool` etc.); a trajectory pass is not share safety (`verify-safe`).
+- `--preset <trajectory|safety|comprehensive|behavioral-session>`: additive check preset (does not change the default when omitted)
+  - `behavioral-session` (6.26): require harness completion + score OUTCOME events (`--fail-on-observation failed` by default); does **not** treat every TOOL `error` as a failed run
+  - `trajectory`: completion/structure/relationship focus; excludes share-safety findings
+  - `safety`: raw-content / secret / redaction focus
+  - `comprehensive`: union of trajectory and safety
+  - Presets are a base select set. CLI shorthands on the same invocation (`--fail-on-observation`, `--required-tool`, `--forbidden-tool` / `--forbid-tool`, `--allowed-model`, `--max-total-tokens`, `--max-duration-ms`, `--max-step-duration`, `--detect-stalls`) extend that set; they are not dropped because the preset already selected rules. Config `checks.select` is not silently expanded with unrelated configured rules.
+- `--evidence-on <fail|always|never>`: write local Evidence v2 (no upload); omitted = never
+- `--evidence-dir <path>`: Evidence output directory or base path
+- `--evidence-profile <local|share|strict>`: redaction profile for Evidence (default `share`)
+- `--evidence-format <directory|html|zip>`: Evidence layout (default `directory`)
+
+By default, `check` runs `run.status`. Additional built-in rules can be selected with `--rule` or config when their options are available. Prefer `--preset trajectory` in CI, then `verify-safe` before sharing.
+
+Config files use either `checks` (flat rule options) or top-level `contract`
+(TraceContract vocabulary). Do not combine both in one file.
+
+```json
+{
+  "checks": {
+    "select": ["run.status", "run.duration"],
+    "run": { "maxDurationMs": 30000 },
+    "tool": { "required": ["search_docs"] },
+    "llm": { "allowedModels": ["gpt-4.1-mini"], "maxTotalTokens": 12000 }
+  }
+}
+```
+
+Rich TraceContract JSON (6.30+):
+
+```json
+{
+  "contract": {
+    "tools": {
+      "required": ["retrieve_policy"],
+      "forbidden": ["send_email"],
+      "requiredOrder": ["retrieve_policy", "generate_answer"],
+      "requiredOrderMode": "first-occurrence"
+    },
+    "observations": { "failOn": ["failed"] },
+    "scope": { "runId": "optional-run-id" }
+  }
+}
+```
+
+Supported `contract` fields: `run`, `tools` (including `arguments`, `orderRules`),
+`llm`, `observations` (including `requireProvenance`), `scope`, `alternatives.anyOf`,
+`controls`, and `retry`. Unknown keys fail closed (exit 2). With `--evidence-on`,
+contract mode writes `contract.resolved.json` and binds digests into check-results.
+YAML is not supported. TypeScript config files (`.ts`, `.mts`, `.cts`) fail clearly unless a future explicit loader strategy is added; use precompiled JavaScript config instead.
+
+Examples:
+
+```bash
+npx agent-inspect check fixtures/traces-v0.2/manual-basic.jsonl --json
+npx agent-inspect check minimal-success --dir fixtures/traces --rule run.status
+npx agent-inspect check trace.jsonl --preset trajectory --evidence-on fail
+npx agent-inspect check trace.jsonl --max-duration-ms 30000 --required-tool search_docs --json
+npx agent-inspect check trace.jsonl --guardrails pii-leak --guardrails prompt-injection --json
+npx agent-inspect check trace.jsonl --circuit same-tool-repetition --circuit max-retries --json
+```
+
+Recipe: [examples/recipes/deterministic-ci-checks](../examples/recipes/deterministic-ci-checks/README.md)
+
+### 6.10 `serve`
+
+Start the optional **localhost read-only** trace viewer (`@agent-inspect/viewer`). Reads traces from disk only; no upload or mutation.
+
+```bash
+agent-inspect serve [options]
+```
+
+Options:
+
+- `--dir <path>`: trace directory to serve (default from `AGENT_INSPECT_TRACE_DIR` or `.agent-inspect-runs`)
+- `--host <host>`: bind host (default `127.0.0.1`)
+- `--port <number>`: bind port (default `7337`)
+- `--open`: open a browser when host is localhost
+
+Binding to `0.0.0.0` logs a warning — traces may be exposed on the network. Prefer `127.0.0.1` unless you accept that risk.
+
+### 6.11 `eval`
+
+Run deterministic local evals against an existing trace. This command reads through the same local reader pipeline as `open` and `check`; it does not rerun agents, call models, upload traces, mutate inputs, or create a hosted dataset.
+
+```bash
+agent-inspect eval <trace-path-or-run-id> [options]
+```
+
+Options:
+
+- `--dir <path>`: trace directory for run-id lookup
+- `--format <agent-inspect-jsonl|openinference-json|otlp-json>`: explicit trace input format
+- `--run <run-id>`: select a run when input contains multiple runs
+- `--config <path>`: eval config (`.json`, `.js`, `.mjs`, or `.cjs`); TypeScript configs are rejected until an explicit loader is approved
+- `--json`: print deterministic JSON eval result
+- `--markdown`: print deterministic Markdown eval summary
+- `--require-success`: require the selected run to complete successfully
+- `--required-tool <name>`: require a tool name (repeatable)
+- `--forbid-tool <name>` / `--forbidden-tool <name>`: forbid a tool name (repeatable)
+- `--max-duration-ms <number>`, `--max-depth <number>`, `--max-retries <number>`, `--max-total-tokens <number>`
+- `--require-retrieval-before-generation`
+- `--required-decision-metadata <key>`: require decision metadata (repeatable)
+- `--context-overlap`, `--min-context-overlap <number>`, `--min-shared-terms <number>`
+- `--quote-overlap`
+- `--citation-presence`
+- `--required-source-id <id>`: require a source id in context or citations (repeatable)
+- `--min-answer-characters <number>`, `--max-answer-characters <number>`, `--min-answer-words <number>`, `--max-answer-words <number>`
+- `--banned-phrase <text>`: ban unsupported-answer phrasing (repeatable)
+
+Example config:
+
+```json
+{
+  "eval": {
+    "requireSuccess": true,
+    "requiredTools": ["searchDocs"],
+    "forbiddenTools": ["deleteAccount"],
+    "citationPresence": true,
+    "contextOverlap": { "minOverlap": 0.2 },
+    "requiredSourceIds": ["policy-30-day"]
+  }
+}
+```
+
+Examples:
+
+```bash
+npx agent-inspect eval fixtures/traces-v0.2/manual-basic.jsonl --require-success --json
+npx agent-inspect eval trace.jsonl --forbid-tool deleteAccount --markdown
+npx agent-inspect eval trace.jsonl --config agent-inspect.eval.json --json
+```
+
+Recipes: [eval-local-checks](../examples/recipes/eval-local-checks/README.md) and [eval-ci-artifacts](../examples/recipes/eval-ci-artifacts/README.md).
+
+### 6.11 `redact`
+
+Redact a local JSON or JSONL trace/file. The command prints or writes a redacted copy and reports bounded findings; it does not mutate the source file or upload content.
+
+```bash
+agent-inspect redact <trace-or-file> [options]
+```
+
+Options:
+
+- `--dir <path>`: trace directory for run-id lookup
+- `--profile <local|share|strict>`: redaction profile (default `share`)
+- `-o, --output <path>`: write redacted content to a file
+- `--json`: print deterministic JSON wrapper with findings
+- `--policy <path>`: local JSON redaction policy (`extraKeys` + bounded `literal` / `prefix` patterns; no user regex since 6.29.1). No remote fetch; no secrets on argv. See [SAFETY-POLICY.md](SAFETY-POLICY.md).
+- `--fail-on-residual`: opt-in non-zero exit when residual safety is `UNSAFE` or `UNKNOWN` (default exit codes unchanged)
+
+After redaction, the command surfaces a **residual safety assessment** using the same local detector pipeline as `verify-safe`. Human mode prints a concise stderr warning when residual status is not `SAFE`. JSON mode adds an additive `residualAssessment` field (`status`, finding counts, codes only — never matched secret values). Residual status uses `SAFE` | `SAFE_WITH_WARNINGS` | `UNSAFE` | `UNKNOWN`. Supported AgentInspect traces get a full assessment; arbitrary JSON that is not a supported trace yields `UNKNOWN`. Redact never certifies safe sharing — finish with `verify-safe` before publishing.
+
+Examples:
+
+```bash
+npx agent-inspect redact trace.jsonl --profile share --json
+npx agent-inspect redact trace.jsonl --profile strict -o trace.share.jsonl
+npx agent-inspect redact trace.jsonl --policy ./redact-policy.json --fail-on-residual
+```
+
+Recipe: [redact-share-safe-file](../examples/recipes/redact-share-safe-file/README.md).
+
+### 6.12 `scan` and `verify-safe`
+
+Run best-effort local safety verification for supported trace inputs. These commands are local and read-only: they do not rerun agents, call models, upload traces, mutate input files, or certify compliance.
+
+```bash
+agent-inspect scan <trace-path-or-run-id> [options]
+agent-inspect verify-safe <trace-path-or-run-id> [options]
+```
+
+`<trace-path-or-run-id>` may be a trace file, directory, `-` for stdin, or a run id resolved with `--dir`.
+
+Statuses:
+
+- `SAFE`: no safety findings and no reader warnings.
+- `SAFE WITH WARNINGS`: no blocking safety findings, but warnings (reader or findings) remain.
+- `UNSAFE`: blocking safety findings were detected.
+- `UNKNOWN`: the input could not be read, normalized, or selected conservatively.
+
+`verify-safe` assesses the **source** trace and a **share-redacted artifact**. The printed/exit `status` follows the **artifact** assessment when a single-file (or stdin) artifact can be derived. `scan` remains source-oriented.
+
+Options:
+
+- `--dir <path>`: trace directory for run-id lookup
+- `--format <agent-inspect-jsonl|openinference-json|otlp-json>`: explicit reader format override
+- `--run <run-id>`: select a run when input contains multiple runs
+- `--json`: print deterministic JSON safety result
+- `--explain`: explain each finding (detector/path/category/confidence/redaction/override/bundle gate) without printing matched secret values
+- `--max-string-length <number>`: unsafe threshold for string values
+- `--max-array-length <number>`: unsafe threshold for array values
+- `--max-object-keys <number>`: unsafe threshold for object key counts
+- `--max-serialized-bytes <number>`: unsafe threshold for serialized values
+- `--policy <path>`: local JSON redaction policy shared with `redact` (`extraKeys` + bounded patterns)
+
+The scan looks for raw prompt/output-like capture paths, unredacted sensitive-looking keys, secret-like string patterns, and oversized values. It reports evidence paths rather than raw prompt, output, request/response, header, API key, secret, or full tool payload values. Secret detection is best-effort and should not be treated as exhaustive.
+
+Policy and overrides: [SAFETY-POLICY.md](SAFETY-POLICY.md).
+
+Examples:
+
+```bash
+npx agent-inspect scan fixtures/traces-v0.2/manual-basic.jsonl --json
+npx agent-inspect scan trace.jsonl --explain
+npx agent-inspect verify-safe minimal-success --dir fixtures/traces
+npx agent-inspect verify-safe trace.jsonl --explain --json
+npx agent-inspect verify-safe trace.jsonl --max-string-length 8192 --json
+```
+
+### 6.13 `artifacts`
+
+Create deterministic local CI artifacts for supported trace inputs. This command is local and read-only for trace inputs: it does not rerun agents, call models, upload files, use GitHub APIs, or mutate repository state. It writes only to `--output-dir` and, when requested, a local step-summary file.
+
+```bash
+agent-inspect artifacts <trace-path-or-run-id> --output-dir <path> [options]
+```
+
+Generated files:
+
+- `trace.json`: structural trace summary only
+- `check.json`: safety check result
+- `diff.json`: baseline diff result, or `not_requested`
+- `summary.md`: safe Markdown CI summary
+- `report.html`: safe HTML CI summary
+- `manifest.json`: deterministic file/status manifest
+
+Options:
+
+- `--output-dir <path>`: required local artifact directory
+- `--dir <path>`: trace directory for run-id lookup
+- `--format <agent-inspect-jsonl|openinference-json|otlp-json>`: explicit reader format override
+- `--run <run-id>`: select a run when input contains multiple runs
+- `--baseline <trace-path-or-run-id>`: optional baseline trace for diff artifacts
+- `--baseline-run <run-id>`: select a run from the baseline trace
+- `--github-summary <path>`: append the safe Markdown summary to this file, such as `$GITHUB_STEP_SUMMARY`
+- `--json`: print deterministic `manifest.json` content
+
+The artifact command runs safety checks before rendering and only includes structural counts, statuses, bounded check findings, diagnostics, and evidence paths. Baseline diff artifacts use normalized baseline checks and also avoid raw prompt/output/tool payload values. `--github-summary` is plain local file output; AgentInspect does not call GitHub APIs or upload artifacts.
+
+Examples:
+
+```bash
+npx agent-inspect artifacts fixtures/traces-v0.2/manual-basic.jsonl --output-dir ./artifacts --json
+npx agent-inspect artifacts minimal-success --dir fixtures/traces --output-dir ./artifacts --github-summary "$GITHUB_STEP_SUMMARY"
+npx agent-inspect artifacts candidate.jsonl --baseline baseline.jsonl --output-dir ./artifacts
+```
+
+Recipe and sample workflow: [examples/recipes/deterministic-ci-checks](../examples/recipes/deterministic-ci-checks/README.md)
+
+### 6.14 `ci-summary`
+
+Summarize local Vitest/Jest reporter artifact manifests into deterministic Markdown or JSON. This command reads shared `schemaVersion: "0.1"` manifest JSON files only, including the reporter package wrapper emitted by the workspace reporters. It does not read trace contents, rerun tests, upload artifacts, call GitHub APIs, or mutate repository state. `--output` and `--github-summary` write local files.
+
+```bash
+agent-inspect ci-summary <manifest...> [options]
+```
+
+Options:
+
+- `-o, --output <path>`: write the Markdown summary to a local file
+- `--github-summary <path>`: append the Markdown summary to a local file, such as `$GITHUB_STEP_SUMMARY`
+- `--json`: print deterministic JSON summary
+
+Example:
+
+```bash
+npx agent-inspect ci-summary .agent-inspect/jest-artifacts/tests/**/report.json \
+  --output ./artifacts/reporter-summary.md \
+  --github-summary "$GITHUB_STEP_SUMMARY"
+```
+
+Reporter artifact paths in the summary are kept relative and validated conservatively. The summary includes bounded package/framework metadata, test identity, status counts, trace filenames, artifact paths, redaction profiles, and diagnostic counts only.
+
+Recipe and sample workflow: [examples/recipes/github-actions-artifact](../examples/recipes/github-actions-artifact/README.md)
+
+### 6.15 `diff`
+
+Compare two manual trace runs. Diff is **local** and **read-only** (does not rerun agents).
+
+```bash
+agent-inspect diff <left-run-id> <right-run-id> [options]
+```
+
+Options:
+
+- `--dir <path>`
+- `--json`
+- `--ignore-duration`
+- `--duration-threshold <duration>`
+- `--focus <all|errors|structure|outputs>`
+- `--check <all|structure|outputs|errors|timing>`
+
+Fixture examples:
+
+```bash
+agent-inspect diff minimal-success minimal-error --dir fixtures/traces
+agent-inspect diff minimal-success long-running --dir fixtures/traces --check timing --duration-threshold 1ms
+agent-inspect diff minimal-success nested-3-levels --dir fixtures/traces --check structure --ignore-duration
+```
+
+**Simplified example output** (actual CLI formatting may differ slightly):
+
+```text
+Run diff
+Left:  minimal-success
+Right: minimal-error
+
+Summary:
+  Differences: 4
+  Errors: 0
+  Warnings: 3
+  Info: 1
+
+First divergence:
+  run-status at (run)
+    left: success
+    right: error
+
+Differences:
+  [warning] run-status
+    Run completion status differs
+    left: success
+    right: error
+  [info] duration
+    Run duration differs
+    left: 120
+    right: 70
+  [warning] step-removed plan
+    Step only in left run: plan
+    left: step_root
+    right: (undefined)
+  [warning] step-added failing-step
+    Step only in right run: failing-step
+    left: (undefined)
+    right: step_fail
+```
+
+More examples, including timing-only and structure-only diffs, are in `docs/DIFF.md`.
+
+### 6.16 `timeline`
+
+Chronological step list for one manual trace. Read-only; does not mutate JSONL files.
+
+```bash
+agent-inspect timeline <run-id> [options]
+```
+
+Options:
+
+- `--dir <path>`
+- `--json` — structured `RunTimeline` JSON
+- `--focus slow` — show only the slowest steps by duration (top N)
+
+![Timeline with slow-step focus](../assets/demos/timeline.gif)
+
+### 6.17 `stats`
+
+Local aggregate statistics over trace files in a directory. Read-only.
+
+```bash
+agent-inspect stats [options]
+```
+
+Options:
+
+- `--dir <path>`
+- `--since <duration>` — e.g. `7d`, `24h`
+- `--correlation-id <id>` — filter by `run_started.metadata.correlationId`
+- `--group-id <id>` — filter by `run_started.metadata.groupId`
+- `--json`
+
+![Directory-level stats over local traces](../assets/demos/stats.gif)
+
+Use `--correlation-id` or `--group-id` to filter runs by `run_started` metadata (see [API.md](./API.md)).
+
+### 6.18 `search`
+
+Deterministic search over local traces (substring / exact filters). No semantic search.
+
+```bash
+agent-inspect search [options]
+```
+
+Options:
+
+- `--dir <path>`
+- `--since <duration>`
+- `--status <success|error|running|unknown>`
+- `--kind <kind>` / `--type <type>` — manual step type (`llm`, `tool`, `logic`, …)
+- `--name <query>` — substring on run or step name
+- `--tool <query>` — substring on tool step name or `metadata.toolName`
+- `--duration <expr>` — e.g. `>5s`, `>=500ms`
+- `--limit <number>` — default 50
+- `--session <id>` — limit to runs in one workflow session
+- `--correlate-group` — when using `--session`, also match synthetic `group:` keys
+- `--observation <status>` — filter runs with observed outcomes matching status (`passed`, `failed`, `unknown`, `skipped`)
+- `--json`
+
+Examples:
+
+```bash
+npx agent-inspect search --status error --dir ./.agent-inspect
+npx agent-inspect search --kind tool --name search
+npx agent-inspect search --duration ">100ms" --json
+npx agent-inspect search --session sess-retry-001 --dir ./.agent-inspect
+```
+
+![Search traces by status error](../assets/demos/search.gif)
+
+### 6.19 `sessions`
+
+Workflow sessions and activity from local trace metadata. v4.2 adds session status, activity summaries, and optional SQLite index acceleration (falls back to directory scan). Read-only; no network.
+
+```bash
+agent-inspect sessions [options]                    # list sessions (default)
+agent-inspect sessions latest [--json]
+agent-inspect sessions activity [--since 7d] [--json]
+agent-inspect sessions show <session-id> [--timeline] [--json]
+agent-inspect sessions handoffs [--session <id>] [--json]
+agent-inspect sessions errors [--since 7d] [--json]
+```
+
+Shared options:
+
+- `--dir <path>`
+- `--correlate-group` — treat shared `groupId` as a synthetic session when `sessionId` is absent
+- `--stale-after <duration>` — mark sessions stale after inactivity (e.g. `24h`, `7d`)
+- `--json` — deterministic JSON output
+
+`activity` and `errors` accept `--since <duration>` (e.g. `7d`, `24h`). Session summaries include derived `status`, `lastActivity`, `lastError`, and `retryCount` without changing trace files.
+
+Example:
+
+```bash
+npx agent-inspect sessions --dir ./.agent-inspect
+npx agent-inspect sessions latest --json
+npx agent-inspect sessions activity --since 7d
+npx agent-inspect sessions handoffs --session sess-handoff-001
+npx agent-inspect sessions errors --since 30d --json
+```
+
+### 6.20 `session`
+
+Inspect one workflow session: runs, handoffs, retries, and optional per-run timelines. Uses the same session index as `sessions`.
+
+```bash
+agent-inspect session <session-id> [options]
+```
+
+Options:
+
+- `--dir <path>`
+- `--timeline` — include per-run timelines (human or JSON `timelines`)
+- `--critical-path` — include critical path section
+- `--diagnostics` — include ambiguity warnings for the session
+- `--json` — structured session view
+
+Example:
+
+```bash
+npx agent-inspect session sess-handoff-001 --timeline
+npx agent-inspect session sess-retry-001 --critical-path --json
+```
+
+### 6.21 `what`
+
+Concise human-readable summary of one local trace run. Read-only; accepts v0.1 manual JSONL and v0.2 persisted-event JSONL through the shared dual-format normalization path. Vocabulary: [TRACE-VOCABULARY-V1.5.md](./proposals/TRACE-VOCABULARY-V1.5.md).
+
+```bash
+agent-inspect what <run-id> [options]
+```
+
+Options:
+
+- `--dir <path>`
+- `--json` — structured `RunWhatSummary` JSON
+- `--no-correlation` — omit correlation ids from human output
+
+Example:
+
+```bash
+npx agent-inspect what minimal-success --dir fixtures/traces
+```
+
+Sample output:
+
+```
+What: minimal-success
+Status: success · Duration: 120ms · Steps: 1 (1 logic)
+Outcome: Completed successfully.
+Slowest: plan (100ms, logic)
+```
+
+### 6.20 `report`
+
+Generate a local inspection report combining **what happened**, **timeline**, and **execution tree** sections. The command reads local v0.1 manual JSONL and v0.2 persisted-event JSONL through the shared dual-format normalization path without mutating them. Distinct from `export` (which targets shareable tree snapshots and standards formats).
+
+```bash
+agent-inspect report <run-id> [options]
+```
+
+Options:
+
+- `--dir <path>`
+- `--format <markdown|html>` — default `markdown`
+- `-o, --output <path>` — write to file
+- `--json` — JSON wrapper (includes `content` when writing to stdout)
+- `--include-attributes` — bounded attributes in the execution tree section
+- `--section <name>` — include report sections; repeatable (`what`, `timeline`, `tree`, `observations`; default: all except when narrowed)
+- `--no-errors` — omit error details from the execution tree section
+- `--no-correlation` — omit correlation ids from what section
+- `--redaction-profile <local|share|strict>` — key-based redaction profile applied to the complete report (default `local`); review output before sharing
+
+Example:
+
+```bash
+npx agent-inspect report minimal-success --dir fixtures/traces --format html -o report.html
+```
+
+### 6.21 `explain`
+
+Explain a local trace using deterministic facts and local inference labels. This command reads through the same local reader pipeline as `open` / `check`; it does not call a model provider, upload traces, replay agents, or mutate input files.
+
+```bash
+agent-inspect explain <trace-path-or-run-id> [options]
+```
+
+Options:
+
+- `--dir <path>` — trace directory for run-id lookup
+- `--format <agent-inspect-jsonl|openinference-json|otlp-json>` — explicit input format
+- `--run <run-id>` — select a run when the trace contains multiple runs
+- `--dry-run` — emit only the redacted facts payload, with no local inference labels
+- `--provider <provider>` — reserved for an explicit future provider mode; currently rejected without network calls
+- `--json` — print deterministic JSON output
+- `--redaction-profile <local|share|strict>` — key-based redaction profile for the explanation payload (default `local`)
+
+Examples:
+
+```bash
+npx agent-inspect explain minimal-success --dir fixtures/traces
+npx agent-inspect explain fixtures/traces/minimal-success.jsonl --dry-run --json --redaction-profile strict
+```
+
+Provider design gate:
+
+- Current behavior is local only. `--provider <provider>` exits with a user-facing `PROVIDER_NOT_IMPLEMENTED` error and performs no provider call.
+- `--dry-run --json` is the payload review surface. The provider payload contract is the returned `explanation` object: `mode`, `runId`, optional `name` / `status`, `redactionProfile`, `facts`, `inferences`, and `notes`.
+- Provider chunks must require explicit provider selection, document required environment variables, and keep credentials out of trace data and dry-run output.
+- Provider prompts must ask for concise explanations from redacted facts only. They must not request, expose, or preserve raw chain-of-thought.
+- Cloud provider behavior is never selected by default and must be reviewed before implementation. Local provider support must still be explicit and opt-in.
+
+### 6.22 `workspace`
+
+Manage a project-local trace workspace (`.agent-inspect/workspace.json`). Added in v4.0. Local-only; trace files are never deleted. See [WORKSPACE.md](WORKSPACE.md) for the full model.
+
+```bash
+agent-inspect workspace init [--project <name>] [--redaction-profile <local|share|strict>] [--dry-run] [--json]
+agent-inspect workspace status [--json]
+agent-inspect workspace doctor [--json]
+agent-inspect workspace clean [--yes] [--json]
+agent-inspect workspace path [--json]
+```
+
+- `init` — create or adopt a workspace and its standard folders (`runs/`, `reports/`, `artifacts/`, `bundles/`, `notes/`, `index/`). An existing `workspace.json` is adopted without rewrite; existing traces are preserved.
+- `status` — read-only counts of traces, reports, artifacts, bundles, notes, plus index status.
+- `doctor` — validate the manifest, folder permissions, trace readability, and index freshness. Exits non-zero when a check fails.
+- `clean` — remove generated content (reports/artifacts/bundles/index). Dry-run by default; `--yes` deletes. Trace directories are never targeted.
+- `path` — print resolved workspace paths.
+
+All subcommands accept `--json` for deterministic output.
+
+### 6.23 `index sqlite`
+
+Optional SQLite-backed index that accelerates local queries over large trace directories. Added in v4.1. Requires the optional `@agent-inspect/index-sqlite` package; the core CLI does not depend on SQLite. The index is derived from JSONL and always safe to delete — JSONL remains the source of truth and trace files are never mutated. Local-only; no network. See [INDEX.md](INDEX.md) for the full model.
+
+```bash
+agent-inspect index sqlite build [--dir <path>] [--max-runs <n>] [--json]
+agent-inspect index sqlite rebuild [--dir <path>] [--max-runs <n>] [--json]
+agent-inspect index sqlite status [--dir <path>] [--json]
+agent-inspect index sqlite query [--dir <path>] [--status <s>] [--session <id>] [--name <q>] [--kind <k>] [--tool <q>] [--limit <n>] [--json]
+agent-inspect index sqlite clean [--dir <path>] [--json]
+```
+
+- `build` / `rebuild` — build or fully rebuild `trace-index.sqlite` from the trace directory. Rebuilds are idempotent; a corrupt prior index is discarded and rebuilt cleanly.
+- `status` — report index health, run/step counts, build time, and staleness (stale when any trace is newer than the index).
+- `query` — filter indexed runs by status, session, name, step kind, or tool. Exits non-zero with an install/build hint when no usable index is present.
+- `clean` — delete the index database (and its WAL/SHM sidecars). Traces are never touched.
+
+If `@agent-inspect/index-sqlite` is not installed, these subcommands print a short install hint and exit non-zero.
+
+### 6.24 `bundle`
+
+Create a **share-safe offline trace bundle** (v4.3+ / Evidence v2). Bundles are derived copies: original traces are read-only and never mutated. Automatic safety assessment runs on the **redacted artifact** before write; the command fails when the artifact is `UNSAFE`/`UNKNOWN` unless `--allow-unsafe`. Source-only findings that redaction removes do not refuse the bundle. See [BUNDLES.md](BUNDLES.md), [EVIDENCE-FORMAT.md](EVIDENCE-FORMAT.md), and [SAFETY-POLICY.md](SAFETY-POLICY.md).
+
+```bash
+agent-inspect bundle <run-id> [options]
+agent-inspect bundle --session <session-id> [options]
+agent-inspect bundle --since <duration> [options]
+```
+
+Options:
+
+- `--dir <path>` — trace directory
+- `--session <session-id>` — bundle all runs in a session
+- `--since <duration>` — bundle runs with activity since a window (e.g. `24h`, `7d`)
+- `--profile <profile>` — `local`, `share` (default), or `strict` redaction for exported copies (`--redaction-profile` is the canonical alias)
+- `--format <format>` — `directory` (default), `html` (evidence.html + evidence.json sidecar), or `zip` (local archive)
+- `--out <path>` — output directory, `.html` path, or `.zip` path; directory mode still strips a bare `.zip` suffix to a folder (`--output` is the canonical alias)
+- `--allow-unsafe` — write bundle even when verify-safe reports UNSAFE
+- `--json` — print deterministic JSON manifest
+
+Verify an Evidence v2 directory:
+
+```bash
+agent-inspect bundle verify <path> [--unexpected fail|warn|ignore] [--json]
+```
+
+Checks manifest schema, listed-file presence, SHA-256 hashes, unexpected files (default fail), assessment, and generator provenance. Unpack ZIP archives before verify.
+
+Open a verified local Evidence HTML file in the platform browser (no network):
+
+```bash
+agent-inspect bundle open <path> [--skip-verify] [--json]
+```
+
+`<path>` may be an Evidence directory or an `evidence.html` file. Verify runs first unless `--skip-verify` is set. If the OS cannot open a browser, the command prints the local file path as a fallback and does not upload anything.
+
+Output includes `trace.html`, `trace.jsonl`, `summary.md`, `metadata.json`, `check-results.json`, `redaction-report.json`, and `assets/runs/` mirrors for multi-run bundles.
+
+Examples:
+
+```bash
+npx agent-inspect bundle minimal-success --dir fixtures/traces --out ./bundle-out
+npx agent-inspect bundle --session sess-handoff-001 --dir ./.agent-inspect --profile strict
+npx agent-inspect bundle --since 24h --dir ./.agent-inspect --json
+```
+
+Recipe: [shareable-bundle-basic](../examples/recipes/shareable-bundle-basic/README.md).
+
+### 6.25 `suite`
+
+Define and run **local trace suites** for CI trajectory checks (v5.0+). Suites read existing traces only — no agent replay, no model calls, no upload.
+
+```bash
+agent-inspect suite init [--template <name>]
+agent-inspect suite validate [--config path]
+agent-inspect suite list [--config path]
+agent-inspect suite run [--config path] [--json] [--markdown] [-o dir]
+agent-inspect suite report --input <suite-run.json> [--format markdown|json]
+```
+
+Default config file: `agent-inspect.suite.json` in the current directory.
+
+Options (shared):
+
+- `--config <path>` — suite config (`.json`, `.js`, `.mjs`, `.cjs`)
+
+`init` also supports:
+
+- `--template <name>` — PM/QA template (v5.4+): `customer-support-agent`, `refund-agent`, `sales-assistant`, `browser-task-agent`, `mcp-tool-agent`, `workflow-agent`, `rag-answer-agent`, `human-approval-agent`
+
+`suite init` creates a new `agent-inspect.suite.json` and **refuses to overwrite** an existing file (valid, malformed, or empty). Edit or delete the existing config explicitly before recreating it. There is no `--force` flag.
+
+`run` also supports:
+
+- `-o, --output <dir>` — write JSON run artifact (default: `.agent-inspect/suite-runs`)
+- `--json` / `--markdown` — structured or readable output
+
+Case fields include `requireTools`, `forbidTools`, `maxDurationMs`, and `expectedObservations` (outcome names that must be `passed`).
+
+Example:
+
+```bash
+npx agent-inspect suite init
+npx agent-inspect suite run --config fixtures/configs/outcome-suite.suite.json --json
+```
+
+Recipe: [trace-suite-basic](../examples/recipes/trace-suite-basic/README.md).
+
+### 6.26 `cohort`
+
+Compare **baseline vs candidate** trace cohorts for regressions (v5.1+). Reads local traces only — no agent replay, no model calls, no upload.
+
+```bash
+agent-inspect cohort --dir <path> --baseline <label> --candidate <label> [options]
+```
+
+Options:
+
+- `--dir <path>` — trace directory (default: `.agent-inspect/traces`)
+- `--baseline <label>` / `--candidate <label>` — cohort labels from `run_started.metadata`
+- `--cohort-key <key>` — metadata key for labels (default: `cohort`)
+- `--group-by <spec>` — `model`, `session`, `group`, or `metadata.<key>` (default: `model`)
+- `--metric <list>` — comma-separated metrics (`errorRate`, `duration`, `toolChoice`, `observationFailure`, …)
+- `--format <format>` — `markdown`, `json`, or `html` (default: `markdown`)
+- `-o, --output <dir>` — write `cohort-results.json`, `cohort-summary.md`, `cohort-report.html`
+- `--json` — print deterministic JSON result
+
+Exit code **1** when any comparison flags a regression.
+
+Example:
+
+```bash
+npx agent-inspect cohort \
+  --dir fixtures/cohorts/before-after \
+  --baseline before \
+  --candidate after \
+  --group-by model
+```
+
+Recipe: [cohort-baseline-candidate](../examples/recipes/cohort-baseline-candidate/README.md).
+
+### 6.27 `gate`
+
+Run **deterministic CI quality gates** over local traces or suite configs (v5.2+). No agent replay, no model calls, no upload.
+
+```bash
+agent-inspect gate --suite <path> [options]
+agent-inspect gate --dir <path> --max-error-rate <percent> [options]
+```
+
+Options:
+
+- `--dir <path>` — trace directory for threshold checks
+- `--suite <path>` — suite config (`.json`, `.js`, `.mjs`, `.cjs`)
+- `--max-error-rate <percent>` — maximum allowed error rate
+- `--max-p95-duration <ms>` — maximum allowed p95 run duration
+- `--forbid-tool <name>` — forbidden tool (repeatable or comma-separated)
+- `--require-observation <name>` — required passed observation (repeatable or comma-separated)
+- `--format <format>` — `markdown`, `json`, `json-compact`, `html`, `junit`, `github`, or `github-annotations` (default: `markdown`)
+- `-o, --output <dir>` — write `gate-results.json`, `gate-summary.md`, `gate-report.html`, `junit.xml`, `github-step-summary.md`, `github-annotations.txt`
+- `--json` — print deterministic JSON result (pretty); use `--format json-compact` for CI logs
+- `--evidence-on <fail|always|never>` — write local Evidence v2 (no upload); omitted = never
+- `--evidence-dir <path>` — Evidence output directory or base path
+- `--evidence-profile <local|share|strict>` — redaction profile (default `share`)
+- `--evidence-format <directory|html|zip>` — Evidence layout (default `directory`)
+
+Exit codes: **0** pass, **1** gate failed, **2** invalid config, **3** trace read failure, **4** unsupported format. Evidence emission never suppresses the original gate exit code.
+
+Example:
+
+```bash
+npx agent-inspect gate --suite fixtures/configs/outcome-suite.suite.json --output ./gate-artifacts
+npx agent-inspect gate --dir fixtures/cohorts/before-after --max-error-rate 5 --forbid-tool deleteAccount
+npx agent-inspect gate --suite agent-inspect.suite.ts --evidence-on fail --evidence-profile share
+npx agent-inspect gate --suite agent-inspect.suite.ts --format github-annotations
+npx agent-inspect gate --suite agent-inspect.suite.ts --format json-compact
+```
+
+Recipe: [github-actions-gate](../examples/recipes/github-actions-gate/README.md).
+
+### 6.28 `viewer`
+
+Start the **localhost read-only viewer** for traces, suite evidence, or workspace status (v5.3+).
+
+```bash
+agent-inspect viewer [--suite | --workspace] [options]
+```
+
+Options:
+
+- `--suite` — suite evidence mode (runs suite config and shows case status, failures, observations)
+- `--workspace` — workspace mode (project status, runs, artifacts)
+- `--config <path>` — suite config for `--suite` mode
+- `--dir <path>` — trace directory (trace mode default)
+- `--host`, `--port`, `--open` — same as `serve`
+
+Example:
+
+```bash
+npx agent-inspect viewer --suite --config fixtures/configs/outcome-suite.suite.json
+npx agent-inspect viewer --workspace
+```
+
+### 6.29 `init`
+
+Scaffold local AgentInspect config and a metadata-only demo (v3.1+). Does **not** install packages or rewrite application source unless you opt in later.
+
+```bash
+agent-inspect init [--framework <name>] [--ci github] [--dry-run] [--yes] [--json]
+```
+
+`--framework` values (adoption order):
+
+| Value | Meaning |
+| --- | --- |
+| `ai-sdk` | AI SDK kit pointer + demo |
+| `langchain` / `langgraph` | LangChain/LangGraph kit pointer + demo |
+| `openai-agents` | OpenAI Agents kit pointer + demo |
+| `custom` | Manual `inspectRun` / `step` demo |
+| `observe` / `manual` | Aliases of `custom` (`observe(...)` demo) |
+
+Also writes `.agent-inspect/.gitkeep` and optional GitHub Actions workflow when `--ci github` is set. See [ADOPTION.md](./ADOPTION.md), [INSTALL-KITS.md](./INSTALL-KITS.md), and [LIFECYCLE.md](./LIFECYCLE.md).
+
+### 6.30 `doctor`
+
+Diagnose local setup **without network probes or installs** (v3.1+).
+
+```bash
+agent-inspect doctor [--framework <name>] [--trace-dir <path>] [--check-imports] [--json]
+```
+
+Reports version alignment, peer/package resolution, capture posture hints, writer path, redaction profile reminders, and no-default-egress expectations. Failures exit non-zero. Prefer `workspace doctor` when using a managed workspace layout.
+
+## 7. Optional TUI behavior
+
+`view --tui` delegates to `@agent-inspect/tui` and requires an interactive terminal. If the package is not installed, the CLI prints a short install hint.
+
+## 8. Warnings behavior
+
+Log parsing emits warnings for malformed lines or missing required keys. `--warnings` controls whether warnings are hidden, summarized, or printed line-by-line.
+
+## 9. Limitations (reminder)
+
+See:
+
+- `docs/KNOWN-ISSUES.md`
+- `docs/LIMITATIONS.md`
+
+
+## MCP configure (v6.11+)
+
+```bash
+agent-inspect mcp configure --client cursor
+agent-inspect mcp configure --client claude-code --project-local
+agent-inspect mcp configure --client cursor --project-local --write --yes
+```
+
+Dry-run by default. Writes project-local files only with `--project-local --write --yes`. No network; share redaction by default. See [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) and [coding-agent-instructions/](./coding-agent-instructions/).

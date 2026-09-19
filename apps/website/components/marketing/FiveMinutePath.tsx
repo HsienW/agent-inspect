@@ -17,9 +17,9 @@ export function FiveMinutePath() {
           </h2>
           <p className="mt-4 text-lg leading-8 text-muted">
             <code className="text-sm">init</code> scaffolds files; the demo writes the
-            trace. Then report, check, bundle, verify-safe, and optionally{" "}
-            <code className="text-sm">mcp configure</code> /{" "}
-            <code className="text-sm">bundle verify</code> with real targets.
+            trace. Then view, trajectory check, verify-safe, and{" "}
+            <code className="text-sm">bundle --out ./evidence</code> with{" "}
+            <code className="text-sm">bundle verify ./evidence</code>.
           </p>
           <p className="mt-4 rounded-xl border border-secondary/30 bg-secondary/10 px-4 py-3 text-sm text-secondary">
             Deterministic starter path — no API keys required.

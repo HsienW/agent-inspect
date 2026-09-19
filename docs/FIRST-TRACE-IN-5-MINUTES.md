@@ -1,6 +1,6 @@
 # First trace in 5 minutes
 
-Goal: install → one trace → one check → one share-safe bundle.
+Goal: install → one trace → one trajectory check → one share-safe Evidence bundle.
 
 **Docs site:** [https://agentinspect.vercel.app/docs/getting-started/](https://agentinspect.vercel.app/docs/getting-started/)
 
@@ -14,11 +14,14 @@ npx agent-inspect list --dir .agent-inspect
 Copy a `<run-id>` from `list`, then:
 
 ```bash
-npx agent-inspect report <run-id> --dir .agent-inspect
-npx agent-inspect check <run-id> --dir .agent-inspect
-npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share
+npx agent-inspect view <run-id> --dir .agent-inspect --summary
+npx agent-inspect check <run-id> --dir .agent-inspect --preset trajectory
 npx agent-inspect verify-safe <run-id> --dir .agent-inspect
+npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share --out ./evidence
+npx agent-inspect bundle verify ./evidence
 ```
+
+`init` scaffolds files into the current directory (`agent-inspect.config.ts`, `.agent-inspect/`, and `examples/agent-inspect-demo.mjs`). It does **not** install dependencies or write a trace by itself. Use `--preset trajectory` for structural CI gates; `--fail-on-observation` belongs only in examples that record explicit OUTCOME events.
 
 ## Minutes 0–1: Install
 
@@ -28,9 +31,6 @@ npm install agent-inspect
 npx agent-inspect init --yes
 ```
 
-Creates `agent-inspect.config.ts`, `.agent-inspect/`, and `examples/agent-inspect-demo.mjs`.  
-`init` scaffolds files; it does **not** write a trace by itself.
-
 Framework users: pick the correct capture path first — [CHOOSE-YOUR-CAPTURE-PATH.md](./CHOOSE-YOUR-CAPTURE-PATH.md).
 
 ## Minutes 1–2: Run
@@ -39,33 +39,36 @@ Framework users: pick the correct capture path first — [CHOOSE-YOUR-CAPTURE-PA
 node examples/agent-inspect-demo.mjs
 ```
 
-No API keys. Deterministic local trace.
+No API keys. Deterministic local trace under `.agent-inspect/`.
 
 ## Minutes 2–3: Inspect
 
 ```bash
 npx agent-inspect list --dir .agent-inspect
-npx agent-inspect view <run-id> --dir .agent-inspect
-npx agent-inspect report <run-id> --dir .agent-inspect
+npx agent-inspect view <run-id> --dir .agent-inspect --summary
 ```
+
+Replace `<run-id>` with the ID printed by `list` (do not guess “latest file”).
 
 ## Minutes 3–4: Check
 
 ```bash
-npx agent-inspect check <run-id> --dir .agent-inspect
+npx agent-inspect check <run-id> --dir .agent-inspect --preset trajectory
 ```
+
+Expected exit code `0` for the keyless demo. Add `--required-tool <name>` only when that tool is part of the real expected workflow.
 
 ## Minutes 4–5: Share-safe artifact
 
 ```bash
-npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share
 npx agent-inspect verify-safe <run-id> --dir .agent-inspect
-npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>
+npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share --out ./evidence
+npx agent-inspect bundle verify ./evidence
 ```
 
-Attach the share-profile bundle (or a redacted file) to a PR or issue — not raw traces.
+`--out ./evidence` writes the Evidence v2 package to a known path; `bundle verify ./evidence` checks that exact directory. Do not use `--allow-unsafe` to force a share.
 
-Optional file redaction:
+Optional file redaction before bundling:
 
 ```bash
 npx agent-inspect redact <run-id> --dir .agent-inspect --profile share -o redacted.jsonl
@@ -75,8 +78,9 @@ npx agent-inspect redact <run-id> --dir .agent-inspect --profile share -o redact
 
 | If you use… | Go to |
 | ----------- | ----- |
-| Broken agent demo (same answer, wrong path) | [broken-agent-debugging starter](../examples/starters/broken-agent-debugging/README.md) (`node prove-same-output-wrong-path.mjs`) |
-| Coding-agent MCP loop | [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) · [coding-agent-debug-loop](../examples/starters/coding-agent-debug-loop/README.md) |
+| Full install + instrumentation guide | [GETTING-STARTED.md](./GETTING-STARTED.md) (site: [/docs/getting-started/guide](/docs/getting-started/guide)) |
+| Broken agent demo (same answer, wrong path) | [broken-agent-debugging starter](../examples/starters/broken-agent-debugging/README.md) |
+| Coding-agent MCP loop | [CODING-AGENT-LOOP.md](./CODING-AGENT-LOOP.md) |
 | Contracts / CI gates | [TRACE-CONTRACTS.md](./TRACE-CONTRACTS.md) · [SUITES-COHORTS-GATES.md](./SUITES-COHORTS-GATES.md) |
 | AI SDK | [AI SDK adoption](./AI-SDK-ADOPTION.md) |
 | OpenAI Agents | [OpenAI Agents local](./OPENAI-AGENTS-LOCAL.md) |

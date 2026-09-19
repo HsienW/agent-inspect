@@ -5,6 +5,7 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 
 import { DocsCodeBlock } from "@/components/docs/DocsCodeBlock";
+import { resolveDocHref } from "@/lib/resolve-doc-href";
 
 function getTextContent(node: unknown): string {
   if (typeof node === "string" || typeof node === "number") {
@@ -49,97 +50,112 @@ export function rewriteDocMediaSrc(src: string | undefined): string | undefined 
   return src;
 }
 
-const components: Components = {
-  img({ src, alt, ...props }) {
-    const resolved = rewriteDocMediaSrc(
-      typeof src === "string" ? src : undefined,
-    );
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={resolved} alt={alt ?? ""} {...props} />;
-  },
-  pre({ children }) {
-    return <>{children}</>;
-  },
-  code({ className, children, ...props }) {
-    const text = getTextContent(children).replace(/\n$/, "");
-    const languageMatch = /language-([a-zA-Z0-9_-]+)/.exec(className ?? "");
-    const language = languageMatch?.[1];
-    const isBlock =
-      Boolean(language) || text.includes("\n") || className?.includes("language-");
+function createComponents(sourcePath: string): Components {
+  return {
+    img({ src, alt, node: _node, ...rest }) {
+      void _node;
+      const resolved = rewriteDocMediaSrc(
+        typeof src === "string" ? src : undefined,
+      );
+      // eslint-disable-next-line @next/next/no-img-element
+      return <img src={resolved} alt={typeof alt === "string" ? alt : ""} {...rest} />;
+    },
+    pre({ children }) {
+      return <>{children}</>;
+    },
+    code({ className, children, node: _node, ...rest }) {
+      void _node;
+      const text = getTextContent(children).replace(/\n$/, "");
+      const languageMatch = /language-([a-zA-Z0-9_-]+)/.exec(className ?? "");
+      const language = languageMatch?.[1];
+      const isBlock =
+        Boolean(language) || text.includes("\n") || className?.includes("language-");
 
-    if (isBlock) {
-      return <DocsCodeBlock code={text} language={language ?? "text"} />;
-    }
+      if (isBlock) {
+        return <DocsCodeBlock code={text} language={language ?? "text"} />;
+      }
 
-    return (
-      <code className={className} {...props}>
-        {children}
-      </code>
-    );
-  },
-  a({ href, children, ...props }) {
-    const isExternal = href?.startsWith("http://") || href?.startsWith("https://");
-    return (
-      <a
-        href={href}
-        {...props}
-        {...(isExternal
-          ? { target: "_blank", rel: "noreferrer noopener" }
-          : {})}
-      >
-        {children}
-      </a>
-    );
-  },
-  table({ children }) {
-    return (
-      <div className="my-6 overflow-x-auto">
-        <table className="min-w-full border-collapse text-left text-sm">
+      return (
+        <code className={className} {...rest}>
           {children}
-        </table>
-      </div>
-    );
-  },
-  th({ children }) {
-    return (
-      <th className="border-b border-border px-3 py-2 font-semibold text-ink">
-        {children}
-      </th>
-    );
-  },
-  td({ children }) {
-    return (
-      <td className="border-b border-border px-3 py-2 align-top text-muted">
-        {children}
-      </td>
-    );
-  },
-  blockquote({ children }) {
-    return (
-      <blockquote className="my-6 border-l-4 border-primary/40 pl-4 text-muted">
-        {children}
-      </blockquote>
-    );
-  },
-  hr() {
-    return <hr className="my-10 border-border" />;
-  },
-  ol({ children }) {
-    return <ol className="mt-3 list-decimal space-y-2 pl-5 text-muted">{children}</ol>;
-  },
-  ul({ children }) {
-    return <ul className="mt-3 list-disc space-y-2 pl-5 text-muted">{children}</ul>;
-  },
-  li({ children }) {
-    return <li className="leading-7">{children}</li>;
-  },
-};
+        </code>
+      );
+    },
+    a({ href, children, node: _node, ...rest }) {
+      void _node;
+      const resolved =
+        typeof href === "string" ? resolveDocHref(href, sourcePath) : href;
+      if (resolved === undefined && typeof href === "string" && href.length > 0) {
+        return <span {...rest}>{children}</span>;
+      }
+      const isExternal =
+        typeof resolved === "string" &&
+        (resolved.startsWith("http://") || resolved.startsWith("https://"));
+      return (
+        <a
+          href={typeof resolved === "string" ? resolved : undefined}
+          {...rest}
+          {...(isExternal
+            ? { target: "_blank", rel: "noreferrer noopener" }
+            : {})}
+        >
+          {children}
+        </a>
+      );
+    },
+    table({ children }) {
+      return (
+        <div className="my-6 overflow-x-auto">
+          <table className="min-w-full border-collapse text-left text-sm">
+            {children}
+          </table>
+        </div>
+      );
+    },
+    th({ children }) {
+      return (
+        <th className="border-b border-border px-3 py-2 font-semibold text-ink">
+          {children}
+        </th>
+      );
+    },
+    td({ children }) {
+      return (
+        <td className="border-b border-border px-3 py-2 align-top text-muted">
+          {children}
+        </td>
+      );
+    },
+    blockquote({ children }) {
+      return (
+        <blockquote className="my-6 border-l-4 border-primary/40 pl-4 text-muted">
+          {children}
+        </blockquote>
+      );
+    },
+    hr() {
+      return <hr className="my-10 border-border" />;
+    },
+    ol({ children }) {
+      return <ol className="mt-3 list-decimal space-y-2 pl-5 text-muted">{children}</ol>;
+    },
+    ul({ children }) {
+      return <ul className="mt-3 list-disc space-y-2 pl-5 text-muted">{children}</ul>;
+    },
+    li({ children }) {
+      return <li className="leading-7">{children}</li>;
+    },
+  };
+}
 
 type RenderDocMarkdownProps = {
   markdown: string;
+  /** Repo-relative Markdown source (e.g. docs/TRACE-CONTRACTS.md). */
+  source: string;
 };
 
-export function RenderDocMarkdown({ markdown }: RenderDocMarkdownProps) {
+export function RenderDocMarkdown({ markdown, source }: RenderDocMarkdownProps) {
+  const components = createComponents(source);
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}

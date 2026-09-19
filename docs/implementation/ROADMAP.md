@@ -1,14 +1,14 @@
 # AgentInspect Canonical Roadmap (permanent)
 
-**Baseline:** `agent-inspect@6.29.4`
-**Roadmap horizon:** through **published 6.31.0** (typed cross-kind ordering); **6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE**; **V7_DECISION: NO-GO**
-**Status:** **6.29.4 published**; **6.29.5 in progress** (confidence / recovery / circuit / accounting); **V7_DECISION: NO-GO**
-**Primary objective:** Make existing checks and sharing reliable before widening CLI contract vocabulary—without schema 1.1, hosted SaaS, or fabricated external evidence
+**Baseline:** `agent-inspect@6.31.0` (`988b747`)
+**Roadmap horizon:** website-first repair → **6.31.1–6.31.3** patches; **6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE**; **V7_DECISION: NO-GO**
+**Status:** **6.31.0 published**; website P04 in progress; **6.32.0 never published** (reserved); **V7_DECISION: NO-GO**
+**Primary objective:** Repair website/onboarding and remaining correctness defects before expanding integrations—without schema 1.1, hosted SaaS, or fabricated external evidence
 **Persisted trace schema:** remains `1.0`
 **Package policy:** no new public packages before the conditional v7 decision
 **Network policy:** no new default network behavior
 **Product boundary:** local-first and customer-owned; no maintainer-hosted SaaS
-**Named train:** `post-6294-correctness-v6.29.5-to-v6.32`
+**Named train:** `website-correctness-post-6310`
 **Active plan:** [active/NEXT-RELEASES.md](./active/NEXT-RELEASES.md)
 
 ---
@@ -77,8 +77,12 @@ The canonical release sequence is:
 6.30.0  Strict CLI access to existing rich TraceContract engine  (amends prior comparable-Evidence allocation)
 6.30.1  Rich-CLI contract corrections only
 
-6.31.0  Scoped typed cross-kind ordering  (amends prior failure-first review-UX allocation)
-6.31.1  Ordering-relation corrections only
+6.31.0  Scoped typed cross-kind ordering  (amends prior failure-first review-UX allocation)  (published)
+6.31.1  Status validation + publish skip + LangChain parentage (after website hotfix)
+6.31.2  Copyable integrations / README / Jest
+6.31.3  OTLP correctness + Collector conformance
+
+website  Links, quickstart, TOC, badges, dedicated website CI  (no mandatory npm)
 
 6.32.0  Conditional external conformance + compact failure review — BLOCKED_ON_EXTERNAL_EVIDENCE
 
@@ -86,6 +90,8 @@ The canonical release sequence is:
 ```
 
 **Amendment (2026-09-18):** Prior `6.30.0` comparable-Evidence / interop and `6.31.0` failure-first review-UX allocations are superseded by the sequence above. Do **not** mark `EVIDENCE GATE APPROVED` from private case-study summaries alone.
+
+**Amendment (2026-09-19):** Post-6.31.0 train is **website-first** (`website-correctness-post-6310`). Do **not** invent or consume **6.32.0** for website/routine patches; next npm patches are **6.31.1+**.
 
 No major version is required. No new trace schema. No TrueForge-specific package. No full-content capture mode. No general temporal/workflow DSL.
 

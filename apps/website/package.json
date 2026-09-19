@@ -4,12 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node ../../scripts/copy-showcase-to-website.mjs && next dev",
-    "build": "node ../../scripts/copy-showcase-to-website.mjs && next build",
-    "typecheck": "tsc --noEmit"
+    "dev": "node ../../scripts/sync-website-public-docs.mjs && node ../../scripts/copy-showcase-to-website.mjs && next dev",
+    "build": "node ../../scripts/sync-website-public-docs.mjs && node ../../scripts/copy-showcase-to-website.mjs && next build",
+    "typecheck": "tsc --noEmit",
+    "crawl": "node ../../scripts/crawl-website-export.mjs",
+    "check": "pnpm run typecheck && pnpm run build && pnpm run crawl"
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "github-slugger": "^2.0.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.469.0",
     "next": "^15.5.21",

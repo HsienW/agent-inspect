@@ -1,0 +1,547 @@
+# Adapters
+
+AgentInspect is **framework-agnostic** at its core. Optional adapter packages integrate specific frameworks without monkey-patching, vendor sinks, or network upload.
+
+## v2.3 hardening scorecard
+
+v2.3 hardens existing official adapters before adding new ones. Priority is based on the current package set, open issue/adoption signals, conformance coverage, and how directly a framework can produce useful local traces without root/core dependencies.
+
+| Priority | Adapter path | Decision | v2.3 focus |
+| -------- | ------------ | -------- | ---------- |
+| 1 | AI SDK (`@agent-inspect/ai-sdk`) | Harden first | Improve low-friction `generateText`, `streamText`, tool-call, parallel-call, abort/error, token metadata, and Next.js route coverage while keeping `recordInputs: false` and `recordOutputs: false` as required host controls. |
+| 2 | OpenAI Agents JS (`@agent-inspect/openai-agents`) | Harden second | Make local-only replacement vs additional processor modes unmistakable, with fixtures for agents, generations, tools, handoffs, guardrails, and no default upload confusion. |
+| 3 | LangChain/LangGraph (`@agent-inspect/langchain`) | Harden third | Improve LangGraph-through-LangChain mapping for node identity, subgraphs, checkpoints, stream modes, branches, handoffs, and session/thread IDs without adding a separate package unless the callback surface proves insufficient. |
+| Defer | Mastra | No package in v2.3 | Current evidence does not justify an official package. Revisit only when there is explicit user demand and a verified extension point that avoids hidden monkey-patching, hosted sinks, or root dependencies. |
+| Defer | NestJS | No framework adapter in v2.3 | Keep the supported path at structured-log ingestion via the existing NestJS JSON logging recipe. Revisit a narrow harness/bootstrap helper only with concrete demand; do not add a package only to wrap app bootstrap. |
+
+Reporters (`@agent-inspect/vitest` and `@agent-inspect/jest`) are public packages as of v2.2, but they are CI/test artifact reporters rather than framework trace adapters. They stay outside the v2.3 adapter-hardening priority order.
+
+## Shared adapter capture contract (preview)
+
+All three official framework adapters — `@agent-inspect/ai-sdk`, `@agent-inspect/openai-agents`, and `@agent-inspect/langchain` — resolve capture through one shared helper, so the same options mean the same thing everywhere. A cross-adapter conformance matrix asserts this contract.
+
+| Option | Type | Default | Behavior |
+| ------ | ---- | ------- | -------- |
+| `capture` | `"metadata-only" \| "preview"` | `"metadata-only"` | `metadata-only` persists no preview attributes at all. `preview` adds bounded `*Preview` attributes. There is no full-content mode. |
+| `redactionProfile` | `"local" \| "share" \| "strict"` | `"local"` | Key-based redaction applied **before** a preview string is persisted. `share` and `strict` also lower the effective `maxPreviewChars` ceiling; `strict` replaces preview values entirely. |
+| `maxPreviewChars` | `number` | adapter default, profile-capped | Hard upper bound on each persisted preview string, including the truncation marker. |
+| `onDiagnostic` | `(diagnostic) => void` | — | Local callback for capture diagnostics. Listener failures are isolated and never reach the traced application. |
+
+Capture diagnostic codes are stable:
+
+| Code | Meaning |
+| ---- | ------- |
+| `AI_CAPTURE_FIELD_UNAVAILABLE` | `capture: "preview"` was requested but the framework did not provide the field, or the value could not be safely serialized. Nothing is persisted for that field. |
+| `AI_CAPTURE_PREVIEW_TRUNCATED` | The preview string hit the `maxPreviewChars` bound and was truncated. |
+| `AI_CAPTURE_PREVIEW_REDACTED` | Redaction replaced at least one value inside the preview before persistence. |
+
+Counters for the same events are available without a listener via each adapter's `getDiagnostics().capture`.
+
+What the contract guarantees:
+
+- **Metadata-only stays the default and stays silent** — no preview attributes, no capture diagnostics.
+- **Redaction runs before persistence** — key-based redaction is applied to the structured value, not to an already-serialized string.
+- **Bounds are hard** — cycles, bigints, and getters that throw are handled without throwing into the traced application, and every persisted preview respects the resolved bound.
+- **No network, no new root/core dependencies** — the helper lives in core and is exported from `agent-inspect/advanced`.
+
+This is bounded preview capture, **not sanitization**: redaction is key-based, so a secret embedded in free text (for example inside a prompt string) can still appear in a preview. Treat preview traces as sensitive and run `agent-inspect redact` before sharing — see [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md).
+
+## Vercel AI SDK (`@agent-inspect/ai-sdk`)
+
+**Full guide:** [AI-SDK-ADOPTION.md](./AI-SDK-ADOPTION.md) · **Capture path:** [CHOOSE-YOUR-CAPTURE-PATH.md](./CHOOSE-YOUR-CAPTURE-PATH.md)
+
+**Status:** experimental adapter — optional package published in the aligned v2.2.0 package set and hardened in the v2.3 adapter train.
+
+The adapter has hardened lifecycle identity and parallel integration isolation. Capture is **metadata-only by default**. Opting into `capture: "preview"` persists bounded, redacted preview fields through the [shared adapter capture contract](#shared-adapter-capture-contract-preview); there is no full-content mode.
+
+### Install
+
+```bash
+npm install agent-inspect @agent-inspect/ai-sdk ai
+```
+
+### Local telemetry integration
+
+```ts
+import { generateText } from "ai";
+import { agentInspect } from "@agent-inspect/ai-sdk";
+
+const result = await generateText({
+  model,
+  prompt,
+  experimental_telemetry: {
+    isEnabled: true,
+    recordInputs: false,
+    recordOutputs: false,
+    integrations: [
+      agentInspect({
+        traceDir: "./.agent-inspect",
+        runName: "support-agent",
+        capture: "metadata-only",
+      }),
+    ],
+  },
+});
+```
+
+- **No monkey-patching** — pass the integration explicitly through AI SDK telemetry.
+- **No upload behavior** — the adapter writes only to an explicit local writer or `traceDir`.
+- **Metadata-only by default** — records model, finish reason, token usage, timing, and safe counts/summaries.
+- **Required safe telemetry settings** — set `recordInputs: false` and `recordOutputs: false` on every AI SDK call using this adapter.
+- **No raw payload capture by default** — prompts, messages, generated text, stream chunks, tool inputs/outputs, headers, request bodies, and response bodies are not persisted.
+- **Opt-in bounded previews** — `capture: "preview"` adds `*Preview` attributes for prompt, message, text, tool input, and tool output fields, redacted and truncated by the [shared capture contract](#shared-adapter-capture-contract-preview). Headers, request bodies, response bodies, and `experimental_context` are never previewed.
+
+### Local no-network recipe
+
+[examples/recipes/ai-sdk-local-telemetry](../examples/recipes/ai-sdk-local-telemetry/) uses AI SDK test utilities only (`MockLanguageModelV3`, `simulateReadableStream`) and writes local v0.2 adapter events for `agent-inspect open`.
+
+[examples/recipes/ai-sdk-next-route](../examples/recipes/ai-sdk-next-route/) shows a route-style telemetry factory that creates one AgentInspect integration per request while keeping the same no-network, metadata-only defaults.
+
+### Common host shapes
+
+Use the same explicit telemetry block shape for route handlers, streaming, and tool calls. Create a fresh `agentInspect(...)` integration per concurrent request/generation. The adapter does not wrap providers or change host-call settings.
+
+```ts
+const telemetry = {
+  isEnabled: true,
+  recordInputs: false,
+  recordOutputs: false,
+  integrations: [agentInspect({ traceDir: "./.agent-inspect", capture: "metadata-only" })],
+};
+
+// Next.js route or local handler
+await generateText({ model, prompt, experimental_telemetry: telemetry });
+
+// Streaming
+await streamText({ model, prompt, experimental_telemetry: telemetry });
+
+// Tool calls
+await generateText({ model, prompt, tools, experimental_telemetry: telemetry });
+```
+
+Review recipe output with:
+
+```bash
+npx agent-inspect open ./examples/recipes/ai-sdk-local-telemetry/.agent-inspect-runs
+```
+
+Full API: [API.md](./API.md) §11.
+
+---
+
+## LangChain.js (`@agent-inspect/langchain`)
+
+**Status:** experimental adapter — optional package published in the aligned v2.2.0 package set; programmatic API may evolve independently of stable core tracing.
+
+### Install
+
+```bash
+npm install agent-inspect @agent-inspect/langchain @langchain/core
+```
+
+### Basic callback (in-memory)
+
+```ts
+import { AgentInspectCallback } from "@agent-inspect/langchain";
+
+const callback = new AgentInspectCallback({
+  runName: "support-agent",
+  capture: "metadata-only", // default
+});
+
+await agent.invoke(input, { callbacks: [callback] });
+
+const events = callback.getEvents();
+callback.clear();
+```
+
+- **No monkey-patching** — pass the callback explicitly to LangChain.
+- **Metadata-only by default** — does not capture full prompts/outputs unless you opt into `capture: "preview"`.
+- **No vendor sink** — events stay in memory unless you set `persist: true`.
+
+### Persist to local JSONL
+
+```ts
+const callback = new AgentInspectCallback({
+  runName: "support-agent",
+  traceDir: "./.agent-inspect",
+  persist: true,
+  capture: "metadata-only",
+});
+
+await agent.invoke(input, { callbacks: [callback] });
+```
+
+```bash
+npx agent-inspect list --dir ./.agent-inspect
+npx agent-inspect view <run-id> --dir ./.agent-inspect
+npx agent-inspect export <run-id> --format markdown --redaction-profile share
+npx agent-inspect eval <run-id> --dir ./.agent-inspect --require-success --json
+npx agent-inspect redact ./.agent-inspect/<trace-file>.jsonl --profile share --json
+```
+
+`eval` and `redact` read local adapter traces only. They do not call model providers, upload traces, or loosen the adapter metadata-only capture defaults.
+
+![LangChain callback with persist true writing inspectable JSONL](../assets/demos/langchain-persistence.gif)
+
+*Synthetic demo — [examples/08-langchain-adapter](../../examples/08-langchain-adapter/README.md).*
+
+**Persistence model (Strategy A):**
+
+1. **Standalone session** — one AgentInspect run per callback instance until the root LangChain run completes.
+2. **Inside `inspectRun`** — callback steps append to the active manual run (no extra `run_started` / `run_completed`).
+3. **Parent mapping** — LangChain `parentRunId` maps to AgentInspect `parentId` when the parent step was persisted; unknown parents stay at run root.
+4. **Step types** — `LLM` → `llm`, `TOOL` → `tool`, `DECISION` → `decision`, other kinds → `logic`.
+
+Written events use `schemaVersion: "0.1"` manual trace names.
+
+### LangGraph through LangChain callbacks
+
+LangGraph-shaped callback metadata is covered through the existing `@agent-inspect/langchain` callback boundary. No separate `@agent-inspect/langgraph` package is shipped.
+
+- **Explicit callback only** — pass `new AgentInspectCallback(...)` through LangChain/LangGraph callback configuration.
+- **Bounded graph metadata** — known graph, node, subgraph, task, branch, checkpoint, retry, handoff, thread, and session identifiers are copied into `attributes.langGraph` when present.
+- **No full graph state** — checkpoint/task/branch containers are summarized by type/count; raw graph state, prompts, tool payloads, outputs, and stream tokens are not stored in `metadata-only` mode.
+- **Conservative parent mapping** — in-memory events preserve framework `parentRunId`; persisted JSONL maps parents only when the parent callback was seen, and marks unresolved parent mappings in step metadata.
+- **No hosted tracing requirement** — fixtures use structural no-network callback payloads and do not require LangSmith, provider calls, or LangGraph platform services.
+
+### Capture modes
+
+| `capture` | Behavior |
+| --------- | -------- |
+| `none` | Minimal metadata |
+| `metadata-only` | **Default** — model names, token usage, timing; no full text |
+| `preview` | Truncated previews via `maxPreviewChars` — review before sharing |
+
+### Streaming metadata (v1.3.0+)
+
+```ts
+const callback = new AgentInspectCallback({
+  stream: true,
+  capture: "metadata-only",
+  persist: true,
+});
+```
+
+When `stream: true`:
+
+- `handleLLMNewToken` updates **in-memory stats only** — no per-token JSONL lines.
+- On LLM end/error: `chunkCount`, `firstChunkAt`, `lastChunkAt`, `streamDurationMs`, `streamedCharCount`.
+- **`capture: "metadata-only"`** does **not** store raw token text.
+- **`capture: "preview"`** may include bounded `streamPreview` via `maxStreamPreviewChars`.
+- With **`persist: true`**, streaming metadata is written on the LLM step at completion (deferred write for streaming LLM steps).
+
+Streaming metadata is for **local inspection and timing** — not replay or cassette playback.
+
+### Correlation inside `inspectRun`
+
+When the callback runs inside `inspectRun` / `maybeInspectRun`, correlation fields from `getCurrentCorrelationMetadata()` attach to LLM lifecycle events.
+
+### Options reference
+
+| Option | Default | Notes |
+| ------ | ------- | ----- |
+| `persist` | `false` | Write local JSONL |
+| `runName` | `"langchain-agent"` | Standalone persisted run name |
+| `traceDir` | from env / `.agent-inspect` | |
+| `capture` | `"metadata-only"` | |
+| `stream` | `false` | Streaming lifecycle metadata |
+| `maxStreamPreviewChars` | `maxPreviewChars` | Bounds preview when `capture: "preview"` |
+| `redact` | — | Custom `RedactionRule[]` before disk |
+
+Full API: [API.md](./API.md) §9.
+
+### Example
+
+[examples/08-langchain-adapter](../examples/08-langchain-adapter/README.md)
+
+### LangGraph boundary
+
+LangGraph support rides through this same `@agent-inspect/langchain` callback boundary first. The v2.3 fixtures cover graph/node identity, subgraphs, checkpoint/session IDs, stream modes, handoffs, and parallel branch hints without adding a separate package. A dedicated LangGraph package remains deferred until fixtures prove that LangGraph exposes important lifecycle data unavailable through LangChain callbacks.
+
+Future LangGraph examples must keep the same safety defaults: explicit callback installation, metadata-only capture, no raw prompt/output/tool payload capture by default, no hosted sink, and local persistence only when `persist: true` is set.
+
+Runnable local recipe: [langgraph-callback-local](../examples/recipes/langgraph-callback-local).
+
+Decision note: [LANGGRAPH-ADAPTER-BOUNDARY.md](./proposals/LANGGRAPH-ADAPTER-BOUNDARY.md).
+
+---
+
+## TUI (`@agent-inspect/tui`)
+
+**Status:** experimental programmatic API; CLI integration is the intended usage.
+
+```bash
+npm install agent-inspect @agent-inspect/tui
+npx agent-inspect view <run-id> --tui
+```
+
+![Optional Ink TUI viewer for a local trace](../assets/demos/tui-viewer.gif)
+
+Requires an interactive terminal. See [API.md](./API.md) §10.
+
+---
+
+## Vitest (`@agent-inspect/vitest`)
+
+**Status:** experimental reporter package — optional package published in the aligned v2.2.0 package set.
+
+```bash
+npm install agent-inspect @agent-inspect/vitest vitest
+```
+
+The reporter creates safe, structural artifacts for failed tests that explicitly attach AgentInspect trace metadata. It never guesses trace files by timestamp and does not read trace contents into artifacts.
+
+```ts
+import { createAgentInspectVitestReporter } from "@agent-inspect/vitest";
+
+export default {
+  test: {
+    reporters: [
+      "default",
+      createAgentInspectVitestReporter({
+        artifactDir: ".agent-inspect/vitest-artifacts",
+        retainSuccessful: 5,
+      }),
+    ],
+  },
+};
+```
+
+Attach explicit metadata from the test harness, or provide `resolveTrace(test)`:
+
+```ts
+test("agent workflow", async (ctx) => {
+  ctx.task.meta.agentInspect = {
+    runId: "support-agent",
+    tracePath: ".agent-inspect/support-agent.jsonl",
+    artifactLabel: "support-agent",
+  };
+});
+```
+
+- **Explicit association only** — no timestamp matching or directory guessing.
+- **Failure artifacts by default** — passing-test artifacts are kept only when `retainSuccessful` is configured.
+- **Bounded success retention** — successful artifacts are capped by `maxSuccessfulTraces`.
+- **Failure-preserving** — reporter/artifact errors are surfaced through diagnostics and do not replace original Vitest failures.
+- **Local-only** — no network I/O, no hosted upload, no GitHub API, and no root/core Vitest dependency.
+- **Safe rendering** — artifacts include structural test/run/file references only, not raw trace contents, prompts, outputs, request/response bodies, headers, API keys, secrets, or tool payloads.
+
+Full API: [API.md](./API.md) §12.
+
+---
+
+## Jest (`@agent-inspect/jest`)
+
+**Status:** experimental reporter package — optional package published in the aligned v2.2.0 package set.
+
+```bash
+npm install agent-inspect @agent-inspect/jest jest
+```
+
+The reporter creates safe, structural artifacts for failed Jest assertions that explicitly attach AgentInspect trace metadata through a map or resolver. It never guesses trace files by timestamp and does not read trace contents into artifacts.
+
+```js
+module.exports = {
+  reporters: [
+    "default",
+    [
+      "@agent-inspect/jest",
+      {
+        artifactDir: ".agent-inspect/jest-artifacts",
+        retainSuccessful: 5,
+        associations: {
+          "agent.test.cjs::agent suite agent workflow": {
+            runId: "support-agent",
+            tracePath: ".agent-inspect/support-agent.jsonl",
+          },
+        },
+      },
+    ],
+  ],
+};
+```
+
+- **Explicit association only** — use `associations` or `resolveTrace(test)`; no timestamp matching or directory guessing.
+- **Jest lifecycle** — processes assertion results from `onTestResult` and aggregated file results from `onRunComplete`.
+- **Failure artifacts by default** — passing-test artifacts are kept only when `retainSuccessful` is configured.
+- **Bounded success retention** — successful artifacts are capped by `maxSuccessfulTraces`.
+- **Failure-preserving** — reporter/artifact errors are surfaced through diagnostics and do not replace original Jest failures.
+- **Local-only** — no network I/O, no hosted upload, no GitHub API, and no root/core Jest dependency.
+- **Safe rendering** — artifacts include structural test/run/file references only, not raw trace contents, prompts, outputs, request/response bodies, headers, API keys, secrets, or tool payloads.
+
+Full API: [API.md](./API.md) §13.
+
+---
+
+## OpenAI Agents JS (`@agent-inspect/openai-agents`)
+
+**Local-only guide:** [OPENAI-AGENTS-LOCAL.md](./OPENAI-AGENTS-LOCAL.md)
+
+**Status:** experimental adapter — optional package published in the aligned v2.2.0 package set.
+
+The safe integration boundary is documented in [OPENAI-AGENTS-JS-TRACING.md](./proposals/OPENAI-AGENTS-JS-TRACING.md). Install the AgentInspect processor by replacing processors:
+
+```ts
+import { setTraceProcessors } from "@openai/agents";
+import { agentInspectProcessor } from "@agent-inspect/openai-agents";
+
+setTraceProcessors([
+  agentInspectProcessor({
+    traceDir: "./.agent-inspect",
+    capture: "metadata-only",
+  }),
+]);
+```
+
+Do not use `addTraceProcessor()` as the default AgentInspect path; that preserves the OpenAI default exporter in server runtimes. The processor does not auto-install itself, does not upload, and does not add OpenAI Agents dependencies to root/core.
+
+Integration modes:
+
+- **Local-only replacement:** `setTraceProcessors([agentInspectProcessor(...)])` replaces existing processors for the current process. This is the documented safe default when you want AgentInspect to own local trace output and avoid preserving the SDK default exporter.
+- **Additional processor:** `addTraceProcessor(agentInspectProcessor(...))` is an advanced, user-owned choice. It can preserve existing/default processors and any backend export behavior they already perform; use it only when that is intentional.
+
+- **No auto-install** — importing or constructing `agentInspectProcessor()` never calls `setTraceProcessors()` or `addTraceProcessor()`.
+- **No upload behavior** — the processor writes only to an explicit local writer or `traceDir`.
+- **Metadata-only by default** — records trace/span IDs, parentage, names, timing, status, errors, safe model/tool names, token counts, and bounded summaries.
+- **No raw payload capture by default** — prompts, messages, generated text, function inputs/outputs, arbitrary custom data, trace exporter credentials, headers, request bodies, response bodies, and hosted tool payloads are not persisted.
+- **Opt-in bounded previews** — `capture: "preview"` adds `inputPreview` / `outputPreview` attributes for generation, function, response, custom, transcription, speech, and speech-group spans through the [shared capture contract](#shared-adapter-capture-contract-preview). Span types without a payload concept (handoff, guardrail, agent) stay metadata-only and report no unavailable fields.
+- **Fixture-backed lifecycle coverage** — local tests and the recipe cover agent, generation, function tool, handoff, guardrail, response, MCP tools, custom, transcription, and speech span shapes without provider calls.
+
+Full API: [API.md](./API.md) §14.
+
+Runnable local recipe: [openai-agents-local-tracing](../examples/recipes/openai-agents-local-tracing).
+
+---
+
+## Demand-gated framework decisions
+
+### Mastra
+
+**v2.3 decision:** no official package, recipe, or conformance fixture.
+
+The v2.3 evidence review found no open adapter request and no verified extension point in this repository that would produce useful local AgentInspect traces without hidden framework patching or new root/core dependencies. A future Mastra path must first prove:
+
+- explicit user demand, such as an issue, design-partner request, or retained external recipe;
+- a stable, framework-native callback/export hook;
+- metadata-only local trace output with no hosted upload or provider calls by default;
+- no dependency leakage into `agent-inspect` root or `@agent-inspect/core`;
+- no raw prompt, output, tool payload, header, or request/response capture by default.
+
+Until those are true, Mastra stays outside the official adapter set rather than shipping a shallow package.
+
+### NestJS
+
+**v2.3 decision:** no official framework adapter package.
+
+NestJS remains covered through structured-log ingestion, not app bootstrap wrapping. The supported recipe is [examples/recipes/nestjs-json-logging](../examples/recipes/nestjs-json-logging), which maps Nest-shaped JSON lines into local execution trees without importing `@nestjs/*`, starting an HTTP server, or changing application behavior.
+
+A future Nest helper remains demand-gated and must be narrower than a framework adapter. Acceptable evidence would be a repeated need to reduce logging/harness setup friction while preserving explicit opt-in, local-only output, and zero root/core Nest dependency. Broad interceptors, automatic module scanning, monkey-patching, request body capture, or default telemetry upload remain out of scope.
+
+---
+
+## MCP client telemetry (`@agent-inspect/mcp`)
+
+**Status:** experimental optional package — v2.4.0 train.
+
+`@agent-inspect/mcp` traces **MCP client** `tools/list` and `tools/call` as local AgentInspect tool steps. It records server identity (name + URL hash), tool name, bounded argument/result summaries, duration, errors, and optional session metadata (`sessionId`, `toolCallId`, `mcpToolCallId`).
+
+### Install
+
+```bash
+npm install agent-inspect @agent-inspect/mcp
+```
+
+### Wrap a client
+
+```ts
+import { inspectRun } from "agent-inspect";
+import { wrapMcpClient } from "@agent-inspect/mcp";
+
+const traced = wrapMcpClient(mcpClient, {
+  serverName: "docs-server",
+  serverUrl: process.env.MCP_SERVER_URL,
+  sessionId: "sess-123",
+});
+
+await inspectRun("support-agent", async () => {
+  await traced.listTools?.();
+  await traced.callTool({ name: "search", arguments: { query: "refund policy" } });
+});
+```
+
+`wrapMcpClient` accepts any object matching the documented `McpClientLike` shape. It does **not** require `@modelcontextprotocol/sdk` at runtime.
+
+### Boundaries (v2.4)
+
+| In scope | Out of scope |
+| -------- | ------------ |
+| Client-side `tools/list` and `tools/call` wrapping | MCP **server** implementation |
+| Bounded summaries on tool step metadata | Gateway, proxy, or hosted MCP broker |
+| `source.type: mcp-client` on tool steps | Invoking tools on behalf of the user from AgentInspect |
+| Session metadata attachment when provided | Default trace upload |
+
+Recipe: [examples/recipes/mcp-client-tracing](../examples/recipes/mcp-client-tracing/).
+
+Session navigation for multi-run workflows uses `agent-inspect sessions` / `session` and optional `search --session` / `check --session` — see [CLI.md](./CLI.md) and [SESSIONS-AND-WORKFLOW-CAUSALITY.md](./proposals/SESSIONS-AND-WORKFLOW-CAUSALITY.md).
+
+---
+
+## Local viewer (`@agent-inspect/viewer`)
+
+**Status:** optional package — v2.6.0 train.
+
+Read-only localhost HTTP server for browsing traces on disk. Wired through `agent-inspect serve`.
+
+| In scope | Out of scope |
+| -------- | ------------ |
+| `127.0.0.1` default bind | Cloud hosting or accounts |
+| Trace list, timeline, check JSON routes | Trace mutation or replay |
+| Reads through `agent-inspect/readers` | SQLite or remote fetch |
+
+```bash
+npm install agent-inspect @agent-inspect/viewer
+npx agent-inspect serve --dir ./.agent-inspect-runs
+```
+
+---
+
+## Read-only MCP server (`@agent-inspect/mcp-server`)
+
+**Status:** optional package — v2.6.0 train.
+
+Stdio MCP server exposing **read-only** tools (`list_traces`, `read_trace`, `search_traces`, `find_first_error`, `find_slowest_path`, `compare_runs`, `run_checks`, `create_share_safe_report`). Distinct from `@agent-inspect/mcp` (client telemetry).
+
+| In scope | Out of scope |
+| -------- | ------------ |
+| Local trace directory tools | MCP client wrapping |
+| `share` redaction default | Unredacted prompts by default |
+| Bounded JSON responses | Tool invocation on user agents |
+
+```ts
+import { runReadOnlyMcpServer } from "@agent-inspect/mcp-server";
+
+await runReadOnlyMcpServer({ redactionProfile: "share" });
+```
+
+Recipe: [examples/recipes/read-only-mcp-server](../examples/recipes/read-only-mcp-server/). VS Code: [VSCODE.md](./VSCODE.md).
+
+---
+
+## Future adapters (not shipped)
+
+Direction only — see [ROADMAP.md](../ROADMAP.md):
+
+- **NestJS helper patterns** — only if demand proves a narrow harness/bootstrap helper is worth maintaining beyond [LOGGING-PLAYBOOK.md](./LOGGING-PLAYBOOK.md) and the current NestJS logging recipe.
+- **Mastra** — deferred until demand and extension-point evidence justify a narrow explicit integration.
+
+No automatic universal instrumentation. Integrations remain explicit and opt-in.
+
+---
+
+## Related docs
+
+- [API.md](./API.md) — adapter options and stability policy
+- [ADAPTER-CONFORMANCE.md](./ADAPTER-CONFORMANCE.md) — no-network fixture matrix and shared expectations
+- [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md) — review exports before sharing
+- [LIMITATIONS.md](./LIMITATIONS.md) — LangChain streaming and metadata boundaries

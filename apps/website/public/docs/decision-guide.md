@@ -35,9 +35,9 @@ Programmatic TraceFacts: [TRACE-FACTS.md](./TRACE-FACTS.md).
 ## 4. Share evidence
 
 ```bash
-npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share
 npx agent-inspect verify-safe <run-id> --dir .agent-inspect
-npx agent-inspect bundle verify .agent-inspect/bundles/<run-id>
+npx agent-inspect bundle <run-id> --dir .agent-inspect --profile share --out ./evidence
+npx agent-inspect bundle verify ./evidence
 ```
 
 See [EVIDENCE-FORMAT.md](./EVIDENCE-FORMAT.md) and [SAFE-TRACE-SHARING.md](./SAFE-TRACE-SHARING.md).

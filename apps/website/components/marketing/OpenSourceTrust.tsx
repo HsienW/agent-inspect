@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { product } from "@/lib/product";
 import { site } from "@/lib/site";
 
 const links = [
@@ -39,18 +40,30 @@ export function OpenSourceTrust() {
           </p>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <a href={site.npm} target="_blank" rel="noreferrer noopener">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={site.badges.npmVersion} alt="npm version" height={20} />
+        <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
+          <a
+            href={site.npm}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="rounded-full border border-border bg-elevated px-3 py-1.5 font-medium text-ink transition hover:border-primary/40"
+          >
+            npm v{product.version}
           </a>
-          <a href={site.github} target="_blank" rel="noreferrer noopener">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={site.badges.githubStars} alt="GitHub stars" height={20} />
+          <a
+            href={`${site.github}/blob/main/LICENSE`}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="rounded-full border border-border bg-elevated px-3 py-1.5 font-medium text-ink transition hover:border-primary/40"
+          >
+            {site.license} license
           </a>
-          <a href={site.github} target="_blank" rel="noreferrer noopener">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={site.badges.githubLicense} alt="MIT license" height={20} />
+          <a
+            href={site.github}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="rounded-full border border-border bg-elevated px-3 py-1.5 font-medium text-muted transition hover:text-ink"
+          >
+            Source on GitHub
           </a>
         </div>
 

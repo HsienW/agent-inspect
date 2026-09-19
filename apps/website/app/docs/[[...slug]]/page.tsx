@@ -62,7 +62,7 @@ export default async function DocsPage({ params }: DocsPageProps) {
 
   return (
     <DocsLayout page={layoutPage} currentPath={currentPath}>
-      <RenderDocMarkdown markdown={loaded.markdown} />
+      <RenderDocMarkdown markdown={loaded.markdown} source={loaded.source} />
     </DocsLayout>
   );
 }
