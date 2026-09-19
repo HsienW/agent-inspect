@@ -480,15 +480,20 @@ export class AgentInspectCallback extends BaseCallbackHandler {
     });
   }
 
+  /**
+   * Match CallbackManager's runtime call order (parentRunId 4th), same as
+   * handleLLMStart / handleToolStart — not the declared CallbackHandlerMethods
+   * TypeScript order that puts runType 4th and parentRunId 8th.
+   */
   override async handleChainStart(
     chain: Serialized,
     inputs: ChainValues,
     runId: string,
-    runType?: string,
+    parentRunId?: string,
     tags?: string[],
     metadata?: Record<string, unknown>,
+    runType?: string,
     runName?: string,
-    parentRunId?: string,
     _extra?: Record<string, unknown>,
   ): Promise<void> {
     void runType;

@@ -899,10 +899,21 @@ function parseContractRunSection(
     );
   }
   if (record.allowedStatuses !== undefined) {
-    out.allowedStatuses = requireBoundedStringArray(
+    const statuses = requireBoundedStringArray(
       record.allowedStatuses,
       `${pathPrefix}.allowedStatuses`,
     );
+    const allowed = new Set(["ok", "error", "running", "success", "failed"]);
+    for (let i = 0; i < statuses.length; i++) {
+      const status = statuses[i]!;
+      if (!allowed.has(status)) {
+        throw new CheckConfigError(
+          "AI_CHECK_CONFIG_INVALID_VALUE",
+          `${pathPrefix}.allowedStatuses[${i}] must be one of: ok, error, running (aliases: success, failed); got ${JSON.stringify(status)}.`,
+        );
+      }
+    }
+    out.allowedStatuses = statuses;
   }
   if (record.maxDurationMs !== undefined) {
     out.maxDurationMs = requireNonNegativeNumber(

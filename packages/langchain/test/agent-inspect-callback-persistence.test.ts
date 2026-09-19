@@ -55,7 +55,7 @@ describe("AgentInspectCallback persistence", () => {
       persist: true,
       runId: "run_lc_test_1",
     });
-    await cb.handleChainStart(mockSerialized("chain"), {}, "root-chain", undefined, [], {}, "main");
+    await cb.handleChainStart(mockSerialized("chain"), {}, "root-chain", undefined, [], {}, undefined, "main");
     await cb.handleChainEnd({ ok: true }, "root-chain");
 
     const files = await readdir(traceDir);

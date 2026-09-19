@@ -155,6 +155,25 @@ describe("trace contract", () => {
       expect(failFindings(errorResult)).toEqual([]);
     });
 
+    it("rejects typo statuses instead of normalizing them to error", () => {
+      expect(() => defineTraceContract({ run: { allowedStatuses: ["succes"] } })).toThrow(
+        /unknown status "succes"/i,
+      );
+
+      const errorRead = readResult("error", [persisted("event-a", { status: "error" })]);
+      const result = evaluateTraceContract(
+        { read: errorRead },
+        {
+          run: { allowedStatuses: ["succes"] },
+        } as ReturnType<typeof defineTraceContract>,
+      );
+      expect(result.ok).toBe(false);
+      expect(result.status).toBe("error");
+      expect(
+        result.diagnostics?.some((d) => d.ruleId === "contract.run.allowedStatuses.unknown"),
+      ).toBe(true);
+    });
+
     it("honors multi-entry allowedStatuses for a matching run", () => {
       const read = readResult("error", [persisted("event-a", { status: "error" })]);
       const contract = defineTraceContract({ run: { allowedStatuses: ["ok", "error"] } });

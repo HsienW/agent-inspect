@@ -39,7 +39,7 @@ describe("LangGraph through AgentInspectCallback", () => {
       mockSerialized("CompiledStateGraph"),
       { messages: ["raw graph state secret"] },
       "graph-root",
-      "chain",
+      undefined,
       ["langgraph"],
       {
         langgraph: {
@@ -58,13 +58,14 @@ describe("LangGraph through AgentInspectCallback", () => {
           subgraphs: [{ name: "safety-subgraph", private: "raw subgraph state secret" }],
         },
       },
+      "chain",
       "support_graph",
     );
     await cb.handleChainStart(
       mockSerialized("RunnableLambda"),
       { request: "raw node input secret" },
       "node-router",
-      "chain",
+      "graph-root",
       ["langgraph:node"],
       {
         langgraph_node: "router",
@@ -73,14 +74,14 @@ describe("LangGraph through AgentInspectCallback", () => {
         retryAttempt: 1,
         handoff_to: "lookup",
       },
+      "chain",
       "router",
-      "graph-root",
     );
     await cb.handleChainStart(
       mockSerialized("RunnableLambda"),
       { request: "raw parallel branch input secret" },
       "node-policy",
-      "chain",
+      "graph-root",
       ["langgraph:node", "langgraph:parallel"],
       {
         langgraph: {
@@ -98,8 +99,8 @@ describe("LangGraph through AgentInspectCallback", () => {
           },
         },
       },
+      "chain",
       "policy",
-      "graph-root",
     );
     await cb.handleChainEnd({ decision: "allow" }, "node-policy", "graph-root");
     await cb.handleToolStart(
@@ -237,20 +238,21 @@ describe("LangGraph through AgentInspectCallback", () => {
       mockSerialized("CompiledStateGraph"),
       {},
       "graph-root",
-      "chain",
+      undefined,
       ["langgraph"],
       { graphId: "support-graph", thread_id: "thread-1" },
+      "chain",
       "support_graph",
     );
     await cb.handleChainStart(
       mockSerialized("RunnableLambda"),
       {},
       "node-known",
-      "chain",
+      "graph-root",
       ["langgraph:node"],
       { langgraph_node: "known-node", task_id: "task-known" },
+      "chain",
       "known_node",
-      "graph-root",
     );
     await cb.handleChainEnd({}, "node-known", "graph-root");
     await cb.handleToolStart(

@@ -3,7 +3,7 @@
 **Authority:** [../ROADMAP.md](../ROADMAP.md)
 **Baseline:** **published** `agent-inspect@6.31.0` · commit `988b747` · schema `1.0`
 **Named train:** `website-correctness-post-6310`
-**Program status:** Website P04 complete — awaiting preview review; **6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE**; **V7_DECISION: NO-GO**
+**Program status:** Releasing **6.31.1** (P01–P03); website P04 on main; **6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE**; **V7_DECISION: NO-GO**
 
 ## Freeze language
 
@@ -21,7 +21,7 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 
 ## Current chunk
 
-**P04 website repair complete** — awaiting maintainer preview review / deploy. Do not start P01–P03 until website review completes. Do not invent **6.32.0**.
+**6.31.1 Trusted Publish** — P01 strict `allowedStatuses`, P02 portable prepublish skip, P03 LangChain `handleChainStart` parentage. Do not invent **6.32.0**.
 
 ## Stop rules
 
@@ -35,8 +35,8 @@ Core boundary frozen; evidence-backed security, correctness, compatibility, inte
 
 ```text
 LAST_PUBLISHED_RELEASE: 6.31.0
-ACTIVE: website P04 awaiting preview review
-NEXT_PATCH: 6.31.1
+ACTIVE: 6.31.1 Trusted Publish in progress
+NEXT_PATCH: 6.31.2
 RESERVED: 6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE
 V7_DECISION: NO-GO
 EVIDENCE_GATE: not approved

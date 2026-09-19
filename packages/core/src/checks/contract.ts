@@ -345,11 +345,51 @@ export interface TraceContractLintDiagnostic {
   path?: string;
 }
 
+const ALLOWED_STATUS_ALIASES: Record<string, "ok" | "error" | "running"> = {
+  ok: "ok",
+  error: "error",
+  running: "running",
+  success: "ok",
+  failed: "error",
+};
+
+/**
+ * Map a contract `allowedStatuses` entry to a canonical run status.
+ * Unknown values (including typos like `succes`) return `undefined` — they must
+ * never silently normalize to permissive `error`.
+ */
+export function parseAllowedStatus(status: string): "ok" | "error" | "running" | undefined {
+  return ALLOWED_STATUS_ALIASES[status];
+}
+
 function normalizeStatus(status: string): "ok" | "error" | "running" {
-  if (status === "ok" || status === "error" || status === "running") return status;
-  if (status === "success") return "ok";
-  if (status === "failed") return "error";
-  return "error";
+  const parsed = parseAllowedStatus(status);
+  if (parsed === undefined) {
+    throw new TypeError(
+      `Unknown run status ${JSON.stringify(status)}. Allowed: ok, error, running (aliases: success, failed).`,
+    );
+  }
+  return parsed;
+}
+
+function validateAllowedStatusesShape(
+  allowedStatuses: string[] | undefined,
+  pathPrefix = "run.allowedStatuses",
+): TraceContractLintDiagnostic[] {
+  if (!allowedStatuses?.length) return [];
+  const out: TraceContractLintDiagnostic[] = [];
+  for (let i = 0; i < allowedStatuses.length; i++) {
+    const status = allowedStatuses[i]!;
+    if (parseAllowedStatus(status) === undefined) {
+      out.push({
+        code: "contract.run.allowedStatuses.unknown",
+        severity: "error",
+        message: `${pathPrefix}[${i}] has unknown status ${JSON.stringify(status)}. Allowed: ok, error, running (aliases: success, failed).`,
+        path: `${pathPrefix}[${i}]`,
+      });
+    }
+  }
+  return out;
 }
 
 function cloneBody(body: TraceContractBody): TraceContractBody {
@@ -1153,6 +1193,7 @@ function evaluateBody(
  */
 export function defineTraceContract(input: TraceContractInput): TraceContract {
   const shapeErrors = [
+    ...validateAllowedStatusesShape(input.run?.allowedStatuses),
     ...validateAlternativesShape(input.alternatives),
     ...validateScopeShape(input.scope),
     ...validateProvenanceShape(input.observations),
@@ -1204,6 +1245,7 @@ export function evaluateTraceContract(
   options: { runId?: string } = {},
 ): TraceCheckResult {
   const shapeErrors = [
+    ...validateAllowedStatusesShape(contract.run?.allowedStatuses),
     ...validateAlternativesShape(contract.alternatives),
     ...validateScopeShape(contract.scope),
     ...validateProvenanceShape(contract.observations),

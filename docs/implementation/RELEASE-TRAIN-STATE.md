@@ -7,17 +7,17 @@
 ```yaml
 baselineVersion: "6.31.0"
 publishedVersion: "6.31.0"
-pendingPublishVersion: null
+pendingPublishVersion: "6.31.1"
 currentTrain: "website-correctness-post-6310"
-trainStatus: "awaiting-preview-review"
+trainStatus: "releasing-6311"
 executionMode: "maintainer-reviewed"
 namedTrain: "website-correctness-post-6310"
 branch: "main"
-currentChunk: "P04 website repair complete — stop for preview"
-lastConfirmedCommit: "988b747d"
-lastValidationLevel: "website typecheck/build/crawl + resolve tests; npm still 6.31.0"
-nextAction: "Maintainer preview/deploy review; then 6.31.1 P01–P03. No npm for website-only."
-pendingManualGate: "6.32.0 partner evidence; #422 factual review; Vercel preview deploy"
+currentChunk: "P01–P03 + Changeset for 6.31.1"
+lastConfirmedCommit: "464cdd27"
+lastValidationLevel: "focused contract + langchain + prepublish-skip tests"
+nextAction: "Push Changeset; merge Version Packages PR; confirm Trusted Publish"
+pendingManualGate: "6.32.0 partner evidence; #422 factual review"
 githubIssues:
   "209": "keep open — cross-platform packed-consumer matrix PARTIAL"
 canonicalRoadmap: "docs/implementation/ROADMAP.md"
@@ -28,7 +28,7 @@ completedChunks:
   - "6.30.0 rich CLI TraceContracts + Trusted Publish (#428)"
   - "6.31.0 typed cross-kind step ordering + Trusted Publish (#429 + root recovery)"
   - "P00 baseline 6.31.0 + website-first train ledger"
-  - "P04 website repair (A–F)"
+  - "P04 website repair (A–F) on main"
 blockedTrains:
   - "6.32.0 external conformance (BLOCKED_ON_EXTERNAL_EVIDENCE)"
   - "v7.0.0 (assessment only — V7_DECISION: NO-GO)"
@@ -40,8 +40,8 @@ worktreeIgnoreOnly:
   - "redstamp-proposal-issue-body.md"
 stopMarker: |
   LAST_PUBLISHED_RELEASE: 6.31.0
-  ACTIVE: website P04 awaiting preview review
-  NEXT_PATCH: 6.31.1
+  ACTIVE: 6.31.1 Trusted Publish in progress
+  NEXT_PATCH: 6.31.2
   RESERVED: 6.32.0 BLOCKED_ON_EXTERNAL_EVIDENCE
   V7_DECISION: NO-GO
   EVIDENCE_GATE: not approved

@@ -28,7 +28,7 @@ describe("AgentInspectCallback", () => {
   it("starts empty and clear resets", () => {
     const cb = new AgentInspectCallback();
     expect(cb.getEvents()).toEqual([]);
-    void cb.handleChainStart(mockSerialized("c"), {}, "r1", undefined, [], {}, "n");
+    void cb.handleChainStart(mockSerialized("c"), {}, "r1", undefined, [], {}, undefined, "n");
     expect(cb.getEvents().length).toBe(1);
     cb.clear();
     expect(cb.getEvents()).toEqual([]);
@@ -76,10 +76,36 @@ describe("AgentInspectCallback", () => {
 
   it("handleChainStart/End", async () => {
     const cb = new AgentInspectCallback();
-    await cb.handleChainStart(mockSerialized("seq"), { a: 1 }, "c1", undefined, [], {}, "mychain");
+    await cb.handleChainStart(
+      mockSerialized("seq"),
+      { a: 1 },
+      "c1",
+      undefined,
+      [],
+      {},
+      undefined,
+      "mychain",
+    );
     await cb.handleChainEnd({ out: 1 }, "c1");
     expect(cb.getEvents()[0]?.runId).toBe("c1");
     expect(cb.getEvents()[1]?.durationMs).toBeDefined();
+  });
+
+  it("handleChainStart keeps CallbackManager parentRunId as 4th arg", async () => {
+    const cb = new AgentInspectCallback();
+    await cb.handleChainStart(
+      mockSerialized("seq"),
+      {},
+      "child-1",
+      "parent-1",
+      [],
+      {},
+      "chain",
+      "nested",
+    );
+    const ev = cb.getEvents()[0];
+    expect(ev?.parentId).toBe("parent-1");
+    expect(ev?.name).toBe("chain:nested");
   });
 
   it("handleRetrieverStart/End/Error when documents provided", async () => {

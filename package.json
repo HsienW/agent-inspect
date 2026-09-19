@@ -226,7 +226,7 @@
     "size": "size-limit --config size-limit.config.mjs",
     "test:all": "pnpm run typecheck && pnpm run linked-versions:check && pnpm run build && pnpm run test && pnpm run size",
     "prepublish:checks": "pnpm run typecheck && pnpm run build && pnpm run test && pnpm run test:coverage && pnpm run fixtures:check && pnpm run recipes:check && pnpm run size && pnpm run linked-versions:check && pnpm run repo:health && pnpm run pack:smoke",
-    "prepublishOnly": "node -e \"if(process.env.AGENT_INSPECT_SKIP_PREPUBLISH_CHECKS==='1'){process.exit(0)}\" && AGENT_INSPECT_REPO_HEALTH_SKIP_VERSION=1 pnpm run prepublish:checks",
+    "prepublishOnly": "node ./scripts/prepublish-only.mjs",
     "prepack": "pnpm run build",
     "pack:dry-run": "pnpm run build && npm pack --dry-run",
     "pack:smoke": "pnpm run package-licenses:check && pnpm run build && node scripts/package-smoke.mjs && node scripts/packed-openai-agents-e2e.mjs && node scripts/packed-ai-sdk-e2e.mjs && node scripts/packed-mcp-e2e.mjs && node scripts/packed-quickstart-e2e.mjs && node scripts/packed-semantic-loop-e2e.mjs && node scripts/packed-swarm-loop-e2e.mjs && node scripts/evidence-ci-golden-paths.mjs",
