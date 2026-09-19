@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.31.3
+
+### Patch Changes
+
+- 883f965: OTLP JSON export uses BigInt nanosecond timestamps (parity with OpenInference) so realistic epoch times keep exact precision beyond Number.MAX_SAFE_INTEGER.
+
 ## 6.31.2
 
 ### Patch Changes
