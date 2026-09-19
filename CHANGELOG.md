@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.31.2
+
+### Patch Changes
+
+- 520c7c3: Clarify README Prevent path (trajectory without leading observation flags), AI SDK inspect/bundle commands, and Jest/Vitest explicit trace association in CI docs.
+
 ## 6.31.1
 
 ### Patch Changes
