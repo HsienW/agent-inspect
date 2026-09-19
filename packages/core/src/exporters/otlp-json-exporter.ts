@@ -10,6 +10,17 @@ function hexFrom(seed: string, byteLen: number): string {
   return crypto.createHash("sha256").update(seed, "utf8").digest("hex").slice(0, byteLen * 2);
 }
 
+/**
+ * Convert epoch milliseconds to exact epoch nanoseconds. Computed in BigInt
+ * because realistic epochs exceed Number.MAX_SAFE_INTEGER once scaled to
+ * nanoseconds (1.7e18 vs 9.0e15), which silently loses precision in doubles.
+ */
+function unixNano(ms: number): bigint {
+  const whole = Math.trunc(ms);
+  const fractionNs = Math.round((ms - whole) * 1e6);
+  return BigInt(whole) * 1_000_000n + BigInt(fractionNs);
+}
+
 function stringAttr(key: string, value: string): { key: string; value: { stringValue: string } } {
   return { key, value: { stringValue: value } };
 }
@@ -59,10 +70,10 @@ export function exportOtlpJson(
       ? hexFrom(`${tree.runId}:${ev.parentId}`, 8)
       : undefined;
 
-    const startNs = String(Math.round(ev.timestamp * 1e6));
+    const startNs = String(unixNano(ev.timestamp));
     let endNs: string | undefined;
     if (ev.durationMs !== undefined && Number.isFinite(ev.durationMs)) {
-      endNs = String(Math.round(ev.timestamp * 1e6 + ev.durationMs * 1e6));
+      endNs = String(unixNano(ev.timestamp) + unixNano(ev.durationMs));
     }
 
     const attrs: OtlpAttr[] = [

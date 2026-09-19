@@ -74,4 +74,63 @@ describe("exportOtlpJson", () => {
       p2.resourceSpans[0]!.scopeSpans[0]!.spans[0]!.traceId,
     );
   });
+
+  it("emits exact nanosecond timestamps as decimal strings for realistic epochs", () => {
+    // Realistic epochs exceed Number.MAX_SAFE_INTEGER once scaled to ns.
+    const startMs = 1_750_000_000_123;
+    const durationMs = 456;
+    const events: TraceEvent[] = [
+      {
+        schemaVersion: "0.1",
+        event: "run_started",
+        timestamp: startMs,
+        runId: "run_ns",
+        name: "ns",
+        startTime: startMs,
+      },
+      {
+        schemaVersion: "0.1",
+        event: "step_started",
+        timestamp: startMs,
+        runId: "run_ns",
+        stepId: "s",
+        name: "x",
+        type: "logic",
+        startTime: startMs,
+      },
+      {
+        schemaVersion: "0.1",
+        event: "step_completed",
+        timestamp: startMs + durationMs,
+        runId: "run_ns",
+        stepId: "s",
+        status: "success",
+        endTime: startMs + durationMs,
+        durationMs,
+      },
+      {
+        schemaVersion: "0.1",
+        event: "run_completed",
+        timestamp: startMs + durationMs,
+        runId: "run_ns",
+        status: "success",
+        endTime: startMs + durationMs,
+        durationMs,
+      },
+    ];
+    const tree = manualTraceEventsToRunTree(events);
+    const parsed = JSON.parse(exportOtlpJson(tree).content) as {
+      resourceSpans: {
+        scopeSpans: {
+          spans: { startTimeUnixNano: string; endTimeUnixNano?: string }[];
+        }[];
+      }[];
+    };
+    const span = parsed.resourceSpans[0]!.scopeSpans[0]!.spans[0]!;
+    const expectedStart = BigInt(startMs) * 1_000_000n;
+    const expectedEnd = expectedStart + BigInt(durationMs) * 1_000_000n;
+    expect(span.startTimeUnixNano).toBe(String(expectedStart));
+    expect(span.endTimeUnixNano).toBe(String(expectedEnd));
+    expect(BigInt(span.startTimeUnixNano) > BigInt(Number.MAX_SAFE_INTEGER)).toBe(true);
+  });
 });
