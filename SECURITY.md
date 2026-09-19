@@ -53,6 +53,8 @@ In scope:
 - Manual tracing writes local JSONL files (see `docs/SCHEMA.md`).
 - The CLI reads and renders local files.
 - Exports generate local strings/files only (Markdown/HTML/OpenInference/OTLP JSON); they do not upload anywhere.
+- On POSIX, **newly created** built-in raw trace directories request mode `0700` and new JSONL files request `0600`. Existing paths are **not** rewritten. Local-first custody does **not** replace host filesystem permissions, disk encryption, CI access controls, or retention policy, and does not claim compliance or guaranteed confidentiality.
+- For existing shared, synchronized, or CI trace directories, restrict manually (`chmod 700` on the directory; review JSONL files with `chmod 600`) and prefer a user-private location when possible.
 
 ## Redaction expectations
 

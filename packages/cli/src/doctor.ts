@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { access, constants, mkdir } from "node:fs/promises";
+import { access, constants, mkdir, stat } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
@@ -89,7 +89,8 @@ function envCheck(name: string, optional = true): DoctorCheckResult {
 async function traceDirWritable(traceDir: string): Promise<DoctorCheckResult> {
   const resolved = path.resolve(traceDir);
   try {
-    await mkdir(resolved, { recursive: true });
+    // Request restrictive create-time mode; existing directories are not rewritten.
+    await mkdir(resolved, { recursive: true, mode: 0o700 });
     await access(resolved, constants.W_OK);
     return {
       id: "trace-dir-writable",
@@ -103,6 +104,46 @@ async function traceDirWritable(traceDir: string): Promise<DoctorCheckResult> {
       status: "fail",
       message: `Trace directory is not writable: ${resolved}`,
       remediation: `Create the directory or set AGENT_INSPECT_TRACE_DIR to a writable path. See ${DOCS_BASE}/GETTING-STARTED.md`,
+      evidence: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+async function traceDirPermissions(traceDir: string): Promise<DoctorCheckResult> {
+  const resolved = path.resolve(traceDir);
+  if (process.platform === "win32") {
+    return {
+      id: "trace-dir-permissions",
+      status: "skipped",
+      message: "POSIX confidentiality mode check skipped on Windows.",
+      evidence: resolved,
+    };
+  }
+
+  try {
+    const st = await stat(resolved);
+    const mode = st.mode & 0o777;
+    const octal = mode.toString(8).padStart(3, "0");
+    if ((mode & 0o077) !== 0) {
+      return {
+        id: "trace-dir-permissions",
+        status: "warn",
+        message: `Trace directory allows group/other access (mode ${octal}): ${resolved}`,
+        remediation: `Restrict with chmod 700 on the directory and review existing JSONL files with chmod 600. AgentInspect does not rewrite existing modes. See ${DOCS_BASE}/GETTING-STARTED.md`,
+        evidence: `mode=${octal}`,
+      };
+    }
+    return {
+      id: "trace-dir-permissions",
+      status: "pass",
+      message: `Trace directory mode is restrictive (${octal}): ${resolved}`,
+      evidence: `mode=${octal}`,
+    };
+  } catch (error) {
+    return {
+      id: "trace-dir-permissions",
+      status: "skipped",
+      message: `Could not inspect trace directory permissions: ${resolved}`,
       evidence: error instanceof Error ? error.message : String(error),
     };
   }
@@ -269,6 +310,7 @@ export async function runDoctorChecks(
       evidence: packageVersion,
     },
     await traceDirWritable(traceDir),
+    await traceDirPermissions(traceDir),
     envCheck("AGENT_INSPECT"),
     envCheck("AGENT_INSPECT_TRACE_DIR"),
     versionMismatchCheck(cwd),

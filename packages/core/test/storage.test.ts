@@ -4,6 +4,7 @@ import {
   mkdir,
   readFile,
   rm,
+  stat,
   utimes,
   writeFile,
 } from "node:fs/promises";
@@ -249,6 +250,34 @@ describe("initializeTraceFile", () => {
     expect(content).toBe("");
   });
 
+  it.runIf(process.platform !== "win32")(
+    "creates new JSONL files with mode 0600 under a permissive umask",
+    async () => {
+      const prev = process.umask(0o022);
+      try {
+        const nested = path.join(dir, "nested-mode");
+        const p = await initializeTraceFile("run_mode", nested);
+        const fileMode = (await stat(p!)).mode & 0o777;
+        expect(fileMode).toBe(0o600);
+        const dirMode = (await stat(nested)).mode & 0o777;
+        expect(dirMode).toBe(0o700);
+      } finally {
+        process.umask(prev);
+      }
+    },
+  );
+
+  it.runIf(process.platform !== "win32")(
+    "does not rewrite mode on an existing JSONL file",
+    async () => {
+      const filePath = path.join(dir, "run_keep.jsonl");
+      await writeFile(filePath, "old\n", { encoding: "utf-8", mode: 0o644 });
+      expect((await stat(filePath)).mode & 0o777).toBe(0o644);
+      await initializeTraceFile("run_keep", dir);
+      expect((await stat(filePath)).mode & 0o777).toBe(0o644);
+    },
+  );
+
   it("is safe to call twice (truncates)", async () => {
     const p1 = await initializeTraceFile("run_twice", dir);
     await appendFile(p1!, "garbage\n", "utf-8");
@@ -302,6 +331,21 @@ describe("writeTraceEvent", () => {
     expect(JSON.parse(lines[0])).toEqual(e1);
     expect(JSON.parse(lines[1])).toEqual(e2);
   });
+
+  it.runIf(process.platform !== "win32")(
+    "creates a 0600 JSONL file when initialization was not called",
+    async () => {
+      const prev = process.umask(0o022);
+      try {
+        const nested = path.join(dir, "append-mode");
+        await writeTraceEvent(runStarted({ runId: "run_append_mode", name: "n" }), nested);
+        const filePath = path.join(nested, "run_append_mode.jsonl");
+        expect((await stat(filePath)).mode & 0o777).toBe(0o600);
+      } finally {
+        process.umask(prev);
+      }
+    },
+  );
 
   it("skips invalid events without throwing", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});

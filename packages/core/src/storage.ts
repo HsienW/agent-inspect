@@ -1,4 +1,4 @@
-import { appendFile, readdir, readFile, stat, writeFile } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 
 import type { TraceEvent } from "./types.js";
@@ -9,6 +9,7 @@ import {
   resolveTraceSafetyOptions,
 } from "./trace-event-safety.js";
 import { parseTraceJsonl } from "./read-trace.js";
+import { appendTraceFile, createEmptyTraceFile } from "./trace-filesystem.js";
 import {
   ensureTraceDir,
   FALLBACK_TRACE_DIR,
@@ -136,7 +137,7 @@ export async function initializeTraceFile(
   try {
     const usable = await ensureTraceDir(traceDir);
     const filePath = getTraceFilePath(runId, usable);
-    await writeFile(filePath, "", "utf-8");
+    await createEmptyTraceFile(filePath);
     return filePath;
   } catch (e) {
     warn("Failed to initialize trace file", e);
@@ -145,7 +146,7 @@ export async function initializeTraceFile(
   try {
     const usable = await ensureTraceDir(FALLBACK_TRACE_DIR);
     const filePath = getTraceFilePath(runId, usable);
-    await writeFile(filePath, "", "utf-8");
+    await createEmptyTraceFile(filePath);
     return filePath;
   } catch (e) {
     warn("Failed to initialize trace file on fallback directory", e);
@@ -187,7 +188,7 @@ export async function writeTraceEvent(
     try {
       const usable = await ensureTraceDir(dir);
       const filePath = getTraceFilePath(event.runId, usable);
-      await appendFile(filePath, payload, "utf-8");
+      await appendTraceFile(filePath, payload);
       return true;
     } catch {
       return false;
