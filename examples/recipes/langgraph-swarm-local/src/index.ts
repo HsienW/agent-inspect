@@ -46,6 +46,7 @@ await callback.handleChainStart(
       nodeName: "swarm",
     },
   } as never,
+  undefined as never,
   "swarm_graph" as never,
 );
 
@@ -63,6 +64,7 @@ await callback.handleChainStart(
       nodeName: "planner",
     },
   } as never,
+  undefined as never,
   "planner_graph" as never,
 );
 await callback.handleChainEnd(
@@ -86,6 +88,7 @@ await callback.handleChainStart(
       handoffFrom: "task-planner",
     },
   } as never,
+  undefined as never,
   "worker_graph" as never,
 );
 await callback.handleToolStart(

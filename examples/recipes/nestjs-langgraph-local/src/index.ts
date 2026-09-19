@@ -67,6 +67,7 @@ await cb.handleChainStart(
       threadId: "thread-nestjs-1",
     },
   } as never,
+  undefined as never,
   "support_graph" as never,
 );
 await cb.handleToolStart(

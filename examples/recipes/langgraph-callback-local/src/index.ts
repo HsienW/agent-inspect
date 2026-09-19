@@ -37,7 +37,7 @@ await callback.handleChainStart(
   serialized("CompiledStateGraph"),
   { messages: ["raw graph state secret"] },
   "graph-root",
-  "chain",
+  undefined,
   ["langgraph"],
   {
     langgraph: {
@@ -52,6 +52,7 @@ await callback.handleChainStart(
       subgraphs: [{ name: "safety-subgraph", private: "raw subgraph state secret" }],
     },
   },
+  "chain",
   "support_graph",
 );
 
@@ -59,7 +60,7 @@ await callback.handleChainStart(
   serialized("RunnableLambda"),
   { request: "raw node input secret" },
   "node-router",
-  "chain",
+  "graph-root",
   ["langgraph:node"],
   {
     langgraph_node: "router",
@@ -67,15 +68,15 @@ await callback.handleChainStart(
     branch: "classify",
     handoff_to: "answer",
   },
+  "chain",
   "router",
-  "graph-root",
 );
 
 await callback.handleChainStart(
   serialized("RunnableLambda"),
   { request: "raw parallel branch input secret" },
   "node-policy",
-  "chain",
+  "graph-root",
   ["langgraph:node", "langgraph:parallel"],
   {
     langgraph: {
@@ -93,8 +94,8 @@ await callback.handleChainStart(
       },
     },
   },
+  "chain",
   "policy",
-  "graph-root",
 );
 await callback.handleChainEnd({ decision: "allow" }, "node-policy", "graph-root");
 

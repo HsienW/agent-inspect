@@ -378,9 +378,10 @@ describe("executable adapter conformance", () => {
       langChainSerialized("CompiledStateGraph") as never,
       { messages: ["raw graph state"] },
       "graph-root",
-      "chain",
+      undefined,
       ["langgraph"],
       { graphId: "graph-1", thread_id: "thread-1" },
+      "chain",
       "support_graph",
     );
     await callback.handleLLMStart(

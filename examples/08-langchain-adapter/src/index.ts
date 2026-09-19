@@ -27,11 +27,11 @@ async function main(): Promise<void> {
     mockSerialized("InnerChain"),
     { step: 1 },
     chainChild,
-    undefined,
+    rootRun,
     [],
     {},
+    undefined,
     "inner",
-    rootRun,
   );
 
   await callback.handleLLMStart(mockSerialized("ChatOpenAI"), ["Hello"], llmRun, chainChild);
