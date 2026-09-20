@@ -132,10 +132,11 @@ export const STRICT_PROFILE_EXTRA_KEYS = [
   "query",
 ] as const;
 
-type CompiledRule =
+type CompiledRule = (
   | { key: string; strategy: "full" }
   | { key: string; strategy: "prefix"; keep: number }
-  | { key: string; strategy: "hash" };
+  | { key: string; strategy: "hash" }
+) & { raw?: string };
 
 interface RedactionState {
   findings: RedactionFinding[];
@@ -164,7 +165,9 @@ function findCompiledKeyRule(
   const exact = toKey(key);
   const direct = rules.find((candidate) => candidate.key === exact);
   if (direct) return direct;
-  return rules.find((candidate) => isCredentialSensitiveKey(key, [candidate.key]));
+  return rules.find((candidate) =>
+    isCredentialSensitiveKey(key, [candidate.raw ?? candidate.key]),
+  );
 }
 
 function stableHash(value: string): string {
@@ -406,7 +409,7 @@ function compileRules(
 
   const set = (rule: CompiledRule) => {
     const key = toKey(rule.key);
-    out.set(key, { ...rule, key } as CompiledRule);
+    out.set(key, { ...rule, key, raw: rule.raw ?? rule.key } as CompiledRule);
   };
 
   for (const key of DEFAULT_REDACT_KEYS) {
