@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -44,14 +44,14 @@ export function DocsSearch() {
             <ul className="space-y-1">
               {results.map((page) => (
                 <li key={page.slug || "home"}>
-                  <Link
+                  <HardLink
                     href={docHref(page.slug)}
                     className="block rounded-lg px-3 py-2 hover:bg-elevated"
                     onClick={() => setQuery("")}
                   >
                     <p className="text-sm font-medium text-ink">{page.title}</p>
                     <p className="text-xs text-muted">{page.description}</p>
-                  </Link>
+                  </HardLink>
                 </li>
               ))}
             </ul>

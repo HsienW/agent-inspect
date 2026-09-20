@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 
 import type { DocPage } from "@/lib/docs";
 
@@ -11,9 +11,9 @@ export function DocsBreadcrumbs({ page }: DocsBreadcrumbsProps) {
     <nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted">
       <ol className="flex flex-wrap items-center gap-2">
         <li>
-          <Link href="/docs" className="hover:text-ink">
+          <HardLink href="/docs/" className="hover:text-ink">
             Docs
-          </Link>
+          </HardLink>
         </li>
         {page.slug ? (
           <>

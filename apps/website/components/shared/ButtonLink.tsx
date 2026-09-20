@@ -1,6 +1,7 @@
 import { clsx } from "clsx";
-import Link from "next/link";
 import type { ReactNode } from "react";
+
+import { HardLink } from "@/components/shared/HardLink";
 
 type ButtonLinkProps = {
   href: string;
@@ -45,8 +46,8 @@ export function ButtonLink({
   }
 
   return (
-    <Link href={href} className={classes}>
+    <HardLink href={href} className={classes}>
       {children}
-    </Link>
+    </HardLink>
   );
 }

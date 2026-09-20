@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 import { Footer } from "@/components/marketing/Footer";
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 
@@ -30,9 +30,9 @@ export default function NoEgressPage() {
           </p>
         </div>
         <p className="mt-12 text-sm">
-          <Link className="text-accent underline-offset-4 hover:underline" href="/docs/no-egress">
+          <HardLink className="text-accent underline-offset-4 hover:underline" href="/docs/no-egress">
             No-egress docs
-          </Link>
+          </HardLink>
         </p>
       </main>
       <Footer />

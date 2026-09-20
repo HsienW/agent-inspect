@@ -96,6 +96,26 @@ const htmlFiles = walkHtml(outDir);
 const failures = [];
 let checked = 0;
 
+// Flight payloads must not ship — they look like human docs at /docs/index.txt.
+function collectFlightTxt(dir, acc = []) {
+  for (const name of readdirSync(dir)) {
+    const abs = path.join(dir, name);
+    const st = statSync(abs);
+    if (st.isDirectory()) collectFlightTxt(abs, acc);
+    else if (name === "index.txt") acc.push(path.relative(outDir, abs));
+  }
+  return acc;
+}
+
+const flightTxt = collectFlightTxt(outDir);
+if (flightTxt.length) {
+  console.error(
+    `Website export crawl failed: ${flightTxt.length} Flight index.txt file(s) remain (run strip-website-flight-txt):`,
+  );
+  for (const f of flightTxt.slice(0, 20)) console.error(`- ${f}`);
+  process.exit(1);
+}
+
 for (const file of htmlFiles) {
   const html = readFileSync(file, "utf8");
   // Skip RSC flight payloads mistaken as human pages — they are .txt not .html.

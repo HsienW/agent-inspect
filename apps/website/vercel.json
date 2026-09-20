@@ -13,6 +13,26 @@
       "source": "/docs/contracts/",
       "destination": "/docs/trace-contracts/",
       "permanent": true
+    },
+    {
+      "source": "/docs/index.txt",
+      "destination": "/docs/",
+      "permanent": false
+    },
+    {
+      "source": "/docs/:path*/index.txt",
+      "destination": "/docs/:path*/",
+      "permanent": false
+    },
+    {
+      "source": "/index.txt",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/:path*/index.txt",
+      "destination": "/:path*/",
+      "permanent": false
     }
   ]
 }

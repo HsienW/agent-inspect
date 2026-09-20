@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 
 import { product } from "@/lib/product";
 import { site } from "@/lib/site";
@@ -80,13 +80,13 @@ export function OpenSourceTrust() {
                 {link.label}
               </a>
             ) : (
-              <Link
+              <HardLink
                 key={link.label}
                 href={link.href}
                 className="rounded-full border border-border bg-elevated px-3 py-1.5 text-sm text-muted transition hover:text-ink"
               >
                 {link.label}
-              </Link>
+              </HardLink>
             ),
           )}
         </div>

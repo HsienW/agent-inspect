@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 import { Footer } from "@/components/marketing/Footer";
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 
@@ -32,18 +32,18 @@ export default function LangGraphIntegrationPage() {
           </p>
         </div>
         <div className="mt-12 flex flex-wrap gap-4 text-sm font-medium">
-          <Link
+          <HardLink
             className="text-accent underline-offset-4 hover:underline"
             href="/docs/integrations/langgraph"
           >
             LangGraph docs
-          </Link>
-          <Link
+          </HardLink>
+          <HardLink
             className="text-accent underline-offset-4 hover:underline"
             href="/case-study/langgraph"
           >
             Case study
-          </Link>
+          </HardLink>
         </div>
       </main>
       <Footer />

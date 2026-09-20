@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 
 import { site } from "@/lib/site";
 
@@ -64,9 +64,9 @@ export function Footer() {
                         {link.label}
                       </a>
                     ) : (
-                      <Link href={link.href} className="hover:text-ink">
+                      <HardLink href={link.href} className="hover:text-ink">
                         {link.label}
-                      </Link>
+                      </HardLink>
                     )}
                   </li>
                 ))}

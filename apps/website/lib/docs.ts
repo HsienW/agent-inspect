@@ -285,7 +285,7 @@ function buildDocsNav(): DocsNavSection[] {
 export const docsNav: DocsNavSection[] = buildDocsNav();
 
 export function docHref(slug: string): string {
-  return slug ? `/docs/${slug}` : "/docs";
+  return slug ? `/docs/${slug}/` : "/docs/";
 }
 
 export function getDocPage(slugParts: string[] | undefined): DocPage | undefined {

@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 
 import { docHref, docPages } from "@/lib/docs";
 
@@ -27,7 +27,7 @@ export function DocsPager({ previous, next }: DocsPagerProps) {
       className="mt-12 grid gap-4 border-t border-border pt-8 sm:grid-cols-2"
     >
       {prevPage ? (
-        <Link
+        <HardLink
           href={docHref(prevPage.slug)}
           className="rounded-2xl border border-border bg-surface p-4 transition hover:border-primary/40"
         >
@@ -36,12 +36,12 @@ export function DocsPager({ previous, next }: DocsPagerProps) {
             Previous
           </p>
           <p className="mt-2 font-semibold text-ink">{prevPage.title}</p>
-        </Link>
+        </HardLink>
       ) : (
         <div />
       )}
       {nextPage ? (
-        <Link
+        <HardLink
           href={docHref(nextPage.slug)}
           className="rounded-2xl border border-border bg-surface p-4 text-right transition hover:border-primary/40"
         >
@@ -50,7 +50,7 @@ export function DocsPager({ previous, next }: DocsPagerProps) {
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />
           </p>
           <p className="mt-2 font-semibold text-ink">{nextPage.title}</p>
-        </Link>
+        </HardLink>
       ) : null}
     </nav>
   );

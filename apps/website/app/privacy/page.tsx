@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 import { Footer } from "@/components/marketing/Footer";
@@ -40,9 +40,9 @@ export default function PrivacyPage() {
         </ul>
         <p className="mt-8 text-sm text-muted">
           Security reporting: see{" "}
-          <Link href="/security" className="text-ink underline">
+          <HardLink href="/security" className="text-ink underline">
             Security
-          </Link>{" "}
+          </HardLink>{" "}
           and the repository{" "}
           <a
             href={`${site.github}/blob/main/SECURITY.md`}

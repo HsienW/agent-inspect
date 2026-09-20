@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 import { Footer } from "@/components/marketing/Footer";
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 
@@ -53,21 +53,21 @@ export default function LangGraphCaseStudyPage() {
         </div>
 
         <div className="mt-12 flex flex-wrap gap-4 text-sm font-medium">
-          <Link className="text-accent underline-offset-4 hover:underline" href="/docs/cli">
+          <HardLink className="text-accent underline-offset-4 hover:underline" href="/docs/cli">
             CLI presets & Evidence-on
-          </Link>
-          <Link
+          </HardLink>
+          <HardLink
             className="text-accent underline-offset-4 hover:underline"
             href="/use-cases/trajectory-gates"
           >
             Trajectory gates
-          </Link>
-          <Link
+          </HardLink>
+          <HardLink
             className="text-accent underline-offset-4 hover:underline"
             href="/use-cases/portable-evidence"
           >
             Portable Evidence
-          </Link>
+          </HardLink>
         </div>
       </main>
       <Footer />

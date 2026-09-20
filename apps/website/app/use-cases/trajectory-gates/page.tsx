@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 import { Footer } from "@/components/marketing/Footer";
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 
@@ -31,9 +31,9 @@ export default function TrajectoryGatesPage() {
           </p>
         </div>
         <p className="mt-12 text-sm">
-          <Link className="text-accent underline-offset-4 hover:underline" href="/case-study/langgraph">
+          <HardLink className="text-accent underline-offset-4 hover:underline" href="/case-study/langgraph">
             LangGraph case study
-          </Link>
+          </HardLink>
         </p>
       </main>
       <Footer />

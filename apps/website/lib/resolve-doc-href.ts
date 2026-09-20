@@ -10,7 +10,9 @@ for (const entry of docsManifest) {
   // First wins for duplicate sources (e.g. langchain + langgraph → same md).
   if (!SOURCE_TO_DOCS_HREF.has(normalized)) {
     const href =
-      entry.slug.length === 0 ? "/docs" : `/docs/${manifestSlugKey(entry.slug)}`;
+      entry.slug.length === 0
+        ? "/docs/"
+        : `/docs/${manifestSlugKey(entry.slug)}/`;
     SOURCE_TO_DOCS_HREF.set(normalized, href);
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 import { useState } from "react";
 
 import { docsNav } from "@/lib/docs";
@@ -38,7 +38,7 @@ export function DocsMobileNav({ currentPath }: DocsMobileNavProps) {
                     currentPath === `${item.href}/`;
                   return (
                     <li key={item.href}>
-                      <Link
+                      <HardLink
                         href={item.href}
                         onClick={() => setOpen(false)}
                         className={clsx(
@@ -49,7 +49,7 @@ export function DocsMobileNav({ currentPath }: DocsMobileNavProps) {
                         )}
                       >
                         {item.title}
-                      </Link>
+                      </HardLink>
                     </li>
                   );
                 })}
