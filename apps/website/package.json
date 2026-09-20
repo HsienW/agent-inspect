@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node ../../scripts/sync-website-public-docs.mjs && node ../../scripts/copy-showcase-to-website.mjs && next dev",
-    "build": "node ../../scripts/sync-website-public-docs.mjs && node ../../scripts/copy-showcase-to-website.mjs && next build",
+    "build": "node ../../scripts/sync-website-public-docs.mjs && node ../../scripts/copy-showcase-to-website.mjs && next build && node ../../scripts/strip-website-flight-txt.mjs",
     "typecheck": "tsc --noEmit",
     "crawl": "node ../../scripts/crawl-website-export.mjs",
     "check": "pnpm run typecheck && pnpm run build && pnpm run crawl"

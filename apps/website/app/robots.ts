@@ -9,6 +9,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
+      // Next.js Flight payloads are not human documentation.
+      disallow: ["/*/index.txt", "/index.txt", "/docs/index.txt"],
     },
     sitemap: `${site.url}/sitemap.xml`,
   };

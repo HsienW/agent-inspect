@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 
 import { docsNav } from "@/lib/docs";
 import { clsx } from "clsx";
@@ -23,7 +23,7 @@ export function DocsSidebar({ currentPath }: DocsSidebarProps) {
                   currentPath === `${item.href}/`;
                 return (
                   <li key={item.href}>
-                    <Link
+                    <HardLink
                       href={item.href}
                       className={clsx(
                         "block rounded-lg px-3 py-2 text-sm transition",
@@ -33,7 +33,7 @@ export function DocsSidebar({ currentPath }: DocsSidebarProps) {
                       )}
                     >
                       {item.title}
-                    </Link>
+                    </HardLink>
                   </li>
                 );
               })}

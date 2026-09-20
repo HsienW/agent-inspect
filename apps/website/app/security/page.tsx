@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 import { Footer } from "@/components/marketing/Footer";
@@ -43,9 +43,9 @@ export default function SecurityPage() {
         <h2 className="mt-10 text-xl font-semibold">Privacy</h2>
         <p className="mt-3 text-muted leading-7">
           See the{" "}
-          <Link href="/privacy" className="text-ink underline">
+          <HardLink href="/privacy" className="text-ink underline">
             Privacy
-          </Link>{" "}
+          </HardLink>{" "}
           page for the local-first data boundary.
         </p>
       </main>

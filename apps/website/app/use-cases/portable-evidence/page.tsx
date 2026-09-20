@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 import { Footer } from "@/components/marketing/Footer";
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 
@@ -31,9 +31,9 @@ export default function PortableEvidencePage() {
           </p>
         </div>
         <p className="mt-12 text-sm">
-          <Link className="text-accent underline-offset-4 hover:underline" href="/docs/evidence-v2">
+          <HardLink className="text-accent underline-offset-4 hover:underline" href="/docs/evidence-v2">
             Evidence v2 docs
-          </Link>
+          </HardLink>
         </p>
       </main>
       <Footer />

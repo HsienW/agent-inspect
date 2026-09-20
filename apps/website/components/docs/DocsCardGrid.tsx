@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { HardLink } from "@/components/shared/HardLink";
 
 export type DocsCard = {
   title: string;
@@ -27,14 +27,14 @@ export function DocsCardGrid({ cards }: DocsCardGridProps) {
             <p className="mt-2 text-sm leading-6 text-muted">{card.description}</p>
           </a>
         ) : (
-          <Link
+          <HardLink
             key={card.title}
             href={card.href}
             className="rounded-2xl border border-border bg-surface p-5 transition hover:border-primary/40"
           >
             <h3 className="font-semibold text-ink">{card.title}</h3>
             <p className="mt-2 text-sm leading-6 text-muted">{card.description}</p>
-          </Link>
+          </HardLink>
         ),
       )}
     </div>
