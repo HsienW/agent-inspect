@@ -48,6 +48,9 @@ describe("value.keyValueSecret (#327)", () => {
     "ordinary prose about a token and a secret",
     "agent-inspect@6.17.6",
     "duration=500ms",
+    "token=[REDACTED]",
+    "api_key=[HASH:abcdef12]",
+    "password=[REDACTED:full]",
   ])("does not redact lookalike %s", (value) => {
     expect(valueContainsKeyValueSecret(value)).toBe(false);
     const result = redact({ value }, { profile: "share" });
@@ -55,6 +58,17 @@ describe("value.keyValueSecret (#327)", () => {
     expect(result.findings.some((f) => f.detector === "value.keyValueSecret")).toBe(
       false,
     );
+  });
+
+  it.each([
+    "token=[REDACTED]canary_ZX936_UserSecret",
+    "api_key=[HASH:abcdef12]canary_ZX936_UserSecret",
+    "detail token=[REDACTED]canary_ZX936_UserSecret trailing",
+  ])("still redacts marker-prefix residual %s", (value) => {
+    expect(valueContainsKeyValueSecret(value)).toBe(true);
+    const result = redact({ value }, { profile: "share" });
+    expect(result.value).toEqual({ value: "[REDACTED]" });
+    expect(JSON.stringify(result)).not.toContain("canary_ZX936_UserSecret");
   });
 
   it("covers share and strict profiles for high-confidence credentials", () => {
