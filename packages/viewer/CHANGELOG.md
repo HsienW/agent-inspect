@@ -1,5 +1,14 @@
 # @agent-inspect/viewer
 
+## 6.31.4
+
+### Patch Changes
+
+- Updated dependencies [fc7e7ad]
+- Updated dependencies [fc7e7ad]
+- Updated dependencies [98e0f30]
+  - agent-inspect@6.31.4
+
 ## 6.31.3
 
 ### Patch Changes

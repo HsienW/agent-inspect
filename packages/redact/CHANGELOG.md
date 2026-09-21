@@ -1,5 +1,12 @@
 # @agent-inspect/redact
 
+## 6.31.4
+
+### Patch Changes
+
+- fc7e7ad: Match credential keys across snake, kebab, and header spellings (`api_key`, `x-api-key`, `access_token`, …) in share/strict export and `@agent-inspect/redact`.
+- fc7e7ad: URL-aware redaction keeps host/path while stripping http(s) userinfo and credential query/fragment params, residual-checks export after rewrite, and treats only _complete_ `[REDACTED]` / `[HASH:…]` placeholders as safe (marker prefixes cannot hide residual secrets). Postgres and other non-http URI userinfo remain tracked separately.
+
 ## 6.31.3
 
 ## 6.31.2

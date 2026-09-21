@@ -1,5 +1,13 @@
 # Changelog
 
+## 6.31.4
+
+### Patch Changes
+
+- fc7e7ad: Match credential keys across snake, kebab, and header spellings (`api_key`, `x-api-key`, `access_token`, …) in share/strict export and `@agent-inspect/redact`.
+- fc7e7ad: URL-aware redaction keeps host/path while stripping http(s) userinfo and credential query/fragment params, residual-checks export after rewrite, and treats only _complete_ `[REDACTED]` / `[HASH:…]` placeholders as safe (marker prefixes cannot hide residual secrets). Postgres and other non-http URI userinfo remain tracked separately.
+- 98e0f30: Preserve multibyte UTF-8 across `tail --file` polling reads, and request restrictive POSIX creation modes (`0700` directories / `0600` JSONL) for new built-in raw traces with a `doctor` confidentiality warning. Existing paths are not rewritten.
+
 ## 6.31.3
 
 ### Patch Changes
