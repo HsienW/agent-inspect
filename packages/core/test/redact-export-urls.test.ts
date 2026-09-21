@@ -73,6 +73,24 @@ describe("redactTraceEventsForReport url handling", () => {
     });
   });
 
+  it("redacts marker-prefix residuals in free text under share", () => {
+    const canary = "canary_ZX936_UserSecret";
+    const [event] = redactTraceEventsForReport(
+      [
+        stepWithMetadata({
+          detail: `token=[REDACTED]${canary}`,
+          harmless: "token=[REDACTED]",
+        }),
+      ],
+      { redactionProfile: "share" },
+    );
+
+    expect(metadataOf(event)).toEqual({
+      detail: "[REDACTED]",
+      harmless: "token=[REDACTED]",
+    });
+  });
+
   it("redacts a credential param by name even when the value is short", () => {
     const [event] = redactTraceEventsForReport(
       [stepWithMetadata({ url: "https://app.example.com/a?api_key=abc&step=2" })],
