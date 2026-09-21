@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -217,6 +217,31 @@ describe("bufferedFileWriter", () => {
       });
     });
   });
+
+  it.runIf(process.platform !== "win32")(
+    "creates buffered JSONL files with mode 0600",
+    async () => {
+      await withTempDir(async (dir) => {
+        const prev = process.umask(0o022);
+        try {
+          const nested = path.join(dir, "secure-buf");
+          const filePath = path.join(nested, "buffered.jsonl");
+          const writer = bufferedFileWriter({
+            filePath,
+            maxBatchSize: 10,
+            flushIntervalMs: 60_000,
+          });
+          await writer.write(event({ eventId: "buf-mode" }));
+          await writer.flush?.();
+          await writer.close?.();
+          expect((await stat(nested)).mode & 0o777).toBe(0o700);
+          expect((await stat(filePath)).mode & 0o777).toBe(0o600);
+        } finally {
+          process.umask(prev);
+        }
+      });
+    },
+  );
 
   it("flushes automatically after the configured interval", async () => {
     await withTempDir(async (dir) => {
@@ -461,6 +486,26 @@ describe("fileWriter", () => {
       });
     });
   });
+
+  it.runIf(process.platform !== "win32")(
+    "creates new directories at 0700 and JSONL files at 0600",
+    async () => {
+      await withTempDir(async (dir) => {
+        const prev = process.umask(0o022);
+        try {
+          const traceDir = path.join(dir, "secure-traces");
+          const writer = fileWriter({ dir: traceDir });
+          await writer.write(event({ eventId: "mode", runId: "run_mode" }));
+          await writer.flush?.();
+          await writer.close?.();
+          expect((await stat(traceDir)).mode & 0o777).toBe(0o700);
+          expect((await stat(path.join(traceDir, "run_mode.jsonl"))).mode & 0o777).toBe(0o600);
+        } finally {
+          process.umask(prev);
+        }
+      });
+    },
+  );
 
   it("serializes concurrent writes in call order", async () => {
     await withTempDir(async (dir) => {

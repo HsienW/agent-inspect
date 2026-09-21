@@ -287,6 +287,8 @@ agent-inspect view <runId> --tui
 - Persisted events are size-bounded by default (see `docs/API.md`).
 - Confidence labels are required to keep attribution honest.
 - AgentInspect is for local debugging, not production monitoring.
+- On POSIX, new built-in raw trace directories request `0700` and new JSONL files request `0600`. Pre-existing paths are not chmodded. Local-first does not replace host permissions, disk encryption, CI access controls, or retention policy.
+- `doctor` warns when an existing POSIX trace directory still has group/other permission bits; remediate with `chmod 700` on the directory and review JSONL files with `chmod 600`.
 
 ## 16. Next docs
 

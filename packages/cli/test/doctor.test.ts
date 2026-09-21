@@ -47,7 +47,45 @@ describe("doctor CLI", () => {
       true,
     );
     expect(checks.some((check) => check.id === "trace-dir-writable")).toBe(true);
+    expect(checks.some((check) => check.id === "trace-dir-permissions")).toBe(true);
   });
+
+  it.runIf(process.platform !== "win32")(
+    "warns when an existing POSIX trace directory has group/other bits",
+    async () => {
+      const openDir = path.join(tmpDir, "open-trace");
+      const { mkdir, chmod } = await import("node:fs/promises");
+      await mkdir(openDir, { recursive: true, mode: 0o755 });
+      await chmod(openDir, 0o755);
+      const checks = await runDoctorChecks({
+        cwd: tmpDir,
+        traceDir: openDir,
+        checkImports: false,
+      });
+      const perm = checks.find((check) => check.id === "trace-dir-permissions");
+      expect(perm?.status).toBe("warn");
+      expect(perm?.evidence).toMatch(/mode=755/);
+      expect(perm?.remediation).toMatch(/chmod 700/);
+    },
+  );
+
+  it.runIf(process.platform !== "win32")(
+    "passes the permission check for a 0700 trace directory",
+    async () => {
+      const tightDir = path.join(tmpDir, "tight-trace");
+      const { mkdir, chmod } = await import("node:fs/promises");
+      await mkdir(tightDir, { recursive: true, mode: 0o700 });
+      await chmod(tightDir, 0o700);
+      const checks = await runDoctorChecks({
+        cwd: tmpDir,
+        traceDir: tightDir,
+        checkImports: false,
+      });
+      const perm = checks.find((check) => check.id === "trace-dir-permissions");
+      expect(perm?.status).toBe("pass");
+      expect(perm?.evidence).toMatch(/mode=700/);
+    },
+  );
 
   it("prints JSON summary", async () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});

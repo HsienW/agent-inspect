@@ -1,10 +1,10 @@
-import { appendFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 
 import {
   preparePersistedInspectEventForWrite,
   resolveTraceSafetyOptions,
 } from "../trace-event-safety.js";
+import { appendTraceFile, mkdirTraceDir } from "../trace-filesystem.js";
 import type { PersistedInspectEvent } from "../types/persisted-inspect-event.js";
 import { getTraceFilePath } from "../utils.js";
 
@@ -126,8 +126,8 @@ async function appendEventLine(
   options: FileTraceWriterOptions,
 ): Promise<void> {
   const filePath = resolveFilePath(event, options);
-  await mkdir(path.dirname(filePath), { recursive: true });
-  await appendFile(filePath, serializeEvent(event), "utf-8");
+  await mkdirTraceDir(path.dirname(filePath));
+  await appendTraceFile(filePath, serializeEvent(event));
 }
 
 async function appendEventBatch(
@@ -157,8 +157,8 @@ async function appendEventBatch(
   let written = 0;
   for (const [filePath, lines] of byPath) {
     try {
-      await mkdir(path.dirname(filePath), { recursive: true });
-      await appendFile(filePath, lines.join(""), "utf-8");
+      await mkdirTraceDir(path.dirname(filePath));
+      await appendTraceFile(filePath, lines.join(""));
       written += lines.length;
     } catch (error) {
       dropped += lines.length;

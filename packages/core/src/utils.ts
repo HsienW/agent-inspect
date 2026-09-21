@@ -1,9 +1,9 @@
-import { mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
 import { nanoid } from "nanoid";
 
+import { mkdirTraceDir } from "./trace-filesystem.js";
 import type { ErrorInfo } from "./types.js";
 import { formatDuration as formatDurationV2 } from "./utils/duration.js";
 
@@ -102,13 +102,13 @@ export function getTraceFilePath(runId: string, traceDir?: string): string {
 export async function ensureTraceDir(traceDir: string): Promise<string> {
   const primary = path.resolve(traceDir);
   try {
-    await mkdir(primary, { recursive: true });
+    await mkdirTraceDir(primary);
     return primary;
   } catch {
     warn(`Failed to create trace directory: ${primary}`);
     const fallback = path.resolve(FALLBACK_TRACE_DIR);
     try {
-      await mkdir(fallback, { recursive: true });
+      await mkdirTraceDir(fallback);
       return fallback;
     } catch {
       warn(`Failed to create fallback trace directory: ${fallback}`);

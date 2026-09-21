@@ -149,6 +149,36 @@ describe("ensureTraceDir", () => {
     await expect(access(dir)).resolves.toBeUndefined();
   });
 
+  it.runIf(process.platform !== "win32")(
+    "requests 0700 for newly created directories under a permissive umask",
+    async () => {
+      const prev = process.umask(0o022);
+      try {
+        const dir = path.join(os.tmpdir(), `agent-inspect-mode-${createRunId()}`);
+        created.push(dir);
+        await ensureTraceDir(dir);
+        const st = await fsPromises.stat(dir);
+        expect(st.mode & 0o777).toBe(0o700);
+      } finally {
+        process.umask(prev);
+      }
+    },
+  );
+
+  it.runIf(process.platform !== "win32")(
+    "does not rewrite mode on an existing directory",
+    async () => {
+      const dir = path.join(os.tmpdir(), `agent-inspect-keep-${createRunId()}`);
+      created.push(dir);
+      await fsPromises.mkdir(dir, { recursive: true, mode: 0o755 });
+      const before = (await fsPromises.stat(dir)).mode & 0o777;
+      expect(before).toBe(0o755);
+      await ensureTraceDir(dir);
+      const after = (await fsPromises.stat(dir)).mode & 0o777;
+      expect(after).toBe(0o755);
+    },
+  );
+
   it("does not throw and falls back when primary mkdir fails", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const primary = path.join(os.tmpdir(), `agent-inspect-bad-${createRunId()}`);
