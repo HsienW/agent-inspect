@@ -1,5 +1,7 @@
 import crypto from "node:crypto";
 
+import { isCredentialSensitiveKey } from "../safety/sensitive-key.js";
+
 import type { RedactionRule } from "../types/log-config.js";
 
 export const DEFAULT_REDACT_KEYS = [
@@ -31,10 +33,11 @@ function stableHash(value: string): string {
   return h.slice(0, 8);
 }
 
-type CompiledRule =
+type CompiledRule = (
   | { key: string; strategy: "full" }
   | { key: string; strategy: "prefix"; keep: number }
-  | { key: string; strategy: "hash" };
+  | { key: string; strategy: "hash" }
+) & { raw?: string };
 
 function compileRules(
   rules?: RedactionRule[],
@@ -44,7 +47,7 @@ function compileRules(
 
   const set = (r: CompiledRule) => {
     const k = toKey(r.key);
-    out.set(k, { ...r, key: k } as CompiledRule);
+    out.set(k, { ...r, key: k, raw: r.raw ?? r.key } as CompiledRule);
   };
 
   for (const k of DEFAULT_REDACT_KEYS) {
@@ -82,7 +85,9 @@ export class Redactor {
 
   redactValue(key: string, value: unknown): unknown {
     const k = toKey(key);
-    const rule = this.#rules.find((r) => r.key === k);
+    const rule =
+      this.#rules.find((r) => r.key === k) ??
+      this.#rules.find((r) => isCredentialSensitiveKey(key, [r.raw ?? r.key]));
     if (!rule) {
       return this.#redactNested(value);
     }
