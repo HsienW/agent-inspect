@@ -1,5 +1,13 @@
 # @agent-inspect/guardrails
 
+## 6.31.4
+
+### Patch Changes
+
+- Updated dependencies [fc7e7ad]
+- Updated dependencies [fc7e7ad]
+  - @agent-inspect/redact@6.31.4
+
 ## 6.31.3
 
 ### Patch Changes
